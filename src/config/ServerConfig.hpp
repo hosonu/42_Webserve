@@ -6,6 +6,7 @@
 
 class ServerConfig {
 	public:
+		
 	private:
 		//server definition data & groval settigns data
 		int	listenPort;
@@ -20,6 +21,6 @@ class ServerConfig {
 		std::string rootPath;
 		//etc
 
-}
+};
 
 #endif
