@@ -9,10 +9,12 @@ int main(int argc, char **argv){
 	// std::cout << "Host: "<< conf.Servers[0].getHost() <<std::endl;
 	// std::cout <<  "Port: " << conf.Servers[0].getListenPort() << std::endl;
 
-
-	Server s(conf.getServerConfig());
-	// Server s("127.0.0.1", 8080);
-	s.run();
+	try {
+		Server s(conf.getServerConfig());
+		s.run();
+	} catch (std::exception &e) {
+		std::cout << e.what() << std::endl;
+	}
 }
 
 // int main() {
