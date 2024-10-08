@@ -11,18 +11,30 @@
 /*main class of this server*/
 class Server {
 	public:
-		Server(const std::string& host, int port);
-		Server(const std::vector<ServerConfig> &ServerData);
+		// Server(const std::string& host, int port);
+		Server(const std::vector<ServerConfig> &configs);
 		~Server();
 	//manage event loop using epoll
 	//manage socket and accept connection of cliant
 	//control non-blocking I/O process
 		void	run();
 	private:
-		Socket socket_;
+		struct ServerInstance
+		{
+			Socket socket_;
+			ServerConfig config;
+			// ServerInstance(const Socket& sock, const ServerConfig& cfg) : socket(sock), config(cfg){}
+		};
+
 		int	epoll_fd_;
 		std::vector<struct epoll_event> events_;
+		std::vector<ServerInstance> server_instances_;
+		std::map<int, const ServerConfig*> client_configs_; // Maps client FDs to their configurations
 
+		//initialize each server instance
+		void	acceptNewConnection(Socket& listen_socket, const ServerConfig& config);
+		void	setNonBlocking_cs(int fd);
+		//handling client connection
 		void	handleClient(int client_fd);
 };
 

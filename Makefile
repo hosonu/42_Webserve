@@ -1,7 +1,8 @@
 CXX = c++
 CXXFLAGS = -Wall -Werror -Wextra -std=c++98
 
-SRCS = src/main.cpp src/core/Server.cpp src/core/Socket.cpp src/config/Config.cpp src/config/ServerConfig.cpp src/config/Route.cpp
+SRCS = src/main.cpp src/core/Server.cpp src/core/Socket.cpp src/config/Config.cpp \
+# src/config/ServerConfig.cpp src/config/Route.cpp
 
 TARGET = program
 

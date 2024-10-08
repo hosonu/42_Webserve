@@ -1,5 +1,7 @@
 #include "Socket.hpp"
 
+Socket::Socket() {}
+
 Socket::Socket(const std::string& host, int port) 
 : fd_(-1), host_(host), port_(port), is_listening_(false) {
 	fd_ = socket(AF_INET, SOCK_STREAM, 0);

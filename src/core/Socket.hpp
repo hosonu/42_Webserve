@@ -12,6 +12,7 @@
 
 class Socket {
 	public:
+		Socket();
 		Socket(const std::string& host, int port);
 		~Socket();
 
