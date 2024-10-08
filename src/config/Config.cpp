@@ -39,14 +39,16 @@ bool	Config::parse(const std::string &filePath) {
 				int port;
 				ss >> port;
 				// std::cout << "here listen port: " << port << std::endl;//debug
-				currentServer.listenPort = port;
+				currentServer.setListenPort(port);
+				// currentServer.listenPort = port;	
 			} else if (line.find("host") != std::string::npos) {
 				// std::string host = line.substr(line.find("host ") + 5, line.find(";"));
 				size_t start = line.find("host ") + 5;
 				size_t end = line.find(";", start);
 				std::string host = line.substr(start, end - start);
 				// std::cout << "here host: " << host << std::endl;//debug
-				currentServer.host = host;
+				// currentServer.host = host;
+				currentServer.setHost(host);
 			}
 		}
 	}
