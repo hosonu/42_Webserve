@@ -2,6 +2,7 @@
 #define SERVER_HPP
 
 #include "Socket.hpp"
+#include "../config/Config.hpp"
 #include <sys/epoll.h>
 #include <vector>
 
@@ -11,6 +12,7 @@
 class Server {
 	public:
 		Server(const std::string& host, int port);
+		Server(const std::vector<ServerConfig> &ServerData);
 		~Server();
 	//manage event loop using epoll
 	//manage socket and accept connection of cliant

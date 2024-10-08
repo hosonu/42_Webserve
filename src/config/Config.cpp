@@ -1,6 +1,6 @@
 #include "Config.hpp"
 
-Config::Config() : Servers(10, ServerConfig()) {
+Config::Config() {
 }
 
 Config::~Config() {
@@ -16,7 +16,7 @@ bool	Config::parse(const std::string &filePath) {
 	std::stringstream streamConf;
 	streamConf << file.rdbuf();//return buf to contain the entire file & add it to buffer
 	
-	//Parse the file stream
+	/*Parse the file stream*/
 	std::string line;
 	ServerConfig currentServer;
 	bool isServerBlock = false;
@@ -30,16 +30,16 @@ bool	Config::parse(const std::string &filePath) {
 				isServerBlock = false;
 			}
 		} else if (isServerBlock) {
-			// Parse individual directives inside server block
+			/* Parse individual directives inside server block*/
 			if (line.find("listen") != std::string::npos) {
 				std::stringstream ss(line.substr(line.find("listen ") + 6, line.find(";")));
 				int port;
 				ss >> port;
-				std::cout << "here listen port: " << port << std::endl;//debug
+				// std::cout << "here listen port: " << port << std::endl;//debug
 				currentServer.setListenPort(port);
 			} else if (line.find("host") != std::string::npos) {
 				std::string host = line.substr(line.find("host ") + 5, line.find(";"));
-				std::cout << "here host: " << host << std::endl;//debug
+				// std::cout << "here host: " << host << std::endl;//debug
 				currentServer.setHost(host);
 			}
 		}
@@ -47,4 +47,9 @@ bool	Config::parse(const std::string &filePath) {
 
 	file.close();
 	return true;
+}
+
+
+std::vector<ServerConfig> Config::getServerConfig() const {
+	return Servers;
 }

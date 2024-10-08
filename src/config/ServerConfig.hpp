@@ -10,8 +10,6 @@ class ServerConfig {
 		ServerConfig();
 		~ServerConfig();
 
-
-
 		void setHost(const std::string& host);
 		void setListenPort(int port);
 		std::string getHost() const;

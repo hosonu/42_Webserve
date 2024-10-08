@@ -13,8 +13,11 @@ class Config {
 		~Config();
 
 		bool	parse(const std::string &filePath);
-		std::vector<ServerConfig> Servers;
+
+		std::vector<ServerConfig> getServerConfig() const;
+
 	private:
+		std::vector<ServerConfig> Servers;
 
 };
 
