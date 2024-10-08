@@ -5,6 +5,7 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 class Config {
 	public:
@@ -12,8 +13,9 @@ class Config {
 		~Config();
 
 		bool	parse(const std::string &filePath);
+		std::vector<ServerConfig> Servers;
 	private:
-		std::vector<SeverConfig> Servers;
+
 };
 
 #endif
