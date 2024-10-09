@@ -10,7 +10,9 @@ int main(int argc, char **argv){
 	// std::cout <<  "Port: " << conf.Servers[0].getListenPort() << std::endl;
 
 	try {
-		Server s(conf.getServerConfig());
+		Server s(conf);
+		s.setServer();
+
 		s.run();
 	} catch (std::exception &e) {
 		std::cout << e.what() << std::endl;

@@ -5,6 +5,7 @@
 #include <cstring>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <cerrno>
@@ -21,7 +22,7 @@ class Socket {
 		bool	bind();
 		bool	listen(int backlog = 10);
 		int		accept();
-		bool	setNonBlocking();
+		bool	setNonBlocking(int fd);
 
 		int		getFd() const;
 		void    close();
