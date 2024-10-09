@@ -23,6 +23,25 @@ Socket::Socket(const std::string& host, int port)
 	}
 }
 
+Socket::Socket(const Socket &src) {
+	fd_ = src.fd_;
+	host_ = src.host_;
+	port_ = src.port_;
+	is_listening_ = src.is_listening_;
+	address_ = src.address_;
+}
+
+Socket& Socket::operator=(const Socket &rhs) {
+	if (this != &rhs) {
+		fd_ = rhs.fd_;
+		host_ = rhs.host_;
+		port_ = rhs.port_;
+		is_listening_ = rhs.is_listening_;
+		address_ = rhs.address_;
+	}
+	return *this;
+}
+
 Socket::~Socket() {
 	close();
 }

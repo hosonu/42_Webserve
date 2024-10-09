@@ -11,7 +11,6 @@
 /*main class of this server*/
 class Server {
 	public:
-		// Server(const std::string& host, int port);
 		Server(const std::vector<ServerConfig> &configs);
 		~Server();
 	//manage event loop using epoll
@@ -23,7 +22,6 @@ class Server {
 		{
 			Socket socket_;
 			ServerConfig config;
-			// ServerInstance(const Socket& sock, const ServerConfig& cfg) : socket(sock), config(cfg){}
 		};
 
 		int	epoll_fd_;
