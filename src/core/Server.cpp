@@ -31,6 +31,30 @@ void	Server::setServer() {
 	events_.resize(MAX_EVENTS);
 }
 
+Server::Server(const std::vector<ServerConfig> &ServerData)
+: socket_(ServerData[0].getHost(), ServerData[0].getListenPort()) {
+	socket_.setNonBlocking();
+	if (socket_.bind() == false) {
+		throw std::runtime_error("Failed to bind socket");
+	}
+	if (socket_.listen() == false) {
+		throw std::runtime_error("Failed to listen on socket");
+	}
+
+	epoll_fd_ = epoll_create1(0);
+	if (epoll_fd_ == -1) {
+		throw std::runtime_error("Failed to create epoll file descriptor");
+	}
+
+	struct epoll_event event;
+	event.events = EPOLLIN;
+	event.data.fd = socket_.getFd();
+	if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, socket_.getFd(), &event) == -1) {
+		throw std::runtime_error("Failed to add socket to epoll");
+	}
+
+	events_.resize(MAX_EVENTS);//init size of event list
+}
 
 Server::~Server() {
     // close(epoll_fd_);
