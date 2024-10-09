@@ -14,9 +14,8 @@
 class Socket {
 	public:
 		Socket();
-		Socket(const Socket &src);
-		Socket& operator=(const Socket &rhs);
 		Socket(const std::string& host, int port);
+		Socket(const Socket &src);
 		~Socket();
 
 		bool	bind();

@@ -5,7 +5,6 @@ Socket::Socket() {}
 Socket::Socket(const std::string& host, int port) 
 : fd_(-1), host_(host), port_(port), is_listening_(false) {
 	fd_ = socket(AF_INET, SOCK_STREAM, 0);
-	std::cout << fd_ << std::endl;//debug
 	if (fd_ < 0) {
 		throw std::runtime_error("Failed to create socket");
 		return ; //error management
@@ -33,19 +32,8 @@ Socket::Socket(const Socket &src) {
 	address_ = src.address_;
 }
 
-Socket& Socket::operator=(const Socket &rhs) {
-	if (this != &rhs) {
-		fd_ = rhs.fd_;
-		host_ = rhs.host_;
-		port_ = rhs.port_;
-		is_listening_ = rhs.is_listening_;
-		address_ = rhs.address_;
-	}
-	return *this;
-}
-
 Socket::~Socket() {
-	close();
+	// close();//for文内でデストラクターが呼ばれ引き継げなかった。
 }
 
 bool	Socket::bind() {
@@ -53,12 +41,12 @@ bool	Socket::bind() {
 
 	if (setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
 		std::cerr << "failed to setsockopt" << strerror(errno) << std::endl;
-		return false; // add error message?
+		return false;
 	}
 
 	if (::bind(fd_, (struct sockaddr *)&address_, sizeof(address_)) < 0) {
 		std::cerr << "failed to bind" << std::endl;
-		return false; // add error message?
+		return false;
 	}
 	return true;
 }
