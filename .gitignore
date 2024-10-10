@@ -1,0 +1,14 @@
+# OSの生成ファイル
+.DS_Store
+Thumbs.db
+
+# IDEやエディタの設定ファイル
+.vscode/
+.idea/
+
+# コンパイル結果
+*.o
+*.out
+*.exe
+
+program
