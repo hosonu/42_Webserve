@@ -16,8 +16,8 @@ Socket::Socket(const std::string& host, int port)
 		address_.sin_addr.s_addr = INADDR_ANY;
 	} else {
 		if (inet_pton(AF_INET, host_.c_str(), &address_.sin_addr) <= 0) {
-			std::cerr << "what a fuck is going on??" << std::endl;
 			close();
+			std::cerr << "what a fuck is going on??" << std::endl;
 			return;
 		}
 		return ;

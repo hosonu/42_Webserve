@@ -1,7 +1,7 @@
 #include "core/Server.hpp"
 #include "config/Config.hpp"
 
-bool getValidatePath(int argc, char *argv[], std::string &path) {
+bool getValidatedPath(int argc, char *argv[], std::string &path) {
 	
 	if (argc == 1) {
 		path = "config/test.conf";
@@ -24,7 +24,7 @@ int main(int argc, char *argv[]){
 	
 	std::string path;
 
-	if (getValidatePath(argc, argv, path) == false) {
+	if (getValidatedPath(argc, argv, path) == false) {
 		return false;
 	}
  
