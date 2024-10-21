@@ -10,6 +10,13 @@ void	Server::setServer() {
 	}
 
 	for(std::vector<ServerConfig>::iterator it = configData.begin(); it != configData.end(); ++it) {
+
+		/*debugginggggg*/
+		// std::cout << "listen: host " << it->host << ", port " << it->listenPort << std::endl;
+		// std::cout << "sever_name: " << it->serverName << std::endl;
+		// std::cout << "errorpage: " << it->errorPages[404] << " " << it->errorPages[502] << std::endl;
+		// std::cout << "CMBS: " << it->maxBodySize << std::endl;
+
 		Socket socket(it->host, it->listenPort);
 		if (socket.setNonBlocking(socket.getFd()) == false)
 			throw std::runtime_error("fuck it");

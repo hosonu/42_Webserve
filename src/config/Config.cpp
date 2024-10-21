@@ -23,14 +23,44 @@ void	getListenDirective(std::string &line, ServerConfig &currentServer) {
 	} else {
 		if (line.find("localhost") != std::string::npos) {
 			currentServer.host = "127.0.0.1";
+			currentServer.listenPort = 80;
 		} if (line.find(".") != std::string::npos) {
-			currentServer.host = line.substr(start, end - start);			
+			currentServer.host = line.substr(start, end - start);
+			currentServer.listenPort = 80;
 		} else {
 			std::stringstream ss(line.substr(start, end - start));
 			int port;
 			ss >> port;
 			currentServer.listenPort = port;
+			currentServer.host = "127.0.0.1";//default host
 		}
+	}
+}
+
+std::vector<std::string> splitString(std::string &input) {
+	std::vector<std::string> result;
+	std::istringstream iss(input);
+	std::string token = " ";
+
+	while (iss >> token) {
+		result.push_back(token);
+	}
+
+	return result;
+}
+
+
+void	getErrorPage(std::string &line, ServerConfig &currentServer) {
+	std::vector<std::string> tokens = splitString(line);
+	// for (size_t i = 0; i < tokens.size(); ++i) {
+	// 	std::cout << tokens[i] << std::endl;
+	// }
+
+	std::string path = tokens[tokens.size() - 1].substr(0, tokens[tokens.size() - 1].find(";"));
+	// std::cout << "path: " << path << std::endl;
+	for (size_t i = 1; i < tokens.size() - 1; ++i) {
+			int statusCode = std::strtol(tokens[i].c_str(), 0, 10);
+			currentServer.errorPages[statusCode] = path;
 	}
 }
 
@@ -52,7 +82,6 @@ bool	Config::parse(const std::string &filePath) {
 	std::string line;
 	ServerConfig currentServer;
 	bool isServerBlock = false;
-	int i = 0;
 	while(std::getline(streamConf, line)) {
 		if (line.find("server {") != std::string::npos) {
 			isServerBlock = true;
@@ -61,10 +90,9 @@ bool	Config::parse(const std::string &filePath) {
 			if (isServerBlock) {
 				this->Servers.push_back(currentServer);
 				isServerBlock = false;
-				i = 0;
 			}
-		} else if (isServerBlock) {
 			/* Parse individual directives inside server block*/
+		} else if (isServerBlock) {
 			if (line.find("listen") != std::string::npos) {
 				getListenDirective(line, currentServer);
 			} else if (line.find("server_name") != std::string::npos) {
@@ -73,11 +101,7 @@ bool	Config::parse(const std::string &filePath) {
 				std::string serverName = line.substr(start, end - start);
 				currentServer.serverName = serverName;
 			} else if (line.find("error_page") != std::string::npos) {
-				size_t start = line.find("error_page ") + 11;
-				size_t end = line.find(";", start);
-				std::string errorPage = line.substr(start, end - start);
-				currentServer.errorPages.insert({i, errorPage});// need to fix for std::map errorPages
-				i++;
+				getErrorPage(line, currentServer);
 			} else if (line.find("client_max_body_size") != std::string::npos) {
 				size_t start = line.find("client_max_body_size ") + 20;
 				size_t end = line.find(";", start);
