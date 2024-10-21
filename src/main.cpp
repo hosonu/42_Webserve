@@ -25,12 +25,12 @@ int main(int argc, char *argv[]){
 	std::string path;
 
 	if (getValidatePath(argc, argv, path) == false) {
-		return false;
+		return 1;
 	}
  
 	Config conf;
 	if (conf.parse(path) == false) {
-		return false;
+		return 1;
 	} 
 
 	try {

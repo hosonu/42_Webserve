@@ -89,6 +89,8 @@ void	Server::handleClient(int client_fd) {
 	//add the line pocessing cliant connnection
 	char buffer[1024];
 	ssize_t count = read(client_fd, buffer, sizeof(buffer));
+	request req;
+	std::string rawReq;
 	if (count == -1) {
 		if (errno != EAGAIN) {
 			close(client_fd);
@@ -97,7 +99,11 @@ void	Server::handleClient(int client_fd) {
 		close(client_fd);
 	} else {
 		//add the line processing accepted date
-		std::cout << "Received: " << std::string(buffer, count) << std::endl;
+		// std::cout << "Received: " << std::string(buffer, count) << std::endl;
+		rawReq = buffer;
+		req.requestParse(rawReq);
+		// //test
+		// print_line(req);
 	}
 }
 
