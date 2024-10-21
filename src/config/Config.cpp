@@ -37,7 +37,7 @@ void	getListenDirective(std::string &line, ServerConfig &currentServer) {
 	}
 }
 
-std::vector<std::string> splitString(std::string &input) {
+static std::vector<std::string> splitString(std::string &input) {
 	std::vector<std::string> result;
 	std::istringstream iss(input);
 	std::string token = " ";
@@ -49,19 +49,23 @@ std::vector<std::string> splitString(std::string &input) {
 	return result;
 }
 
-
 void	getErrorPage(std::string &line, ServerConfig &currentServer) {
 	std::vector<std::string> tokens = splitString(line);
-	// for (size_t i = 0; i < tokens.size(); ++i) {
-	// 	std::cout << tokens[i] << std::endl;
-	// }
-
 	std::string path = tokens[tokens.size() - 1].substr(0, tokens[tokens.size() - 1].find(";"));
-	// std::cout << "path: " << path << std::endl;
 	for (size_t i = 1; i < tokens.size() - 1; ++i) {
 			int statusCode = std::strtol(tokens[i].c_str(), 0, 10);
 			currentServer.errorPages[statusCode] = path;
 	}
+}
+
+bool checkFileStruct(std::stringstream &streamConf) {
+	std::string contentConf = streamConf.str();
+
+	for (size_t i = 0; i < contentConf.size(); ++i) {
+		std::cout << contentConf[i] << std::endl;
+	}
+	return true;
+
 }
 
 bool	Config::parse(const std::string &filePath) {
@@ -76,7 +80,8 @@ bool	Config::parse(const std::string &filePath) {
 	
 	/*TODO: check error of file contens*/
 	// std::string fileContens.
-	// if (checFileStruct())
+	if (checkFileStruct(streamConf) == false)
+		return false;
 
 	/*Parse the file stream*/
 	std::string line;
@@ -107,7 +112,9 @@ bool	Config::parse(const std::string &filePath) {
 				size_t end = line.find(";", start);
 				std::string clientMaxBodySize = line.substr(start, end - start);
 				currentServer.maxBodySize = clientMaxBodySize;
-			}
+			} else if (line.find("location") != std::string::npos) {
+
+			} 
 		}
 	}
 
