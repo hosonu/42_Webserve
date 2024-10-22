@@ -12,10 +12,14 @@ void	Server::setServer() {
 	for(std::vector<ServerConfig>::iterator it = configData.begin(); it != configData.end(); ++it) {
 
 		/*debugginggggg*/
-		// std::cout << "listen: host " << it->host << ", port " << it->listenPort << std::endl;
-		// std::cout << "sever_name: " << it->serverName << std::endl;
-		// std::cout << "errorpage: " << it->errorPages[404] << " " << it->errorPages[502] << std::endl;
-		// std::cout << "CMBS: " << it->maxBodySize << std::endl;
+		std::cout << "listen: host " << it->host << ", port " << it->listenPort << std::endl;
+		std::cout << "sever_name: " << it->serverName << std::endl;
+		std::cout << "errorpage: " << it->errorPages[404] << " " << it->errorPages[502] << std::endl;
+		std::cout << "CMBS: " << it->maxBodySize << std::endl;
+		std::cout << "allow_methods: " << it->routeData.allowMethods[1] << std::endl;
+		std::cout << "autoindex: " << it->routeData.autoindex << std::endl;
+		std::cout << "root: " << it->routeData.root << std::endl;
+		std::cout << "index: " << it->routeData.indexFile << std::endl;
 
 		Socket socket(it->host, it->listenPort);
 		if (socket.setNonBlocking(socket.getFd()) == false)

@@ -24,3 +24,10 @@ error_page : (num or.html)
 client_max_body_size : 1m
 (the 413 (Request Entity Too Large) error is returned to the client)
 
+location {
+	return
+	root
+	allow_methods
+	autoindex
+	index
+}

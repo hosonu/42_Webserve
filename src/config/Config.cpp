@@ -32,7 +32,7 @@ void	getListenDirective(std::string &line, ServerConfig &currentServer) {
 			int port;
 			ss >> port;
 			currentServer.listenPort = port;
-			currentServer.host = "127.0.0.1";//default host
+			currentServer.host = "0.0.0.0";//default host
 		}
 	}
 }
@@ -45,7 +45,6 @@ static std::vector<std::string> splitString(std::string &input) {
 	while (iss >> token) {
 		result.push_back(token);
 	}
-
 	return result;
 }
 
@@ -58,14 +57,40 @@ void	getErrorPage(std::string &line, ServerConfig &currentServer) {
 	}
 }
 
-bool checkFileStruct(std::stringstream &streamConf) {
-	std::string contentConf = streamConf.str();
+void	initializeRouteData(ServerConfig &currentServer) {
+	currentServer.routeData.path = "";
+	currentServer.routeData.root = "";
+	currentServer.routeData.autoindex = false;
+	currentServer.routeData.indexFile = "";
+}
 
-	for (size_t i = 0; i < contentConf.size(); ++i) {
-		std::cout << contentConf[i] << std::endl;
+void	getRouteData(std::string &line, ServerConfig &currentServer) {
+	if (line.find("root") != std::string::npos) {
+		size_t start = line.find("root ") + 5;
+		size_t end = line.find(";", start);
+		std::string rootPath = line.substr(start, end - start);
+		currentServer.routeData.root = rootPath;
+	} else if (line.find("allow_methods") != std::string::npos) {
+		std::vector<std::string> tokens = splitString(line);
+		currentServer.routeData.allowMethods = tokens;
+	} else if (line.find("autoindex") != std::string::npos) {
+		size_t start = line.find("autoindex ") + 10;
+		size_t end = line.find(";", start);
+		std::string autoindex = line.substr(start, end - start);
+		if (autoindex == "on")
+			currentServer.routeData.autoindex = true;
+		else
+			currentServer.routeData.autoindex = false;
+	} else if (line.find("index") != std::string::npos) {
+		currentServer.routeData.indexFile = "index.html";
 	}
-	return true;
+}
 
+
+bool checkFileStruct(std::stringstream &streamConf) {
+	std::string stringConf = streamConf.str();
+
+	return true;
 }
 
 bool	Config::parse(const std::string &filePath) {
@@ -84,17 +109,21 @@ bool	Config::parse(const std::string &filePath) {
 		return false;
 
 	/*Parse the file stream*/
-	std::string line;
-	ServerConfig currentServer;
-	bool isServerBlock = false;
+	std::string		line;
+	ServerConfig	currentServer;
+	bool			isServerBlock = false;
+	bool			isLocationBlock = false;
 	while(std::getline(streamConf, line)) {
 		if (line.find("server {") != std::string::npos) {
 			isServerBlock = true;
 			currentServer = ServerConfig();
 		} else if (line.find("}") != std::string::npos) {
-			if (isServerBlock) {
+			if (isServerBlock && isLocationBlock != true) {
 				this->Servers.push_back(currentServer);
 				isServerBlock = false;
+			}
+			if (isLocationBlock) {
+				isLocationBlock = false;
 			}
 			/* Parse individual directives inside server block*/
 		} else if (isServerBlock) {
@@ -113,8 +142,11 @@ bool	Config::parse(const std::string &filePath) {
 				std::string clientMaxBodySize = line.substr(start, end - start);
 				currentServer.maxBodySize = clientMaxBodySize;
 			} else if (line.find("location") != std::string::npos) {
-
-			} 
+				initializeRouteData(currentServer);
+				isLocationBlock = true;
+			} else if (isLocationBlock == true) {
+				getRouteData(line, currentServer);
+			}
 		}
 	}
 
