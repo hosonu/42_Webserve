@@ -87,8 +87,67 @@ void	getRouteData(std::string &line, ServerConfig &currentServer) {
 }
 
 
-bool checkFileStruct(std::stringstream &streamConf) {
-	std::string stringConf = streamConf.str();
+bool checkFileStruct(std::stringstream &file) {
+
+	/*check sysntax error ~start~*/
+	std::string stringFile = file.str();
+	int braceCount = 0;
+	// bool is_newline;
+	for (size_t i = 0; i < stringFile.size(); ++i){
+		std::cout << stringFile[i] << std::flush;
+		if (stringFile[i] == '{' || stringFile[i] == '}' || stringFile[i] == ';') {
+			if (stringFile[i + 2] != '\n') {
+				std::cerr << "syntax error: " << stringFile[i + 2] << ": no line breaks" << std::endl;
+				return false;
+			}
+		} else if (stringFile[i] == '\t') {
+			if (!std::isalpha(stringFile[i + 1]) && stringFile[i + 1] != '}' && stringFile[i] != '\t') {
+				std::cerr << "syntax error: " << stringFile[i + 1] << ": no tokens" << std::endl;
+				return false;
+			}
+		} else if (stringFile[i] == ' ') {			
+			if (!std::isalnum(stringFile[i + 1]) && stringFile[i + 1] != '/' && stringFile[i + 1] != '{') {
+				std::cerr << "syntax error: " << stringFile[i + 1] << ": no appropriate parameter" << std::endl;
+				return false;
+			}
+		}
+	}
+	/*check sysntax error ~end~*/
+
+	std::string line;
+	int	cnt_line = 1;
+	bool serverFlag = false;
+	bool errorPageFlag = false;
+	bool clientMaxBodySizeFlag = false;
+	bool locationFlag = false;
+	while(std::getline(file, line)) {
+		for (size_t i = 0; i < line.length(); ++i) {
+			if (line[i] == '{') braceCount++;
+			if (line[i] == '}') braceCount--;
+		}
+		if (cnt_line == 1 && line.find("server") != std::string::npos)
+			serverFlag = true;
+		if (cnt_line > 1 && braceCount != 0 && line.find("error_pager") != std::string::npos)
+			errorPageFlag = true;
+		if (cnt_line > 1 && braceCount != 0 && line.find("client_max_body_size") != std::string::npos)
+			clientMaxBodySizeFlag = true;
+		if (cnt_line > 1 && braceCount != 0 && line.find("location") != std::string::npos)
+			locationFlag = true;
+
+		if (braceCount == 0 && line.length() == 1) {
+			serverFlag = false;
+			errorPageFlag = false;
+			clientMaxBodySizeFlag = false;
+			locationFlag = false;
+			cnt_line = 0;
+		}
+		cnt_line++;
+ 	}
+	if (braceCount != 0 && serverFlag == false && errorPageFlag == false && 
+	clientMaxBodySizeFlag == false && locationFlag == false) {
+		std::cerr << "sysntax error: Not enough TOKEN required." << std::endl;
+		return false;
+	}
 
 	return true;
 }
@@ -102,9 +161,8 @@ bool	Config::parse(const std::string &filePath) {
 
 	std::stringstream streamConf;
 	streamConf << file.rdbuf();//return buf to contain the entire file & add it to buffer
-	
+
 	/*TODO: check error of file contens*/
-	// std::string fileContens.
 	if (checkFileStruct(streamConf) == false)
 		return false;
 
@@ -153,9 +211,6 @@ bool	Config::parse(const std::string &filePath) {
 	file.close();
 	return true;
 }
-
-
-
 
 std::vector<ServerConfig> Config::getServerConfig() const {
 	return Servers;
