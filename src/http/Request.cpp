@@ -53,6 +53,40 @@ bool request::headerParse(const std::string& headerRequest)
     return true;
 }
 
+void request::methodProc()
+{
+    if (this->method == "GET")
+    {
+        std::string filePath = "." + this->uri;
+        
+        std::ifstream file(filePath.c_str(), std::ios::binary);
+        if (!file)
+        {
+            std::cout << "File not found: " << filePath << std::endl;
+            return;
+        }
+        
+        std::string content((std::istreambuf_iterator<char>(file)),
+                             std::istreambuf_iterator<char>());
+        
+        std::cout << "HTTP/1.1 200 OK\r\n";
+        std::cout << "Content-Length: " << content.length() << "\r\n\r\n";
+        std::cout << content;
+    }
+	else if (this->method == "POST")
+	{
+	
+	}
+	else if (this->method == "DELETE")
+	{
+		
+	}
+	else
+	{
+		std::cout << "Invalid method" << std::endl;
+	}
+}
+
 std::string request::getMethod()
 {
     return this->method;
