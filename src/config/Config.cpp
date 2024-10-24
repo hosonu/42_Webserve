@@ -91,8 +91,6 @@ bool checkFileStruct(std::stringstream &file) {
 
 	/*check sysntax error ~start~*/
 	std::string stringFile = file.str();
-	int braceCount = 0;
-	// bool is_newline;
 	for (size_t i = 0; i < stringFile.size(); ++i){
 		std::cout << stringFile[i] << std::flush;
 		if (stringFile[i] == '{' || stringFile[i] == '}' || stringFile[i] == ';') {
@@ -116,6 +114,7 @@ bool checkFileStruct(std::stringstream &file) {
 
 	std::string line;
 	int	cnt_line = 1;
+	int braceCount = 0;
 	bool serverFlag = false;
 	bool errorPageFlag = false;
 	bool clientMaxBodySizeFlag = false;
@@ -148,7 +147,6 @@ bool checkFileStruct(std::stringstream &file) {
 		std::cerr << "sysntax error: Not enough TOKEN required." << std::endl;
 		return false;
 	}
-
 	return true;
 }
 
