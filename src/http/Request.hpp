@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <fstream>
+#include "Response.hpp"
 
 
 class request
@@ -27,7 +28,7 @@ class request
         std::string getUri();
         std::string getVersion();
         std::map<std::string, std::string> getHeader();
-        void methodProc();
+        void methodProc(int clinet_fd);
     private:
         std::string method;
         std::string uri;

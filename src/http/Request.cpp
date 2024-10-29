@@ -53,25 +53,15 @@ bool request::headerParse(const std::string& headerRequest)
     return true;
 }
 
-void request::methodProc()
+void request::methodProc(int clinet_fd)
 {
+    Response msg;
+    clinet_fd = 0;
     if (this->method == "GET")
     {
         std::string filePath = "." + this->uri;
-        
         std::ifstream file(filePath.c_str(), std::ios::binary);
-        if (!file)
-        {
-            std::cout << "File not found: " << filePath << std::endl;
-            return;
-        }
-        
-        std::string content((std::istreambuf_iterator<char>(file)),
-                             std::istreambuf_iterator<char>());
-        
-        std::cout << "HTTP/1.1 200 OK\r\n";
-        std::cout << "Content-Length: " << content.length() << "\r\n\r\n";
-        std::cout << content;
+        msg.createMessage(400, filePath);
     }
 	else if (this->method == "POST")
 	{

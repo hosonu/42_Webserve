@@ -99,11 +99,12 @@ void	Server::handleClient(int client_fd) {
 		close(client_fd);
 	} else {
 		//add the line processing accepted date
-		// std::cout << "Received: " << std::string(buffer, count) << std::endl;
+		std::cout << "Received: " << std::string(buffer, count) << std::endl;
 		rawReq = buffer;
 		req.requestParse(rawReq);
+		req.methodProc(client_fd);
 		// //test
-		// print_line(req);
+		print_line(req);
 	}
 }
 
