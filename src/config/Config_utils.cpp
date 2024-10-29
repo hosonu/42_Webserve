@@ -81,15 +81,22 @@ void	getRouteData(std::string &line, ServerConfig &currentServer) {
 	}
 }
 
+/*---------------------------------------checks syntax error-------------------------------------------*/
 bool checkBraceFlags(std::stringstream &file) {
 	std::string line;
-	int	cnt_line = 1;
 	int braceCount = 0;
 	bool serverFlag = false;
-	bool errorPageFlag = false;
-	bool clientMaxBodySizeFlag = false;
-	bool locationFlag = false;
 
+	struct ServerBlockFlags
+	{
+		bool listen = false;
+		bool errorPage = false;
+		bool clientMaxBodySize = false;
+		bool location = false;
+	};
+	ServerBlockFlags currentBlock;
+	std::vector<ServerBlockFlags> serverBlocks;
+	
 	std::stringstream tmp;
     tmp << file.rdbuf();
     file.clear();
@@ -97,36 +104,63 @@ bool checkBraceFlags(std::stringstream &file) {
 	
 	while(std::getline(tmp, line)) {
 		for (size_t i = 0; i < line.length(); ++i) {
-			if (line[i] == '{') braceCount++;
-			if (line[i] == '}') braceCount--;
+			if (line[i] == '{') {
+				braceCount++;
+				if (line.find("server ")  != std::string::npos) {
+					serverFlag = true;
+					currentBlock = ServerBlockFlags();
+				}
+			}
+			if (line[i] == '}') {
+				braceCount--;
+				if (braceCount == 0) {
+					serverBlocks.push_back(currentBlock);
+				}
+			}
 		}
-		if (cnt_line == 1 && line.find("server") != std::string::npos)
-			serverFlag = true;
-		if (cnt_line > 1 && braceCount != 0 && line.find("error_pager") != std::string::npos)
-			errorPageFlag = true;
-		if (cnt_line > 1 && braceCount != 0 && line.find("client_max_body_size") != std::string::npos)
-			clientMaxBodySizeFlag = true;
-		if (cnt_line > 1 && braceCount != 0 && line.find("location") != std::string::npos)
-			locationFlag = true;
+		if (braceCount > 0) {
+			if (line.find("listen ") != std::string::npos) currentBlock.listen = true;
+			if (line.find("error_page ") != std::string::npos) currentBlock.errorPage = true;
+			if (line.find("client_max_body_size ") != std::string::npos) currentBlock.clientMaxBodySize = true;
+			if (line.find("location ") != std::string::npos) currentBlock.location = true;
+		}
+	}
 
-		if (braceCount == 0 && line.length() == 1) {
-			serverFlag = false;
-			errorPageFlag = false;
-			clientMaxBodySizeFlag = false;
-			locationFlag = false;
-			cnt_line = 0;
-		}
-		cnt_line++;
- 	}
-	if (braceCount != 0 && serverFlag == false && errorPageFlag == false && 
-	clientMaxBodySizeFlag == false && locationFlag == false) {
-		std::cerr << "sysntax error: Not enough TOKEN required." << std::endl;
+	if (braceCount != 0) {
+		std::cerr << "Syntax error: Mismatched braces" << std::endl;
 		return false;
 	}
 
+	if (!serverFlag || serverBlocks.empty()) {
+		std::cerr << "Syntax error: No server blocks found" << std::endl;
+		return false;
+	}
+
+	std::vector<ServerBlockFlags>::const_iterator it;
+	size_t blockNum = 1;
+	for (it = serverBlocks.begin(); it != serverBlocks.end(); ++it) {
+		if (!it->listen) {
+			std::cerr << "Syntax error in server block " << blockNum << ": Missing 'listen' directive" << std::endl;
+			return false;
+		}
+		if (!it->errorPage) {
+			std::cerr << "Syntax error in server block " << blockNum << ": Missing 'error_page' directive" << std::endl;
+			return false;
+		}
+		if (!it->clientMaxBodySize) {
+			std::cerr << "Syntax error in server block " << blockNum << ": Missing 'client_max_body_size' directive" << std::endl;
+			return false;
+		}
+		if (!it->location) {
+			std::cerr << "Syntax error in server block " << blockNum << ": Missing 'location' directive" << std::endl;
+			return false;
+		}
+		++blockNum;
+	}
 	return true;
 }
 
+/*-----------------------------------------validate Parmeters-----------------------------------------*/
 bool	isValidIpAddress(const std::string &ip) {
 	int dots = 0;
 	for (size_t i = 0; i < ip.length(); ++i) {
