@@ -2,6 +2,7 @@
 #define CONFIG_HPP
 
 #include "ServerConfig.hpp"
+#include "Config_utils.hpp"
 #include <cstring>
 #include <iostream>
 #include <fstream>
