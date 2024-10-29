@@ -6,6 +6,7 @@ Config::Config() {
 Config::~Config() {
 }
 
+/*if we have to set as follows "host:port", this func should be changed*/
 void	getListenDirective(std::string &line, ServerConfig &currentServer) {
 	size_t start = line.find("listen ") + 7;
 	size_t end = line.find(";", start);
@@ -87,6 +88,7 @@ void	getRouteData(std::string &line, ServerConfig &currentServer) {
 }
 
 
+//if there are some words in sever {}, it detect error 
 bool checkFileStruct(std::stringstream &file) {
 
 	/*check sysntax error ~start~*/
@@ -147,6 +149,87 @@ bool checkFileStruct(std::stringstream &file) {
 		std::cerr << "sysntax error: Not enough TOKEN required." << std::endl;
 		return false;
 	}
+
+	return true;
+}
+
+bool	isValidIpAddress(const std::string &ip) {
+	int dots = 0;
+	for (size_t i = 0; i < ip.length(); ++i) {
+		if (ip[i] == '.')
+			dots++;
+	}
+	if (dots != 3) {
+		return false;
+	}
+
+	std::string octet;
+	int value = 0;
+	int count = 0;
+
+	for (size_t i = 0; i < ip.length(); ++i) {
+		if (ip[i] == '.') {
+			if (octet.empty() || octet.length() > 3) {
+				return false;
+			}
+			value = 0;
+			for (size_t j = 0; j < octet.length(); ++j){
+				if (!isdigit(octet[j])) {
+					return false;
+				}
+				value = value * 10 + (octet[j] - '0');
+			}
+			if (value > 255) {
+				return false;
+			}
+			if (octet.length() > 1 && octet[0] == '0') {
+				return false;
+			}
+			count++;
+			octet.clear();
+		} else {
+			octet += ip[i];
+		}
+	}
+
+	if (octet.empty() || octet.length() > 3) {
+			return false;
+	}
+	value = 0;
+	for (size_t j = 0; j < octet.length(); ++j){
+		if (!isdigit(octet[j])) {
+			return false;
+		}
+		value = value * 10 + (octet[j] - '0');
+	}
+	if (value > 255) {
+		return false;
+	}
+	if (octet.length() > 1 && octet[0] == '0') {
+		return false;
+	}
+
+	return true;
+}
+
+/*parametars check*/
+bool checkServerConfig(const ServerConfig& currentServer) {
+	if (currentServer.listenPort < 0 || currentServer.listenPort > 65535) {
+		return false;
+	}
+	if (currentServer.host.empty() || !isValidIpAddress(currentServer.host)) {
+		
+		return false;
+	}
+	if (currentServer.errorPages.empty()) {
+		return false;
+	}
+	if (currentServer.maxBodySize.empty()) {
+		return false;
+	}
+	// if (currentServer.routeData.empty()) {
+	// 	return false;
+	// }
 	return true;
 }
 
@@ -204,6 +287,12 @@ bool	Config::parse(const std::string &filePath) {
 				getRouteData(line, currentServer);
 			}
 		}
+	}
+
+
+	/*add func to checks invalid parameter*/
+	if (checkServerConfig(currentServer) != true) {
+		return false;
 	}
 
 	file.close();
