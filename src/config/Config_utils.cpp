@@ -82,10 +82,16 @@ void	getRouteData(std::string &line, ServerConfig &currentServer) {
 }
 
 /*---------------------------------------checks syntax error-------------------------------------------*/
+bool	checksDirectiveExist(const std::string &line) {
+	return (line == "listen" ||line == "error_page" || 
+		line == "client_max_body_size" || line == "location");
+}
+
 bool checkBraceFlags(std::stringstream &file) {
 	std::string line;
 	int braceCount = 0;
 	bool serverFlag = false;
+	// bool isExisted = false;
 
 	struct ServerBlockFlags
 	{
@@ -118,6 +124,9 @@ bool checkBraceFlags(std::stringstream &file) {
 				}
 			}
 		}
+
+		// isExisted = checksDirectiveExist(line);
+
 		if (braceCount > 0) {
 			if (line.find("listen ") != std::string::npos) currentBlock.listen = true;
 			if (line.find("error_page ") != std::string::npos) currentBlock.errorPage = true;
@@ -222,7 +231,6 @@ bool	isValidIpAddress(const std::string &ip) {
 
 bool isValidErrorPages(const std::map<int, std::string>& errorPages) {
 	std::map<int, std::string>::const_iterator it;
-	// std::cout << it->first << std::endl;
 	for (it = errorPages.begin(); it != errorPages.end(); ++it) {
 		if (it->first < 400 || it->first > 599) {
 			return false;
@@ -256,3 +264,7 @@ bool	isValidMaxBodySize(const std::string &maxBodySize) {
 	}
 	return true;
 }
+
+// bool	isValidRouteData(const Route &routeData) {
+
+// }
