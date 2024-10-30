@@ -18,7 +18,7 @@ bool checkFileStruct(std::stringstream &file) {
 
 	/*check sysntax error ~start~*/
 	std::string stringFile = file.str();
-	for (size_t i = 0; i < stringFile.size(); ++i){
+	for (size_t i = 0; i < stringFile.length(); ++i){
 		if (stringFile[i] == '{' || stringFile[i] == '}' || stringFile[i] == ';') {
 			if (stringFile[i + 2] != '\n') {
 				std::cerr << "syntax error: " << stringFile[i + 2] << ": no line breaks" << std::endl;
@@ -35,6 +35,7 @@ bool checkFileStruct(std::stringstream &file) {
 				return false;
 			}
 		}
+		
 	}
 
 	if (checkBraceFlags(file) != true)
