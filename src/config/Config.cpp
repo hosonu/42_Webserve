@@ -18,27 +18,37 @@ bool checkFileStruct(std::stringstream &file) {
 
 	/*check sysntax error ~start~*/
 	std::string stringFile = file.str();
+	int braceCount = 0;
+
 	for (size_t i = 0; i < stringFile.length(); ++i){
 		if (stringFile[i] == '{' || stringFile[i] == '}' || stringFile[i] == ';') {
+			if (stringFile[i] == '{') {
+				braceCount++;
+			} else if (stringFile[i] == '}') {
+				braceCount--;
+			}
 			if (stringFile[i + 2] != '\n') {
-				std::cerr << "syntax error: " << stringFile[i + 2] << ": no line breaks" << std::endl;
+				std::cerr << "Syntax error: " << stringFile[i + 2] << ": no line breaks" << std::endl;
 				return false;
 			}
 		} else if (stringFile[i] == '\t') {
 			if (!std::isalpha(stringFile[i + 1]) && stringFile[i + 1] != '}' && stringFile[i] != '\t') {
-				std::cerr << "syntax error: " << stringFile[i + 1] << ": no tokens" << std::endl;
+				std::cerr << "Syntax error: " << stringFile[i + 1] << ": no tokens" << std::endl;
 				return false;
 			}
 		} else if (stringFile[i] == ' ') {			
 			if (!std::isalnum(stringFile[i + 1]) && stringFile[i + 1] != '/' && stringFile[i + 1] != '{') {
-				std::cerr << "syntax error: " << stringFile[i + 1] << ": no appropriate parameter" << std::endl;
+				std::cerr << "Syntax error: " << stringFile[i + 1] << ": no appropriate parameter" << std::endl;
 				return false;
 			}
 		}
-		
+	}
+	if (braceCount != 0) {
+		std::cerr << "Syntax error: Mismatched braces" << std::endl;
+		return false;
 	}
 
-	if (checkBraceFlags(file) != true)
+	if (checkDirectiveName(file) != true)
 		return false;
 	
 

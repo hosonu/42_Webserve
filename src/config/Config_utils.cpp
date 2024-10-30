@@ -98,9 +98,8 @@ bool	checksDirectiveExist(const std::string &line) {
 			
 }
 
-bool checkBraceFlags(std::stringstream &file) {
+bool checkDirectiveName(std::stringstream &file) {
 	std::string line;
-	int braceCount = 0;
 	
 	std::stringstream tmp;
     tmp << file.rdbuf();
@@ -109,28 +108,20 @@ bool checkBraceFlags(std::stringstream &file) {
 	
 	while(std::getline(tmp, line)) {
 		for (size_t i = 0; i < line.length(); ++i) {
-			if (line[i] == '{') {
-				braceCount++;
-
-			}
-			if (line[i] == '}') {
-				braceCount--;
-			}
+			
 		}
 		if (line.length() > 1) {
 			int start = line.find_first_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ}");
 			int end = line.find_first_of(" \t}", start);
 			std::string word = line.substr(start, end - start);
 			if (end > 1 && line.find("}") == std::string::npos && checksDirectiveExist(word) == false) {
+				std::cerr << "Syntax error: " << word << " is not valid tokens" << std::endl;
 				return false;
 			}
 		}
 	}
 
-	if (braceCount != 0) {
-		std::cerr << "Syntax error: Mismatched braces" << std::endl;
-		return false;
-	}
+	
 
 	return true;
 }
