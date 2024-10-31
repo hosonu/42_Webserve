@@ -56,16 +56,14 @@ bool request::headerParse(const std::string& headerRequest)
 void request::methodProc(int clinet_fd)
 {
     Response msg;
-    clinet_fd = 0;
     if (this->method == "GET")
     {
-        std::string filePath = "." + this->uri;
-        std::ifstream file(filePath.c_str(), std::ios::binary);
-        msg.createMessage(400, filePath);
+        msg.createMessage(this->uri);
+        msg.wirteMessage(clinet_fd);
     }
 	else if (this->method == "POST")
 	{
-	
+        
 	}
 	else if (this->method == "DELETE")
 	{
@@ -96,6 +94,8 @@ std::map<std::string, std::string> request::getHeader()
     return this->headers;
 }
 
+
+//test code
 void    print_line(request& test)
 {
     std::map<std::string, std::string> t_map = test.getHeader();
