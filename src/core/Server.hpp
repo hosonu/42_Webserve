@@ -5,6 +5,7 @@
 #include "../config/Config.hpp"
 #include <sys/epoll.h>
 #include <vector>
+#include "../http/Request.hpp"
 
 #define MAX_EVENTS 10
 
