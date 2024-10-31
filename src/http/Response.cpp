@@ -17,7 +17,7 @@ void Response::createMessage(const std::string& path)
     this->getBody(path);
     this->getStatusCode();
     this->request_line = this->getRequestLine();
-    this->header += this->getContentType(path) + "\n";
+    this->header += this->getContentType(path) + "\r\n";
     this->header += this->getContentLength();
     this->header += this->getDate();
     this->header += this->getServer();
@@ -100,13 +100,13 @@ std::string Response::getContentType(const std::string& filePath)
         return "content-type: " + it->second;
     }
 
-    return "content-type: application/octet-stream";  // デフォルトのMIMEタイプ
+    return "Content-type: text/html";  // デフォルトのMIMEタイプ
 }
 
 std::string Response::getContentLength()
 {
     std::ostringstream oss;
-    oss << "content-lengt: " << this->body.length() << "\n";
+    oss << "Content-length: " << this->body.length() << "\r\n";
     return oss.str();
 }
 
@@ -117,17 +117,17 @@ std::string Response::getDate()
     struct tm* gmt = gmtime(&now);
     
     strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", gmt);
-    return "Date: " + std::string(buffer) + "\n";
+    return "Date: " + std::string(buffer) + "\r\n";
 }
 
 std::string Response::getServer()
 {
-    return "Server: Apache/2.4.41\n";
+    return "Server: Apache/2.4.41\r\n";
 }
 
 std::string Response::getConnection()
 {
-    return "Connection: Alive\n";
+    return "Connection: keep-Alive\r\n";
 }
 
 void Response::getStatusCode()
@@ -151,11 +151,10 @@ void Response::wirteMessage(int socket)
     int reqline = this->request_line.length();
     int headerLen = this->header.length();
     int bodyLen = this->body.length();
+    int totalLine = reqline + headerLen + bodyLen + 2;
+    std::string total = this->request_line + this->header + "\r\n" +this->body;
     //TODO: Error handling
-    write(socket, this->request_line.c_str(), reqline);
-    write(socket, this->header.c_str(), headerLen);
-    write(socket, "\r\n", 3);
-    write(socket, this->body.c_str(), bodyLen);
+    write(socket, total.c_str(), totalLine);
 }
 
 std::vector<std::string> getContents(const std::string& path)
@@ -194,5 +193,5 @@ std::string generateDirectoryListing(const std::string& path, const std::vector<
 
 std::string Response::getRequestLine()
 {
-    return "HTTP/1.1 " + std::to_string(this->statCode) + this->situation;
+    return "HTTP/1.1 " + std::to_string(this->statCode) + " " + this->situation + "\r\n";
 }
