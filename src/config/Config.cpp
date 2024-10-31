@@ -7,19 +7,19 @@ Config::~Config() {
 }
 
 void	initializeRouteData(ServerConfig &currentServer) {
-	currentServer.routeData.path = "";
+	currentServer.routeData.path = "/";
 	currentServer.routeData.root = "";
 	currentServer.routeData.autoindex = false;
-	currentServer.routeData.indexFile = "";
+	currentServer.routeData.indexFile = "index.html";
 }
 
 //if there are some words in sever {}, it detect error 
 bool checkFileStruct(std::stringstream &file) {
 
-	/*check sysntax error ~start~*/
 	std::string stringFile = file.str();
 	int braceCount = 0;
 
+/*should checks and fixed*/
 	for (size_t i = 0; i < stringFile.length(); ++i){
 		if (stringFile[i] == '{' || stringFile[i] == '}' || stringFile[i] == ';') {
 			if (stringFile[i] == '{') {
@@ -48,7 +48,7 @@ bool checkFileStruct(std::stringstream &file) {
 		return false;
 	}
 
-	if (checkDirectiveName(file) != true)
+	if (checkValidDirective(file) != true)
 		return false;
 	
 
@@ -56,27 +56,35 @@ bool checkFileStruct(std::stringstream &file) {
 }
 
 /*parametars check*/
-bool checkServerConfig(const ServerConfig& currentServer) {
-	if (currentServer.listenPort < 0 || currentServer.listenPort > 65535) {
-		std::cerr << "Invalid port number : " << currentServer.listenPort << std::endl;
-		return false;
-	}
-	if (currentServer.host.empty() || !isValidIpAddress(currentServer.host)) {
-		std::cerr << "Invalid Ip Address : " << currentServer.host << std::endl;
-		return false;
-	}
-	if (!isValidErrorPages(currentServer.errorPages)) {
-		std::cerr << "Invalid ErrorPages : " << std::endl;
-		return false;
-	}
-	if (currentServer.maxBodySize.empty() || !isValidMaxBodySize(currentServer.maxBodySize)) {
-		std::cerr << "Invalid MaxBodySize : " << currentServer.maxBodySize << std::endl;
-		return false;
-	}
-	// if (currentServer.routeData.empty()) {
-	// 	return false;
-	// }
-	return true;
+bool checkServerConfigs(const std::vector<ServerConfig>& servers) {
+    for (std::vector<ServerConfig>::const_iterator server = servers.begin(); server != servers.end(); ++server) {
+        if (server->listenPort < 0 || server->listenPort > 65535) {
+            std::cerr << "Invalid port number : " << server->listenPort << std::endl;
+            return false;
+        }
+        if (server->host.empty() || !isValidIpAddress(server->host)) {
+            std::cerr << "Invalid Ip Address : " << server->host << std::endl;
+            return false;
+        }
+        if (!isValidErrorPages(server->errorPages)) {
+            std::cerr << "Invalid Error pages: ";
+            for (std::map<int, std::string>::const_iterator it = server->errorPages.begin(); 
+                 it != server->errorPages.end(); ++it) {
+					if (it->first > 599 || it->first < 400)
+                		std::cerr << it->first << ": " << it->second << ".";
+            }
+            std::cerr << std::endl;
+            return false;
+        }
+        if (server->maxBodySize.empty() || !isValidMaxBodySize(server->maxBodySize)) {
+            std::cerr << "Invalid MaxBodySize : " << server->maxBodySize << std::endl;
+            return false;
+        }
+        if (!isValidRouteData(server->routeData)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool	Config::parse(const std::string &filePath) {
@@ -131,15 +139,17 @@ bool	Config::parse(const std::string &filePath) {
 			} else if (line.find("location") != std::string::npos) {
 				initializeRouteData(currentServer);
 				isLocationBlock = true;
-			} else if (isLocationBlock == true) {
+			}
+			if (isLocationBlock == true) {
 				getRouteData(line, currentServer);
+				isLocationBlock = false;
 			}
 		}
 	}
 
 
 	/*add func to checks invalid parameter*/
-	if (checkServerConfig(currentServer) != true) {
+	if (checkServerConfigs(this->Servers) != true) {
 		return false;
 	}
 

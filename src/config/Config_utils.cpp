@@ -54,13 +54,28 @@ void	getErrorPage(std::string &line, ServerConfig &currentServer) {
 	std::vector<std::string> tokens = splitString(line);
 	std::string path = tokens[tokens.size() - 1].substr(0, tokens[tokens.size() - 1].find(";"));
 	for (size_t i = 1; i < tokens.size() - 1; ++i) {
+		bool isValidNum = false;
+		for (size_t j = 0; j < tokens[i].length(); ++j) {
+			/*ありえない値が来た時の対処、intを超えるなど*/
+			if (!std::isdigit(tokens[i][j]))
+				isValidNum = true;
+		}
+		if (isValidNum == true) {
+			currentServer.errorPages[-1] = path;
+		} else {
 			int statusCode = std::strtol(tokens[i].c_str(), 0, 10);
 			currentServer.errorPages[statusCode] = path;
+		}
 	}
 }
 
 void	getRouteData(std::string &line, ServerConfig &currentServer) {
-	if (line.find("root") != std::string::npos) {
+	if (line.find("location") != std::string::npos) {
+		size_t start = line.find("location ") + 9;
+		size_t end = line.find("{", start);
+		std::string path = line.substr(start, end - start);
+		currentServer.routeData.path = path;
+	} else if (line.find("root") != std::string::npos) {
 		size_t start = line.find("root ") + 5;
 		size_t end = line.find(";", start);
 		std::string rootPath = line.substr(start, end - start);
@@ -72,6 +87,8 @@ void	getRouteData(std::string &line, ServerConfig &currentServer) {
 		size_t start = line.find("autoindex ") + 10;
 		size_t end = line.find(";", start);
 		std::string autoindex = line.substr(start, end - start);
+
+		/*if on or off not here should return*/
 		if (autoindex == "on")
 			currentServer.routeData.autoindex = true;
 		else
@@ -98,17 +115,17 @@ bool	checksDirectiveExist(const std::string &line) {
 			
 }
 
-bool checkDirectiveName(std::stringstream &file) {
+bool checkValidDirective(std::stringstream &file) {
 	std::string line;
-	
 	std::stringstream tmp;
     tmp << file.rdbuf();
     file.clear();
     file.seekg(0);
 	
+	size_t line_cnt = 0;
 	while(std::getline(tmp, line)) {
-		for (size_t i = 0; i < line.length(); ++i) {
-			
+		if (!line.empty() && line.back() == '\r') {
+			line.pop_back();
 		}
 		if (line.length() > 1) {
 			int start = line.find_first_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ}");
@@ -118,7 +135,15 @@ bool checkDirectiveName(std::stringstream &file) {
 				std::cerr << "Syntax error: " << word << " is not valid tokens" << std::endl;
 				return false;
 			}
+			// std::cout << "start=[" << start << "] end=[" << end << "] back=[" << (int)line.back() << "]" << line << std::endl;
+			if (line.back() != '{' && line.back() != '}') {
+				if (line.back() != ';') {
+					std::cerr << "Syntax error on line [" << line_cnt << "]: Line must end with a semicolon" << std::endl;
+					return false;
+				}
+			}
 		}
+		line_cnt++;
 	}
 
 	
@@ -223,6 +248,27 @@ bool	isValidMaxBodySize(const std::string &maxBodySize) {
 	return true;
 }
 
-// bool	isValidRouteData(const Route &routeData) {
+bool	isValidRouteData(const Route &routeData) {
+	if (routeData.path[0] != '/') {
+		std::cerr << "Invalid path: "<< routeData.path << ": Path must start with '/'" << std::endl;
+		return false;
+	}
 
-// }
+
+	for(size_t i = 0; i < routeData.allowMethods.size(); ++i) {
+		std::string method = routeData.allowMethods[i];
+		if (method != "GET" && method != "POST" && method != "DELETE") {
+			std::cerr << "Invalid method: Only GET, POST, and DELETE are allowed" << std::endl;
+			return false;
+		}
+	}
+
+	if (routeData.indexFile.length() < 5 || 
+	routeData.indexFile.substr(routeData.indexFile.length() - 5) != ".html") {
+		std::cerr << "Invalid index file: Index file must end with '.html'" << std::endl;
+		return false;
+	}
+
+	return true;
+
+}
