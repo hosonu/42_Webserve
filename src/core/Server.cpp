@@ -10,20 +10,9 @@ void	Server::setServer() {
 	}
 
 	for(std::vector<ServerConfig>::iterator it = configData.begin(); it != configData.end(); ++it) {
-
-		/*debugginggggg*/
-		// std::cout << "listen: host " << it->host << ", port " << it->listenPort << std::endl;
-		// std::cout << "sever_name: " << it->serverName << std::endl;
-		// std::cout << "errorpage: " << it->errorPages[404] << " " << it->errorPages[502] << std::endl;
-		// std::cout << "CMBS: " << it->maxBodySize << std::endl;
-		// std::cout << "allow_methods: " << it->routeData.allowMethods[1] << std::endl;
-		// std::cout << "autoindex: " << it->routeData.autoindex << std::endl;
-		// std::cout << "root: " << it->routeData.root << std::endl;
-		// std::cout << "index: " << it->routeData.indexFile << std::endl;
-
 		Socket socket(it->host, it->listenPort);
 		if (socket.setNonBlocking(socket.getFd()) == false)
-			throw std::runtime_error("fuck it");
+			throw std::runtime_error("Failed to set non blocking mode");
 		if (socket.bind() == false) {
 			throw std::runtime_error("Failed to bind socket");
 		}
@@ -31,15 +20,13 @@ void	Server::setServer() {
 			throw std::runtime_error("Failed to listen on socket");
 		}
 		struct epoll_event ev;
-		ev.events = EPOLLIN;
+		ev.events = EPOLLIN | EPOLLET;
 		ev.data.fd = socket.getFd();
 		if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, socket.getFd(), &ev) == -1) {
 			throw std::runtime_error("Failed to add to epoll");
 		}
 		socket_.push_back(socket);
 	}
-
-	events_.resize(MAX_EVENTS);
 }
 
 Server::~Server() {
@@ -49,57 +36,55 @@ Server::~Server() {
 
 void	Server::run() {
 	while(true) {
-		int n = epoll_wait(epoll_fd_, events_.data(), events_.size(), -1);
+		int n = epoll_wait(epoll_fd_, events_, MAX_EVENTS, -1);
 		if (n == -1) {
 			throw std::runtime_error("epoll_wait failed");
 		}
-
 		for (int i = 0; i < n; ++i) {
 			int fd = events_[i].data.fd;
-
-			bool found = false;
+			//listen fd の処理
 			for (size_t i = 0; i < socket_.size(); ++i) {
 				if (socket_[i].getFd() == fd) {
-					acceptNewConnection(socket_[i]);
-					found = true;
-					break;
+					int client_fd = acceptNewConnection(socket_[i]);
+					Client client(client_fd, epoll_fd_);
+					client_.push_back(client);
 				}
 			}
-			if (!found) {
-				std::cout << fd << std::endl;
-				handleClient(fd);//this fd 
+			//client fd の処理
+			for (size_t i = 0; i< client_.size(); ++i) {
+				if (client_[i].getClientFd() == fd) {
+					if (events_[i].events & EPOLLIN) {
+						// readの処理
+						//buffer保存
+						HandleRequest(client_[i]);
+					}
+					else if (events_[i].events & EPOLLOUT) {
+						//writeの処理
+						//buffer保存
+						HandleResponse(client_[i]);
+					}
+				}
 			}
 		}
 	}
 }
 
-void	Server::acceptNewConnection(Socket& listen_socket) {
+int	Server::acceptNewConnection(Socket& listen_socket) {
 	int client_fd = listen_socket.accept();
 	if (client_fd == -1) {
-		std::cerr << "hello" << std::endl;
-		return;
+		std::cerr << "Failed to accept listen_fd" << std::endl;
+		return -1;
 	}
-
-	// setNonBlocking_cs(client_fd);
 	listen_socket.setNonBlocking(client_fd);
 
-	struct epoll_event ev;
-	ev.events = EPOLLIN | EPOLLET;
-	ev.data.fd = client_fd;
-	if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, client_fd, &ev) == -1) {
-		//error message? or throw?
-		std::cerr << "Failed to add client socket to epoll: " << strerror(errno) << std::endl;
-		close(client_fd);
-		return;
-	}
-
-	// client_configs_[client_fd] = &config;//config data for fd
+	//configの情報を引き渡す必要があるかもしれない。
+	return client_fd;
 }
 
-void	Server::handleClient(int client_fd) {
-	//add the line pocessing cliant connnection
-	char buffer[1024];
-	ssize_t count = read(client_fd, buffer, sizeof(buffer));
+void	Server::HandleRequest(Client client) {
+	client.setMode(ClientMode::READING);
+	char buffer[MAX_BUFEER];
+	ssize_t count;
 	request req;
 	std::string rawReq;
 	if (count == -1) {
@@ -113,11 +98,46 @@ void	Server::handleClient(int client_fd) {
 		std::cout << "Received: " << std::string(buffer, count) << std::endl;
 		rawReq = buffer;
 		req.requestParse(rawReq);
-		req.methodProc(client_fd);
-		// //test
-		// print_line(req);
+	}
+	//readが終了したあとの挙動
+	//modeの変更？
+	if (count == 0) {
+		client.setMode(ClientMode::WRITING);//仮に設定
+		close(client.getClientFd());
 	}
 }
+
+void	Server::HandleResponse(Client client) {
+	// client.setMode(ClientMode::WRITING);
+
+	//関数内で処理を変更
+	//bufferの保存、ファイルオフセットの保存
+	request req;
+	req.methodProc(client.getClientFd());
+}
+
+// void	Server::handleClient(int client_fd) {
+// 	//add the line pocessing cliant connnection
+// 	char buffer[1024];
+// 	ssize_t count = read(client_fd, buffer, sizeof(buffer));
+// 	request req;
+// 	std::string rawReq;
+// 	if (count == -1) {
+// 		if (errno != EAGAIN) {
+// 			close(client_fd);
+// 		}
+// 	} else if (count == 0) {
+// 		close(client_fd);
+// 	} else {
+// 		//add the line processing accepted date
+// 		// std::cout << "Received: " << std::string(buffer, count) << std::endl;
+// 		rawReq = buffer;
+// 		req.requestParse(rawReq);
+// 		req.methodProc(client_fd);
+// 		// //test
+// 		// print_line(req);
+// 	}
+// }
 
 //setNonBlocking for clienat socket いらない？
 // void Server::setNonBlocking_cs(int fd) {
