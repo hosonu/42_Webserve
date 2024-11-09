@@ -35,6 +35,7 @@ struct ServerConfig
 		std::string host;
 		std::string serverName;
 		std::map<int, std::string> errorPages;
+		// std::map<std::string, std::vector<int>> errorPages;
 		std::string maxBodySize;//it's okay to get num(size_t or int)
 
 		/*we should make route class or route data*/

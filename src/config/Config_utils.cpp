@@ -64,6 +64,8 @@ void	getErrorPage(std::string &line, ServerConfig &currentServer) {
 			currentServer.errorPages[-1] = path;
 		} else {
 			int statusCode = std::strtol(tokens[i].c_str(), 0, 10);
+			if (currentServer.errorPages[statusCode].empty() == false)
+				throw std::runtime_error("double booking");
 			currentServer.errorPages[statusCode] = path;
 		}
 	}
@@ -112,7 +114,6 @@ bool	checksDirectiveExist(const std::string &line) {
 			line == "location" ||
 			line == "autoindex" ||
 			line == "root";
-			
 }
 
 bool checkValidDirective(std::stringstream &file) {
