@@ -20,6 +20,7 @@ class Config {
 	private:
 		std::vector<ServerConfig> Servers;
 
+		std::map<key, std::vector<ServerConfig>> Servers;
 };
 
 #endif

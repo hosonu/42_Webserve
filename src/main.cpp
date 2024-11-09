@@ -28,12 +28,12 @@ int main(int argc, char *argv[]){
 		return 1;
 	}
  
-	Config conf;
-	if (conf.parse(path) == false) {
-		return 1;
-	} 
 
 	try {
+		Config conf;
+		if (conf.parse(path) == false) {
+			return 1;
+		} 
 		Server s(conf);
 		s.setServer();
 

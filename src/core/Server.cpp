@@ -8,7 +8,6 @@ void	Server::setServer() {
 	if (epoll_fd_ == -1) {
 		throw std::runtime_error("Failed to create epoll file descriptor");
 	}
-
 	for(std::vector<ServerConfig>::iterator it = configData.begin(); it != configData.end(); ++it) {
 		Socket socket(it->host, it->listenPort);
 		if (socket.setNonBlocking(socket.getFd()) == false)
@@ -149,4 +148,3 @@ void	Server::HandleResponse(Client client) {
 // 		throw std::runtime_error("Failed to set non-blocking mode");
 // 	}
 // }
-
