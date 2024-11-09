@@ -71,33 +71,39 @@ void	getErrorPage(std::string &line, ServerConfig &currentServer) {
 	}
 }
 
-void	getRouteData(std::string &line, ServerConfig &currentServer) {
-	if (line.find("location") != std::string::npos) {
-		size_t start = line.find("location ") + 9;
-		size_t end = line.find("{", start);
-		std::string path = line.substr(start, end - start);
-		currentServer.routeData.path = path;
-	} else if (line.find("root") != std::string::npos) {
-		size_t start = line.find("root ") + 5;
-		size_t end = line.find(";", start);
-		std::string rootPath = line.substr(start, end - start);
-		currentServer.routeData.root = rootPath;
-	} else if (line.find("allow_methods") != std::string::npos) {
-		std::vector<std::string> tokens = splitString(line);
-		currentServer.routeData.allowMethods = tokens;
-	} else if (line.find("autoindex") != std::string::npos) {
-		size_t start = line.find("autoindex ") + 10;
-		size_t end = line.find(";", start);
-		std::string autoindex = line.substr(start, end - start);
+Route	getRouteData(std::string &line, std::stringstream &streamConf) {
+	Route locationDatum;
 
-		/*if on or off not here should return*/
-		if (autoindex == "on")
-			currentServer.routeData.autoindex = true;
-		else
-			currentServer.routeData.autoindex = false;
-	} else if (line.find("index") != std::string::npos) {
-		currentServer.routeData.indexFile = "index.html";
+	size_t start = line.find("location ") + 9;
+	size_t end = line.find("{", start);
+	std::string path = line.substr(start, end - start);
+	locationDatum.path = path;
+	while (std::getline(streamConf, line)) {
+		if (line.find("root") != std::string::npos) {
+			size_t start = line.find("root ") + 5;
+			size_t end = line.find(";", start);
+			std::string rootPath = line.substr(start, end - start);
+			locationDatum.root = rootPath;
+		} else if (line.find("allow_methods") != std::string::npos) {
+			std::vector<std::string> tokens = splitString(line);
+			locationDatum.allowMethods = tokens;
+		} else if (line.	find("autoindex") != std::string::npos) {
+			size_t start = line.find("autoindex ") + 10;
+			size_t end = line.find(";", start);
+			std::string autoindex = line.substr(start, end - start);
+
+			/*if on or off not here should return*/
+			if (autoindex == "on")
+				locationDatum.autoindex = true;
+			else
+				locationDatum.autoindex = false;
+		} else if (line.find("index") != std::string::npos) {
+			locationDatum.indexFile = "index.html";
+		}
+		if (line.find("}"))
+			break;
 	}
+	return locationDatum;
 }
 
 /*---------------------------------------checks syntax error-------------------------------------------*/
@@ -249,25 +255,28 @@ bool	isValidMaxBodySize(const std::string &maxBodySize) {
 	return true;
 }
 
-bool	isValidRouteData(const Route &routeData) {
-	if (routeData.path[0] != '/') {
-		std::cerr << "Invalid path: "<< routeData.path << ": Path must start with '/'" << std::endl;
-		return false;
-	}
+bool	isValidRouteData(const std::vector<Route> &locationData) {
 
-
-	for(size_t i = 0; i < routeData.allowMethods.size(); ++i) {
-		std::string method = routeData.allowMethods[i];
-		if (method != "GET" && method != "POST" && method != "DELETE") {
-			std::cerr << "Invalid method: Only GET, POST, and DELETE are allowed" << std::endl;
+	for (std::vector<Route>::const_iterator it = locationData.begin(); it < locationData.end(); ++it) {
+		if (it->path[0] != '/') {
+			std::cerr << "Invalid path: "<< it->path << ": Path must start with '/'" << std::endl;
 			return false;
 		}
-	}
 
-	if (routeData.indexFile.length() < 5 || 
-	routeData.indexFile.substr(routeData.indexFile.length() - 5) != ".html") {
-		std::cerr << "Invalid index file: Index file must end with '.html'" << std::endl;
-		return false;
+
+		for(size_t i = 0; i < it->allowMethods.size(); ++i) {
+			std::string method = it->allowMethods[i];
+			if (method != "GET" && method != "POST" && method != "DELETE") {
+				std::cerr << "Invalid method: Only GET, POST, and DELETE are allowed" << std::endl;
+				return false;
+			}
+		}
+
+		if (it->indexFile.length() < 5 || 
+		it->indexFile.substr(it->indexFile.length() - 5) != ".html") {
+			std::cerr << "Invalid index file: Index file must end with '.html'" << std::endl;
+			return false;
+		}
 	}
 
 	return true;
