@@ -6,12 +6,12 @@ Config::Config() {
 Config::~Config() {
 }
 
-void	initializeRouteData(ServerConfig &currentServer) {
-	currentServer.routeData.path = "/";
-	currentServer.routeData.root = "";
-	currentServer.routeData.autoindex = false;
-	currentServer.routeData.indexFile = "index.html";
-}
+// void	initializeRouteData(ServerConfig &currentServer) {
+// 	currentServer.routeData.path = "/";
+// 	currentServer.routeData.root = "";
+// 	currentServer.routeData.autoindex = false;
+// 	currentServer.routeData.indexFile = "index.html";
+// }
 
 //if there are some words in sever {}, it detect error 
 bool checkFileStruct(std::stringstream &file) {
@@ -80,7 +80,7 @@ bool checkServerConfigs(const std::vector<ServerConfig>& servers) {
             std::cerr << "Invalid MaxBodySize : " << server->maxBodySize << std::endl;
             return false;
         }
-        if (!isValidRouteData(server->routeData)) {
+        if (!isValidRouteData(server->LocationData)) {
             return false;
         }
     }
@@ -137,11 +137,10 @@ bool	Config::parse(const std::string &filePath) {
 				std::string clientMaxBodySize = line.substr(start, end - start);
 				currentServer.maxBodySize = clientMaxBodySize;
 			} else if (line.find("location") != std::string::npos) {
-				initializeRouteData(currentServer);
 				isLocationBlock = true;
 			}
 			if (isLocationBlock == true) {
-				getRouteData(line, currentServer);
+				currentServer.LocationData.push_back(getRouteData(line, streamConf));
 				isLocationBlock = false;
 			}
 		}

@@ -41,6 +41,7 @@ struct ServerConfig
 		/*we should make route class or route data*/
 		//route settings data
 		Route routeData;
+		std::vector<Route> LocationData;
 };
 
 
