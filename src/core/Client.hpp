@@ -1,6 +1,7 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+// #include "Server.hpp"
 #include <vector>
 #include <sys/epoll.h>
 #include <exception>
@@ -21,6 +22,8 @@ class Client {
         ClientMode mode;
         std::vector<char>   read_buffer;
         std::vector<char>   write_buffer;
+
+        // std::vector<ServerConfig> configData;
     
     public:
         Client(int fd, int epoll_fd);

@@ -9,22 +9,24 @@ void	Server::setServer() {
 		throw std::runtime_error("Failed to create epoll file descriptor");
 	}
 	for(std::vector<ServerConfig>::iterator it = configData.begin(); it != configData.end(); ++it) {
-		Socket socket(it->host, it->listenPort);
-		if (socket.setNonBlocking(socket.getFd()) == false)
-			throw std::runtime_error("Failed to set non blocking mode");
-		if (socket.bind() == false) {
-			throw std::runtime_error("Failed to bind socket");
+		if (it->is_default == true) {
+			Socket socket(it->host, it->listenPort);
+			if (socket.setNonBlocking(socket.getFd()) == false)
+				throw std::runtime_error("Failed to set non blocking mode");
+			if (socket.bind() == false) {
+				throw std::runtime_error("Failed to bind socket");
+			}
+			if (socket.listen() == false) {
+				throw std::runtime_error("Failed to listen on socket");
+			}
+			struct epoll_event ev;
+			ev.events = EPOLLIN | EPOLLET;
+			ev.data.fd = socket.getFd();
+			if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, socket.getFd(), &ev) == -1) {
+				throw std::runtime_error("Failed to add to epoll");
+			}
+			socket_.push_back(socket);
 		}
-		if (socket.listen() == false) {
-			throw std::runtime_error("Failed to listen on socket");
-		}
-		struct epoll_event ev;
-		ev.events = EPOLLIN | EPOLLET;
-		ev.data.fd = socket.getFd();
-		if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, socket.getFd(), &ev) == -1) {
-			throw std::runtime_error("Failed to add to epoll");
-		}
-		socket_.push_back(socket);
 	}
 }
 

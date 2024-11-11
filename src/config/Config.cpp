@@ -144,6 +144,8 @@ bool	Config::parse(const std::string &filePath) {
 		return false;
 	}
 
+	decideDefaultServer(this->Servers);
+
 	file.close();
 	return true;
 }
