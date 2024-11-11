@@ -1,7 +1,7 @@
 #include "Client.hpp"
 
 Client::Client(int fd, int epoll_fd)
-: client_fd(fd), mode(ClientMode::READING) {
+: client_fd(fd), mode(ClientMode::HEADER_READING) {
     struct epoll_event ev;
     ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
     ev.data.fd = client_fd;

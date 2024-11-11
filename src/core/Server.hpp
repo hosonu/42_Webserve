@@ -11,6 +11,7 @@
 #define MAX_EVENTS 10
 
 /*main class of this server*/
+class Client;
 class Server {
 	public:
 		Server(Config &configs);

@@ -1,20 +1,26 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
-// #include "Server.hpp"
 #include <vector>
 #include <sys/epoll.h>
 #include <exception>
 #include <iostream>
 
+#include "Server.hpp"
+
+
 #define MAX_BUFEER 1024
 // #define MAX_EVENTS 10;
 
 enum class ClientMode {
-    READING,
+    HEADER_READING,
+    BODY_READING,
     WRITING,
     CLOSING
 };
+
+
+class Server;
 
 class Client { 
     private:
@@ -23,7 +29,7 @@ class Client {
         std::vector<char>   read_buffer;
         std::vector<char>   write_buffer;
 
-        // std::vector<ServerConfig> configData;
+        std::vector<ServerConfig> configData;
     
     public:
         Client(int fd, int epoll_fd);
