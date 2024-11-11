@@ -79,6 +79,7 @@ void	Server::run() {
 				if (client_[i].getClientFd() == fd) {
 					if (events_[i].events & EPOLLIN) {
 						HandleRequest(client_[i]);
+
 					}
 					if (events_[i].events & EPOLLOUT) {
 						HandleResponse(client_[i]);
