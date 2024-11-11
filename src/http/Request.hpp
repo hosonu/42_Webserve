@@ -30,7 +30,14 @@ class request
         std::map<std::string, std::string> getHeader();
         std::string getQuery();
         void methodProc(int clinet_fd);
-        // bool request::boundaryParse(const std::string& line, bool& flag, bool& checkEmptyLine);
+
+        void    setRawHeader(char* buffer) {
+            rawHeader = buffer;
+        }
+
+        std::string& getRawHeader() {
+            return rawHeader;
+        }
     private:
         std::string keyword;
         // std::vector<std::pair<std::string, std::string>> boundary;
@@ -39,6 +46,8 @@ class request
         std::string version;
         std::map<std::string, std::string> headers;
         std::string body;
+
+        std::string rawHeader;
 };
 
 void    print_line(request& test);

@@ -34,8 +34,8 @@ class Server {
 		// void	setNonBlocking_cs(int fd);isn't necessary
 		//handling client connection
 		// void	handleClient(int client_fd);
-		void	HandleRequest(Client client);
-		void	HandleResponse(Client client);
+		void	HandleRequest(Client &client);
+		void	HandleResponse(Client &client);
 };
 
 #endif

@@ -16,9 +16,25 @@ void    Client::setMode(ClientMode mode) {
 }
 
 int Client::getClientFd() const{
-    return client_fd;
+    return this->client_fd;
 }
 
-// void    Client::handleClientEvent(uint32_t events) {
-    
-// }
+const ClientMode&  Client::getClientMode() const {
+    return  this->mode;
+}
+
+void	Client::parseRequestHeader() {
+	ssize_t count;
+	char	buffer[MAX_BUFEER];
+	count = read(this->client_fd, buffer, sizeof(buffer));
+    req.setRawHeader(buffer);
+    // std::cout << req.getRawHeader() << std::endl;
+    std::cout << "request fd:" << client_fd << std::endl;
+	req.requestParse(req.getRawHeader());
+}
+
+void    Client::makeResponse() {
+    std::cout << req.getRawHeader() << std::endl;
+    std::cout << "response fd:" << client_fd << std::endl;
+    req.methodProc(client_fd);
+}
