@@ -14,5 +14,7 @@ bool	isValidMaxBodySize(const std::string &maxBodySize);
 // bool	isValidRouteData(const Route &routeData); 
 bool	isValidRouteData(const std::vector<Route> &locationData);
 
+void	decideDefaultServer(std::vector<ServerConfig> &Servers);
+
 
 #endif
