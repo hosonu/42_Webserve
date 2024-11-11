@@ -77,13 +77,11 @@ int	Server::acceptNewConnection(Socket& listen_socket) {
 		return -1;
 	}
 	listen_socket.setNonBlocking(client_fd);
-
-	//configの情報を引き渡す必要があるかもしれない。
 	return client_fd;
 }
 
 void	Server::HandleRequest(Client client) {
-	client.setMode(ClientMode::READING);
+	// client.setMode(ClientMode::READING);
 	char buffer[MAX_BUFEER];
 	ssize_t count;
 	request req;
