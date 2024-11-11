@@ -107,18 +107,14 @@ bool	Config::parse(const std::string &filePath) {
 	std::string		line;
 	ServerConfig	currentServer;
 	bool			isServerBlock = false;
-	bool			isLocationBlock = false;
 	while(std::getline(streamConf, line)) {
 		if (line.find("server {") != std::string::npos) {
 			isServerBlock = true;
 			currentServer = ServerConfig();
 		} else if (line.find("}") != std::string::npos) {
-			if (isServerBlock && isLocationBlock != true) {
+			if (isServerBlock) {
 				this->Servers.push_back(currentServer);
 				isServerBlock = false;
-			}
-			if (isLocationBlock) {
-				isLocationBlock = false;
 			}
 			/* Parse individual directives inside server block*/
 		} else if (isServerBlock) {
@@ -137,11 +133,7 @@ bool	Config::parse(const std::string &filePath) {
 				std::string clientMaxBodySize = line.substr(start, end - start);
 				currentServer.maxBodySize = clientMaxBodySize;
 			} else if (line.find("location") != std::string::npos) {
-				isLocationBlock = true;
-			}
-			if (isLocationBlock == true) {
 				currentServer.LocationData.push_back(getRouteData(line, streamConf));
-				isLocationBlock = false;
 			}
 		}
 	}
