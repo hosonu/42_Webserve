@@ -288,7 +288,7 @@ void	decideDefaultServer(std::vector<ServerConfig> &Servers) {
 	std::string default_ip = Servers.front().host;
 	Servers[0].is_default = true;
 	for (size_t i = 1; i < Servers.size(); ++i) {
-		if(Servers[i].listenPort != default_port && Servers[i].host != default_ip) {
+		if(Servers[i].listenPort != default_port || Servers[i].host != default_ip) {
 			Servers[i].is_default = true;
 		} else {
 			Servers[i].is_default = false;

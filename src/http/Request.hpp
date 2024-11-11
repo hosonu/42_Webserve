@@ -29,12 +29,22 @@ class request
         std::string getVersion();
         std::map<std::string, std::string> getHeader();
         void methodProc(int clinet_fd);
+
+        void    setRawHeader(char* buffer) {
+            rawHeader = buffer;
+        }
+
+        std::string& getRawHeader() {
+            return rawHeader;
+        }
     private:
         std::string method;
         std::string uri;
         std::string version;
         std::map<std::string, std::string> headers;
         std::string body;
+
+        std::string rawHeader;
 };
 
 void    print_line(request& test);

@@ -37,7 +37,7 @@ Server::~Server() {
 
 void	Server::run() {
 	while(true) {
-		int n = epoll_wait(epoll_fd_, events_, MAX_EVENTS, -1);
+		int n = epoll_wait(epoll_fd_, events_, MAX_EVENTS, 10);
 		if (n == -1) {
 			throw std::runtime_error("epoll_wait failed");
 		}
@@ -58,6 +58,7 @@ void	Server::run() {
 						// readの処理
 						//buffer保存
 						HandleRequest(client_[i]);
+
 					}
 					else if (events_[i].events & EPOLLOUT) {
 						//writeの処理
@@ -80,34 +81,26 @@ int	Server::acceptNewConnection(Socket& listen_socket) {
 	return client_fd;
 }
 
-void	Server::HandleRequest(Client client) {
-	// client.setMode(ClientMode::READING);
-	char buffer[MAX_BUFEER];
-	ssize_t count;
-	request req;
-	std::string	rawReq;
-
-	//readが失敗した時の対応、bufferの保存
-	count = read(client.getClientFd(), buffer, sizeof(buffer));
-	if (count > 0) {
-		rawReq = buffer;
-		req.requestParse(rawReq);
-	}
-	//readが終了したあとの挙動
-	//modeの変更？
-	if (count == 0) {
-		client.setMode(ClientMode::WRITING);//仮に設定
-		close(client.getClientFd());
-	}
+void	Server::HandleRequest(Client &client) {
+	if (client.getClientMode() == ClientMode::HEADER_READING) {
+		//request header parse
+		//if(body is existed or not)
+		client.parseRequestHeader();
+		
+		client.setMode(ClientMode::BODY_READING);
+		client.setMode(ClientMode::WRITING);
+	} 
+	// else if (client.getClientMode() == ClientMode::BODY_READING) {
+		
+	// }
 }
 
-void	Server::HandleResponse(Client client) {
-	// client.setMode(ClientMode::WRITING);
-
+void	Server::HandleResponse(Client &	client) {
 	//関数内で処理を変更
 	//bufferの保存、ファイルオフセットの保存
-	request req;
-	req.methodProc(client.getClientFd());
+	// request req;
+	// client.req.methodProc(client.getClientFd());
+	client.makeResponse();
 }
 
 // void	Server::handleClient(int client_fd) {
