@@ -15,7 +15,7 @@ enum class ClientMode {
     CLOSING
 };
 
-class Client {
+class Client { 
     private:
         int client_fd;
         ClientMode mode;
