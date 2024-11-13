@@ -56,7 +56,6 @@ bool request::headerParse(const std::string& headerRequest)
 void request::methodProc(int clinet_fd)
 {
     Response msg;
-    std::cout << method << std::endl;
     if (this->method == "GET")
     {
         msg.createMessage(this->uri);
