@@ -112,6 +112,9 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 }
 
 void    Client::makeResponse() {
+	#ifdef DEBUG
+ 	print_line(req);
+	#endif
     req.methodProc(client_fd);
 }
 

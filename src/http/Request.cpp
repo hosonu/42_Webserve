@@ -1,6 +1,6 @@
 #include "Request.hpp"
 
-Request::Request() : cgMode(false), setLine(false)
+request::request()
 {
 }
 
@@ -8,7 +8,7 @@ Request::~Request()
 {
 }
 
-bool Request::requestParse(const std::string &rawRequest)
+bool request::requestParse(const std::string& rawRequest)
 {
     std::istringstream stream(rawRequest);
     std::string line;
@@ -45,7 +45,7 @@ bool request::lineParse(const std::string& lineRequest)
 	return true;
 }
 
-bool Request::headerParse(const std::string &headerRequest)
+bool request::headerParse(const std::string& headerRequest)
 {
     size_t pos = headerRequest.find(":");
     std::string key;
@@ -81,6 +81,23 @@ void Request::methodProc(int clinet_fd)
 		std::cout << "Invalid method" << std::endl;
 	}
 }
+
+
+bool	request::checkBodyExist() {
+	std::map<std::string, std::string>::iterator it = headers.find("Content-Length");
+
+	if (it != headers.end()) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+void	request::setBody(char *buffer) {
+	std::string add_body = buffer;
+	this->body += buffer;
+}
+
 
 bool	Request::checkBodyExist() {
 	std::map<std::string, std::string>::iterator it = headers.find("Content-Length");
@@ -145,12 +162,11 @@ std::string request::getQuery()
 //test code
 void    print_line(request& test)
 {
-	std::map<std::string, std::string> t_map = test.getHeader();
-	std::cout << "method: " << test.getMethod() << std::endl;
-	std::cout << "uri: " << test.getUri() << std::endl;
-	std::cout << "version: " << test.getVersion() << std::endl;
-	for (std::map<std::string, std::string>::iterator ite = t_map.begin(); ite != t_map.end(); ++ite)
-	{
-		std::cout << "Key = " << ite->first << ", Value = " << ite->second << std::endl;
-	}
+    std::map<std::string, std::string> t_map = test.getHeader();
+    std::cout << "method: " << test.getMethod() << std::endl;
+    std::cout << "uri: " << test.getUri() << std::endl;
+    std::cout << "version: " << test.getVersion() << std::endl;
+    for (auto ite = t_map.begin(); ite != t_map.end(); ite++) {
+        std::cout << "Key = " << ite->first << ", Value = " << ite->second << std::endl;
+    }
 }
