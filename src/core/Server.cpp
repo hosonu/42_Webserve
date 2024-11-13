@@ -52,7 +52,7 @@ void	Server::run() {
 				}
 			}
 			//client fd の処理
-			for (size_t i = 0; i< client_.size(); ++i) {
+			for (size_t i = 0; i < client_.size(); ++i) {
 				if (client_[i].getClientFd() == fd) {
 					if (events_[i].events & EPOLLIN) {
 						// readの処理
@@ -60,7 +60,7 @@ void	Server::run() {
 						HandleRequest(client_[i]);
 
 					}
-					else if (events_[i].events & EPOLLOUT) {
+					if (events_[i].events & EPOLLOUT) {
 						//writeの処理
 						//buffer保存
 						HandleResponse(client_[i]);
@@ -83,24 +83,25 @@ int	Server::acceptNewConnection(Socket& listen_socket) {
 
 void	Server::HandleRequest(Client &client) {
 	if (client.getClientMode() == ClientMode::HEADER_READING) {
-		//request header parse
-		//if(body is existed or not)
 		client.parseRequestHeader();
-		
 		client.setMode(ClientMode::BODY_READING);
+	} else if (client.getClientMode() == ClientMode::BODY_READING) {
 		client.setMode(ClientMode::WRITING);
-	} 
-	// else if (client.getClientMode() == ClientMode::BODY_READING) {
-		
-	// }
+	}
 }
 
 void	Server::HandleResponse(Client &	client) {
 	//関数内で処理を変更
 	//bufferの保存、ファイルオフセットの保存
-	// request req;
-	// client.req.methodProc(client.getClientFd());
-	client.makeResponse();
+	if (client.getClientMode() == ClientMode::WRITING) {
+		client.makeResponse();
+	}
+
+
+
+
+
+
 }
 
 // void	Server::handleClient(int client_fd) {

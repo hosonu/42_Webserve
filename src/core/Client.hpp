@@ -28,7 +28,6 @@ class Client {
         ClientMode mode;
         std::vector<char>   read_buffer;
         std::vector<char>   write_buffer;
-
         std::vector<ServerConfig> configData;
         std::string rawReq;
         request req;

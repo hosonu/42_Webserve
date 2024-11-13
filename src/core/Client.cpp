@@ -27,14 +27,12 @@ void	Client::parseRequestHeader() {
 	ssize_t count;
 	char	buffer[MAX_BUFEER];
 	count = read(this->client_fd, buffer, sizeof(buffer));
-    req.setRawHeader(buffer);
-    // std::cout << req.getRawHeader() << std::endl;
-    std::cout << "request fd:" << client_fd << std::endl;
-	req.requestParse(req.getRawHeader());
+	if (count > 0) {
+		req.setRawHeader(buffer);
+		req.requestParse(req.getRawHeader());
+	}
 }
 
 void    Client::makeResponse() {
-    std::cout << req.getRawHeader() << std::endl;
-    std::cout << "response fd:" << client_fd << std::endl;
     req.methodProc(client_fd);
 }
