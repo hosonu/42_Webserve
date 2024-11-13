@@ -1,9 +1,15 @@
 CXX = c++
-CXXFLAGS = -Wall -Werror -Wextra -std=c++98
-# -std=c++98
+CXXFLAGS = -Wall -Werror -Wextra 
+#-std=c++98
+DEBUGFLAGS = -D DEBUG
+
+ifeq ($(DEBUG),)
+	CXXFLAGS +=
+else
+	CXXFLAGS += $(DEBUGFLAGS)
+endif
 
 SRCS = src/main.cpp src/core/Server.cpp src/core/Socket.cpp src/core/Client.cpp src/config/Config.cpp src/config/Config_utils.cpp src/http/Request.cpp src/http/Response.cpp
-# src/config/ServerConfig.cpp src/config/Route.cpp
 
 TARGET = program
 

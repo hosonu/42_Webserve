@@ -14,7 +14,6 @@
 #include <fstream>
 #include "Response.hpp"
 
-
 class request
 {
     public:
@@ -31,9 +30,9 @@ class request
         std::string getQuery();
         void methodProc(int clinet_fd);
 
-        void    setRawHeader(char* buffer) {
-            rawHeader = buffer;
-        }
+	void setRawHeader(char *buffer) {
+		rawHeader = buffer;
+	}
 
         std::string& getRawHeader() {
             return rawHeader;
@@ -47,9 +46,29 @@ class request
         std::map<std::string, std::string> headers;
         std::string body;
 
-        std::string rawHeader;
+	const bool	&getCgMode() {
+		return cgMode;
+	}
+
+	void	setCgMode(bool mode) {
+		cgMode = mode;
+	}
+
+	bool	checkBodyExist();
+	void	setBody(char *buffer);
+
+private:
+	std::string method;
+	std::string uri;
+	std::string version;
+	std::map<std::string, std::string> headers;
+	std::string body;
+
+	bool cgMode;
+	bool setLine;
+	std::string rawHeader;
 };
 
-void    print_line(request& test);
+void print_line(request &test);
 
 #endif

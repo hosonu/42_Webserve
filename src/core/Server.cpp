@@ -84,9 +84,9 @@ int	Server::acceptNewConnection(Socket& listen_socket) {
 void	Server::HandleRequest(Client &client) {
 	if (client.getClientMode() == ClientMode::HEADER_READING) {
 		client.parseRequestHeader();
-		client.setMode(ClientMode::BODY_READING);
-	} else if (client.getClientMode() == ClientMode::BODY_READING) {
-		client.setMode(ClientMode::WRITING);
+	}
+	if (client.getClientMode() == ClientMode::BODY_READING) {
+		client.parseRequestBody();
 	}
 }
 
@@ -96,44 +96,4 @@ void	Server::HandleResponse(Client &	client) {
 	if (client.getClientMode() == ClientMode::WRITING) {
 		client.makeResponse();
 	}
-
-
-
-
-
-
 }
-
-// void	Server::handleClient(int client_fd) {
-// 	//add the line pocessing cliant connnection
-// 	char buffer[1024];
-// 	ssize_t count = read(client_fd, buffer, sizeof(buffer));
-// 	request req;
-// 	std::string rawReq;
-// 	if (count == -1) {
-// 		if (errno != EAGAIN) {
-// 			close(client_fd);
-// 		}
-// 	} else if (count == 0) {
-// 		close(client_fd);
-// 	} else {
-// 		//add the line processing accepted date
-// 		// std::cout << "Received: " << std::string(buffer, count) << std::endl;
-// 		rawReq = buffer;
-// 		req.requestParse(rawReq);
-// 		req.methodProc(client_fd);
-// 		// //test
-// 		// print_line(req);
-// 	}
-// }
-
-//setNonBlocking for clienat socket いらない？
-// void Server::setNonBlocking_cs(int fd) {
-// 	int flags = fcntl(fd, F_GETFL, 0);
-// 	if (flags == -1) {
-// 		throw std::runtime_error("Failed to get file descriptor flags");
-// 	}
-// 	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-// 		throw std::runtime_error("Failed to set non-blocking mode");
-// 	}
-// }
