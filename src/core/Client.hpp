@@ -11,36 +11,38 @@
 
 #define MAX_BUFEER 1024
 
-enum ClientMode {
-    HEADER_READING,
-    BODY_READING,
-    WRITING,
-    CLOSING
+enum ClientMode
+{
+	HEADER_READING,
+	BODY_READING,
+	WRITING,
+	CLOSING
 };
-
-
 
 class Server;
 
-class Client { 
-    private:
-        int client_fd;
-        ClientMode mode;
-        std::vector<char>   read_buffer;
-        std::vector<char>   write_buffer;
-        std::vector<ServerConfig> configData;
-        std::string rawReq;
-        request req;
-    
-    public:
-        Client(int fd, int epoll_fd);
+class Client
+{
+private:
+	int client_fd;
+	ClientMode mode;
+	std::vector<char> read_buffer;
+	std::vector<char> write_buffer;
+	std::vector<ServerConfig> configData;
+	std::string rawReq;
+	request req;
 
-        void    setMode(ClientMode mode);
-        int     getClientFd() const;
-        const ClientMode& getClientMode() const;
+public:
+	Client(int fd, int epoll_fd);
 
-        void    parseRequestHeader();
-        void    makeResponse();
+	void	setMode(ClientMode mode);
+	int		getClientFd() const;
+	const ClientMode	&getClientMode() const;
+
+	void 	parseRequestHeader();
+	void	parseRequestBody();
+
+	void makeResponse();
 };
 
 #endif

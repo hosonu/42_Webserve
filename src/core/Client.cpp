@@ -29,10 +29,33 @@ void	Client::parseRequestHeader() {
 	count = read(this->client_fd, buffer, sizeof(buffer));
 	if (count > 0) {
 		req.setRawHeader(buffer);
-		req.requestParse(req.getRawHeader());
+		if (req.requestParse(req.getRawHeader()) == false) {
+			std::cerr << "Bad Format: Header is not correct format" << std::endl;
+		}
+	}
+	if (req.getCgMode() == true) {
+		this->mode = ClientMode::BODY_READING;
+		req.setCgMode(false);
+	}
+	//config dataをclient_fdに紐づける
+}
+
+void	Client::parseRequestBody() {
+	if (req.checkBodyExist() == false)
+		this->mode = ClientMode::WRITING;
+	else {
+		ssize_t count;
+		char	buffer[MAX_BUFEER];
+		count = read(this->client_fd, buffer, sizeof(buffer));
+		if (count > 0) {
+			this->req.setBody(buffer);
+		}
 	}
 }
 
 void    Client::makeResponse() {
+	#ifdef DEBUG
+ 	print_line(req);
+	#endif
     req.methodProc(client_fd);
 }

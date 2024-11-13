@@ -14,39 +14,52 @@
 #include <fstream>
 #include "Response.hpp"
 
-
 class request
 {
-    public:
-        request();
-        ~request();
-        bool requestParse(const std::string& rawRequest);
-        bool lineParse(const std::string& rawRequest);
-        bool headerParse(const std::string& rawRequest);
-        // bool bodyParse();
-        std::string getMethod();
-        std::string getUri();
-        std::string getVersion();
-        std::map<std::string, std::string> getHeader();
-        void methodProc(int clinet_fd);
+public:
+	request();
+	~request();
+	bool requestParse(const std::string &rawRequest);
+	bool lineParse(const std::string &rawRequest);
+	bool headerParse(const std::string &rawRequest);
+	// bool bodyParse();
+	std::string getMethod();
+	std::string getUri();
+	std::string getVersion();
+	std::map<std::string, std::string> getHeader();
+	void methodProc(int clinet_fd);
 
-        void    setRawHeader(char* buffer) {
-            rawHeader = buffer;
-        }
+	void setRawHeader(char *buffer) {
+		rawHeader = buffer;
+	}
 
-        std::string& getRawHeader() {
-            return rawHeader;
-        }
-    private:
-        std::string method;
-        std::string uri;
-        std::string version;
-        std::map<std::string, std::string> headers;
-        std::string body;
+	std::string &getRawHeader() {
+		return rawHeader;
+	}
 
-        std::string rawHeader;
+	const bool	&getCgMode() {
+		return cgMode;
+	}
+
+	void	setCgMode(bool mode) {
+		cgMode = mode;
+	}
+
+	bool	checkBodyExist();
+	void	setBody(char *buffer);
+
+private:
+	std::string method;
+	std::string uri;
+	std::string version;
+	std::map<std::string, std::string> headers;
+	std::string body;
+
+	bool cgMode;
+	bool setLine;
+	std::string rawHeader;
 };
 
-void    print_line(request& test);
+void print_line(request &test);
 
 #endif
