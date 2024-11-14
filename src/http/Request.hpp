@@ -14,50 +14,33 @@
 #include <fstream>
 #include "Response.hpp"
 
-class request
+class Request
 {
-    public:
-        request();
-        ~request();
-        bool requestParse(const std::string& rawRequest);
-        bool lineParse(const std::string& rawRequest);
-        bool headerParse(const std::string& rawRequest);
-        bool bodyParse(const std::string& rawRequest, bool& flag, bool& checkEmptyLine);
-        std::string getMethod();
-        std::string getUri();
-        std::string getVersion();
-        std::map<std::string, std::string> getHeader();
-        std::string getQuery();
-        void methodProc(int clinet_fd);
 
-	void setRawHeader(char *buffer) {
-		rawHeader = buffer;
-	}
-
-        std::string& getRawHeader() {
-            return rawHeader;
-        }
-    private:
-        std::string keyword;
-        // std::vector<std::pair<std::string, std::string>> boundary;
-        std::string method;
-        std::string uri;
-        std::string version;
-        std::map<std::string, std::string> headers;
-        std::string body;
-
-	const bool	&getCgMode() {
-		return cgMode;
-	}
-
-	void	setCgMode(bool mode) {
-		cgMode = mode;
-	}
-
+public:
+	Request();
+	~Request();
+	bool requestParse(const std::string &rawRequest);
+	bool lineParse(const std::string &rawRequest);
+	bool headerParse(const std::string &rawRequest);
+    bool bodyParse(const std::string& rawRequest, bool& flag, bool& checkEmptyLine);
+	void	methodProc(int clinet_fd);
 	bool	checkBodyExist();
+	void	makeBody(char *buffer);
+
+    std::string getQuery();
+	std::string getMethod();
+	std::string getUri();
+	std::string getVersion();
+	std::map<std::string, std::string> getHeader();
+	std::string &getRawHeader();
+	const bool	&getCgMode();
+	void	setRawHeader(char *buffer);
+	void	setCgMode(bool mode);
 	void	setBody(char *buffer);
 
 private:
+    std::string keyword;
 	std::string method;
 	std::string uri;
 	std::string version;
@@ -69,6 +52,6 @@ private:
 	std::string rawHeader;
 };
 
-void print_line(request &test);
+void print_line(Request &test);
 
 #endif

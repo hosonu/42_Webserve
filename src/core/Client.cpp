@@ -7,7 +7,6 @@ Client::Client(int fd, int epoll_fd)
     ev.data.fd = client_fd;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &ev) == -1) {
         // thorow std::runtime_error("Failed to add epoll");
-        std::cerr << "" << std::endl;
     }
 }
 
@@ -37,18 +36,18 @@ void	Client::parseRequestHeader() {
 		this->mode = ClientMode::BODY_READING;
 		req.setCgMode(false);
 	}
-	//config dataをclient_fdに紐づける
 }
 
 void	Client::parseRequestBody() {
 	if (req.checkBodyExist() == false)
 		this->mode = ClientMode::WRITING;
 	else {
+		//calucurate how many time to read by conten-length
 		ssize_t count;
 		char	buffer[MAX_BUFEER];
 		count = read(this->client_fd, buffer, sizeof(buffer));
 		if (count > 0) {
-			this->req.setBody(buffer);
+			this->req.makeBody(buffer);
 		}
 	}
 }

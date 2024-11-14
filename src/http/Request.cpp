@@ -1,16 +1,15 @@
 #include "Request.hpp"
 
-request::request() : cgMode(false), setLine(false)
+Request::Request() : cgMode(false), setLine(false)
 {
 }
 
-request::~request()
+Request::~Request()
 {
 }
 
-bool request::requestParse(const std::string &rawRequest)
+bool Request::requestParse(const std::string &rawRequest)
 {
-<<<<<<< HEAD
     std::istringstream stream(rawRequest);
     std::string line;
     bool flag = true;
@@ -35,28 +34,6 @@ bool request::requestParse(const std::string &rawRequest)
 
 
 bool request::lineParse(const std::string& lineRequest)
-=======
-	std::istringstream stream(rawRequest);
-	std::string line;
-
-	if (this->setLine == false) {
-		if (!std::getline(stream, line) || !lineParse(line)) {
-			this->setLine = true;
-		}
-	}
-	while (std::getline(stream, line) && line != "\r") {
-		if (!headerParse(line))
-			return false;
-	}
-	if (line == "\r") {
-		this->cgMode = true;
-		this->body = stream.str();
-	}
-	return true;
-}
-
-bool request::lineParse(const std::string &lineRequest)
->>>>>>> 4f31920 (almost done: parseRequestHeader(add configdata to client), TODO:get Body hmt, Add DEBUG to Makefile)
 {
 	std::istringstream stream(lineRequest);
 	if (!std::getline(stream, this->method, ' '))
@@ -68,9 +45,8 @@ bool request::lineParse(const std::string &lineRequest)
 	return true;
 }
 
-bool request::headerParse(const std::string &headerRequest)
+bool Request::headerParse(const std::string &headerRequest)
 {
-<<<<<<< HEAD
     size_t pos = headerRequest.find(":");
     std::string key;
     std::string val;
@@ -84,22 +60,9 @@ bool request::headerParse(const std::string &headerRequest)
     if (key == "Content-Type:")
         this->keyword = val.substr(val.find("="));    
     return true;
-=======
-	size_t pos = headerRequest.find(":");
-	std::string key;
-	std::string val;
-	if (pos == std::string::npos)
-		return false;
-	key = headerRequest.substr(0, pos);
-	val = headerRequest.substr(pos + 1);
-	val.erase(0, val.find_first_not_of(" \t"));
-	val.erase(val.find_last_not_of(" \t") + 1);
-	this->headers[key] = val;
-	return true;
->>>>>>> 4f31920 (almost done: parseRequestHeader(add configdata to client), TODO:get Body hmt, Add DEBUG to Makefile)
 }
 
-void request::methodProc(int clinet_fd)
+void Request::methodProc(int clinet_fd)
 {
 	Response msg;
 	if (this->method == "GET")
@@ -120,7 +83,7 @@ void request::methodProc(int clinet_fd)
 }
 
 
-bool	request::checkBodyExist() {
+bool	Request::checkBodyExist() {
 	std::map<std::string, std::string>::iterator it = headers.find("Content-Length");
 
 	if (it != headers.end()) {
@@ -130,29 +93,44 @@ bool	request::checkBodyExist() {
 	}
 }
 
-void	request::setBody(char *buffer) {
+void	Request::makeBody(char *buffer) {
 	std::string add_body = buffer;
 	this->body += buffer;
 }
 
-
-std::string request::getMethod()
+std::string Request::getMethod()
 {
 	return this->method;
 }
 
-std::string request::getUri()
+std::string Request::getUri()
 {
 	return this->uri;
 }
-std::string request::getVersion()
+std::string Request::getVersion()
 {
 	return this->version;
 }
 
-std::map<std::string, std::string> request::getHeader()
+std::map<std::string, std::string> Request::getHeader()
 {
 	return this->headers;
+}
+
+std::string	&Request::getRawHeader() {
+	return this->rawHeader;
+}
+
+const bool	&Request::getCgMode() {
+	return this->cgMode;
+}
+
+void Request::setRawHeader(char *buffer) {
+	this->rawHeader = buffer;
+}
+
+void	Request::setCgMode(bool mode) {
+	this->cgMode = mode;
 }
 
 std::string request::getQuery()

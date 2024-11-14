@@ -29,7 +29,7 @@ private:
 	std::vector<char> read_buffer;
 	std::vector<char> write_buffer;
 	std::string rawReq;
-	request req;
+	Request req;
 
 public:
 	ServerConfig	configDatum;
