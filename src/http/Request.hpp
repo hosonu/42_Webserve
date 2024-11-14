@@ -14,39 +14,26 @@
 #include <fstream>
 #include "Response.hpp"
 
-class request
+class Request
 {
 public:
-	request();
-	~request();
+	Request();
+	~Request();
 	bool requestParse(const std::string &rawRequest);
 	bool lineParse(const std::string &rawRequest);
 	bool headerParse(const std::string &rawRequest);
-	// bool bodyParse();
+	void	methodProc(int clinet_fd);
+	bool	checkBodyExist();
+	void	makeBody(char *buffer);
+
 	std::string getMethod();
 	std::string getUri();
 	std::string getVersion();
 	std::map<std::string, std::string> getHeader();
-	void methodProc(int clinet_fd);
-
-	void setRawHeader(char *buffer) {
-		rawHeader = buffer;
-	}
-
-	std::string &getRawHeader() {
-		return rawHeader;
-	}
-
-	const bool	&getCgMode() {
-		return cgMode;
-	}
-
-	void	setCgMode(bool mode) {
-		cgMode = mode;
-	}
-
-	bool	checkBodyExist();
-	void	setBody(char *buffer);
+	std::string &getRawHeader();
+	const bool	&getCgMode();
+	void	setRawHeader(char *buffer);
+	void	setCgMode(bool mode);
 
 private:
 	std::string method;
@@ -60,6 +47,6 @@ private:
 	std::string rawHeader;
 };
 
-void print_line(request &test);
+void print_line(Request &test);
 
 #endif

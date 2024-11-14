@@ -74,7 +74,7 @@ void	Server::run() {
 			}
 		}
 	}
-}
+} 
 
 int	Server::acceptNewConnection(Socket& listen_socket) {
 	int client_fd = listen_socket.accept();

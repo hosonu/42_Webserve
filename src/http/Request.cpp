@@ -1,14 +1,14 @@
 #include "Request.hpp"
 
-request::request() : cgMode(false), setLine(false)
+Request::Request() : cgMode(false), setLine(false)
 {
 }
 
-request::~request()
+Request::~Request()
 {
 }
 
-bool request::requestParse(const std::string &rawRequest)
+bool Request::requestParse(const std::string &rawRequest)
 {
 	std::istringstream stream(rawRequest);
 	std::string line;
@@ -29,7 +29,7 @@ bool request::requestParse(const std::string &rawRequest)
 	return true;
 }
 
-bool request::lineParse(const std::string &lineRequest)
+bool Request::lineParse(const std::string &lineRequest)
 {
 	std::istringstream stream(lineRequest);
 	if (!std::getline(stream, this->method, ' '))
@@ -41,7 +41,7 @@ bool request::lineParse(const std::string &lineRequest)
 	return true;
 }
 
-bool request::headerParse(const std::string &headerRequest)
+bool Request::headerParse(const std::string &headerRequest)
 {
 	size_t pos = headerRequest.find(":");
 	std::string key;
@@ -56,7 +56,7 @@ bool request::headerParse(const std::string &headerRequest)
 	return true;
 }
 
-void request::methodProc(int clinet_fd)
+void Request::methodProc(int clinet_fd)
 {
 	Response msg;
 	if (this->method == "GET")
@@ -77,7 +77,7 @@ void request::methodProc(int clinet_fd)
 }
 
 
-bool	request::checkBodyExist() {
+bool	Request::checkBodyExist() {
 	std::map<std::string, std::string>::iterator it = headers.find("Content-Length");
 
 	if (it != headers.end()) {
@@ -87,33 +87,48 @@ bool	request::checkBodyExist() {
 	}
 }
 
-void	request::setBody(char *buffer) {
+void	Request::makeBody(char *buffer) {
 	std::string add_body = buffer;
 	this->body += buffer;
 }
 
-
-std::string request::getMethod()
+std::string Request::getMethod()
 {
 	return this->method;
 }
 
-std::string request::getUri()
+std::string Request::getUri()
 {
 	return this->uri;
 }
-std::string request::getVersion()
+std::string Request::getVersion()
 {
 	return this->version;
 }
 
-std::map<std::string, std::string> request::getHeader()
+std::map<std::string, std::string> Request::getHeader()
 {
 	return this->headers;
 }
 
+std::string	&Request::getRawHeader() {
+	return this->rawHeader;
+}
+
+const bool	&Request::getCgMode() {
+	return this->cgMode;
+}
+
+void Request::setRawHeader(char *buffer) {
+	this->rawHeader = buffer;
+}
+
+void	Request::setCgMode(bool mode) {
+	this->cgMode = mode;
+}
+
 // test code
-void print_line(request &test)
+void print_line(Request &test)
 {
 	std::map<std::string, std::string> t_map = test.getHeader();
 	std::cout << "method: " << test.getMethod() << std::endl;
