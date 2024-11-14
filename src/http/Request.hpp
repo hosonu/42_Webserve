@@ -15,7 +15,6 @@
 #include "Response.hpp"
 #include "../config/Config.hpp"
 
-
 class Request
 {
 

@@ -1,6 +1,10 @@
 #include "Request.hpp"
 
+<<<<<<< HEAD
 request::request()
+=======
+Request::Request() : cgMode(false), setLine(false)
+>>>>>>> 8a0357b (fix Request class)
 {
 }
 
@@ -8,7 +12,11 @@ Request::~Request()
 {
 }
 
+<<<<<<< HEAD
 bool request::requestParse(const std::string& rawRequest)
+=======
+bool Request::requestParse(const std::string &rawRequest)
+>>>>>>> 8a0357b (fix Request class)
 {
     std::istringstream stream(rawRequest);
     std::string line;
@@ -45,7 +53,11 @@ bool request::lineParse(const std::string& lineRequest)
 	return true;
 }
 
+<<<<<<< HEAD
 bool request::headerParse(const std::string& headerRequest)
+=======
+bool Request::headerParse(const std::string &headerRequest)
+>>>>>>> 8a0357b (fix Request class)
 {
     size_t pos = headerRequest.find(":");
     std::string key;
@@ -83,7 +95,7 @@ void Request::methodProc(int clinet_fd)
 }
 
 
-bool	request::checkBodyExist() {
+bool	Request::checkBodyExist() {
 	std::map<std::string, std::string>::iterator it = headers.find("Content-Length");
 
 	if (it != headers.end()) {
@@ -93,7 +105,7 @@ bool	request::checkBodyExist() {
 	}
 }
 
-void	request::setBody(char *buffer) {
+void	Request::makeBody(char *buffer) {
 	std::string add_body = buffer;
 	this->body += buffer;
 }
