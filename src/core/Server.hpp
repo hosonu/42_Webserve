@@ -20,7 +20,6 @@ class Server {
 	//manage socket and accept connection of cliant
 	//control non-blocking I/O process
 		void	run();
-
 		void	setServer();
 	private:
 		std::vector<ServerConfig> configData;
@@ -30,10 +29,7 @@ class Server {
 		struct epoll_event events_[MAX_EVENTS];
 
 		//initialize each server instance
-		int	acceptNewConnection(Socket& listen_socket);
-		// void	setNonBlocking_cs(int fd);isn't necessary
-		//handling client connection
-		// void	handleClient(int client_fd);
+		int		acceptNewConnection(Socket& listen_socket);
 		void	HandleRequest(Client &client);
 		void	HandleResponse(Client &client);
 };

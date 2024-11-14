@@ -44,8 +44,16 @@ void	Server::run() {
 		for (int i = 0; i < n; ++i) {
 			int fd = events_[i].data.fd;
 			//listen fd の処理
+			#ifdef DEBUG
+			std::cout << "events: " << events_[i].events << " , fd: " << fd << std::endl;
+			#endif
+
+
 			for (size_t i = 0; i < socket_.size(); ++i) {
 				if (socket_[i].getFd() == fd) {
+					#ifdef DEBUG
+					std::cout << "Make new client: " << fd << std::endl;
+					#endif
 					int client_fd = acceptNewConnection(socket_[i]);
 					Client client(client_fd, epoll_fd_);
 					client_.push_back(client);
@@ -55,10 +63,7 @@ void	Server::run() {
 			for (size_t i = 0; i < client_.size(); ++i) {
 				if (client_[i].getClientFd() == fd) {
 					if (events_[i].events & EPOLLIN) {
-						// readの処理
-						//buffer保存
 						HandleRequest(client_[i]);
-
 					}
 					if (events_[i].events & EPOLLOUT) {
 						//writeの処理
@@ -84,6 +89,7 @@ int	Server::acceptNewConnection(Socket& listen_socket) {
 void	Server::HandleRequest(Client &client) {
 	if (client.getClientMode() == ClientMode::HEADER_READING) {
 		client.parseRequestHeader();
+		client.bindToConfig(this->configData);
 	}
 	if (client.getClientMode() == ClientMode::BODY_READING) {
 		client.parseRequestBody();

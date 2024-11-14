@@ -53,9 +53,52 @@ void	Client::parseRequestBody() {
 	}
 }
 
+void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
+
+	std::map<std::string, std::string> header = this->req.getHeader();
+	std::string hostValue;
+	std::map<std::string, std::string>::iterator it = header.find("Host");
+	if (it != header.end()) {
+		hostValue = it->second;
+		#ifdef DEBUG
+		std::cout << "Host: " << hostValue << std::endl;
+		#endif
+	}
+
+	size_t colonPos = hostValue.find(':');
+	std::string host;
+	int port;
+	if (colonPos != std::string::npos) {
+		host = hostValue.substr(0, colonPos);
+		port = atoi(hostValue.substr(colonPos + 1).c_str());
+	} else {
+		host = hostValue;
+		port = 8080;//should set default port number
+	}
+
+	for(std::vector<ServerConfig>::iterator iter = configData.begin(); iter != configData.end(); ++iter)
+	{
+		if (iter->serverName == host) {
+			this->configDatum = *iter;
+		} else if (iter->host == host && iter->listenPort == port) {
+			this->configDatum = *iter;
+		}
+	}
+
+	#ifdef DEBUG
+	std::cout << "configDatum: " 
+	          << "is_default: " << configDatum.is_default << ", "
+	          << "listenPort: " << configDatum.listenPort << ", "
+	          << "host: " << configDatum.host << ", "
+	          << "serverName: " << configDatum.serverName << ", "
+	          << "maxBodySize: " << configDatum.maxBodySize << std::endl;
+	#endif
+}
+
 void    Client::makeResponse() {
 	#ifdef DEBUG
- 	print_line(req);
+ 	//print_line(req);
 	#endif
     req.methodProc(client_fd);
 }
+
