@@ -76,7 +76,6 @@ void Request::methodProc(int clinet_fd)
 	}
 }
 
-
 bool	Request::checkBodyExist() {
 	std::map<std::string, std::string>::iterator it = headers.find("Content-Length");
 

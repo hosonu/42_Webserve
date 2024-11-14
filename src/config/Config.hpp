@@ -14,10 +14,12 @@ class Config {
 		~Config();
 
 		bool	parse(const std::string &filePath);
-
 		std::vector<ServerConfig> getServerConfig() const;
 
 	private:
+		bool checkFileStruct(std::stringstream &file);
+		bool checkServerConfigs(const std::vector<ServerConfig>& servers);
+
 		std::vector<ServerConfig> Servers;
 };
 
