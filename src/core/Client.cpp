@@ -30,8 +30,11 @@ void	Client::parseRequestHeader() {
 	ssize_t count;
 	char	buffer[MAX_BUFEER];
 	count = read(this->client_fd, buffer, sizeof(buffer));
-	if (count > 0) {
+	if (count >= 0) {
 		req.setRawHeader(buffer);
+		#ifdef DEBUG
+		std::cout << "header: \n" << req.getRawHeader() << std::endl;
+		#endif
 		if (req.requestParse(req.getRawHeader()) == false) {
 			std::cerr << "Bad Format: Header is not correct format" << std::endl;
 		}
@@ -57,7 +60,9 @@ void	Client::parseRequestBody() {
 }
 
 void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
-
+	#ifdef DEBUG
+ 	//print_line(req);
+	#endif
 	std::map<std::string, std::string> header = this->req.getHeader();
 	std::string hostValue;
 	std::map<std::string, std::string>::iterator it = header.find("Host");
@@ -66,6 +71,8 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 		#ifdef DEBUG
 		std::cout << "Host: " << hostValue << std::endl;
 		#endif
+	} else {
+		std::cerr << "None Header Host " << std::endl;
 	}
 
 	size_t colonPos = hostValue.find(':');
@@ -81,6 +88,9 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 
 	for(std::vector<ServerConfig>::iterator iter = configData.begin(); iter != configData.end(); ++iter)
 	{
+		#ifdef DEBUG
+		std::cout << "ServerConfig: " << iter->serverName << ", " << iter->host << " : " << iter->listenPort << std::endl; 
+		#endif
 		if (iter->serverName == host) {
 			this->configDatum = *iter;
 		} else if (iter->host == host && iter->listenPort == port) {
@@ -90,8 +100,8 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 
 	#ifdef DEBUG
 	{
-		ServerConfig debug_data = getConfigDatum();
-		std::cout << "configDatum: " 
+		ServerConfig debug_data = this->getConfigDatum();
+		std::cout << "configDatum: " << "client fd: " << client_fd << ", " 
 				<< "is_default: " << debug_data.is_default << ", "
 				<< "listenPort: " << debug_data.listenPort << ", "
 				<< "host: " << debug_data.host << ", "
@@ -102,9 +112,6 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 }
 
 void    Client::makeResponse() {
-	#ifdef DEBUG
- 	//print_line(req);
-	#endif
     req.methodProc(client_fd);
 }
 

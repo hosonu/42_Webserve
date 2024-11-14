@@ -6,11 +6,11 @@ void	getListenDirective(std::string &line, ServerConfig &currentServer) {
 	size_t end = line.find(";", start);
 	if (line.find(":") != std::string::npos) {
 		int posColon = line.find(":", start);
-		if (line.find("localhost") != std::string::npos) {
-			currentServer.host = "127.0.0.1";
-		} else {
-			currentServer.host = line.substr(start, posColon - start);
-		}
+		//if (line.find("localhost") != std::string::npos) {
+		//	currentServer.host = "127.0.0.1";
+		//} else {
+		//}
+		currentServer.host = line.substr(start, posColon - start);
 		std::stringstream ss(line.substr(posColon + 1, end - (posColon + 1)));
 		int port;
 		if (!(ss >> port) || !ss.eof()) {
@@ -71,9 +71,17 @@ void	getErrorPage(std::string &line, ServerConfig &currentServer) {
 	}
 }
 
+ void	initializeRouteData(Route &routeData) {
+ 	routeData.path = "/";
+ 	routeData.root = "";
+ 	routeData.autoindex = false;
+ 	routeData.indexFile = "index.html";
+ }
+
 Route	getRouteData(std::string &line, std::stringstream &streamConf) {
 	Route locationDatum;
 
+	initializeRouteData(locationDatum);
 	size_t start = line.find("location ") + 9;
 	size_t end = line.find("{", start);
 	std::string path = line.substr(start, end - start);
@@ -159,7 +167,31 @@ bool checkValidDirective(std::stringstream &file) {
 }
 
 /*-----------------------------------------validate Parmeters-----------------------------------------*/
+bool isValidOctet(const std::string &octet) {
+    if (octet.empty() || octet.length() > 3) {
+        return false;
+    }
+    int value = 0;
+    for (size_t j = 0; j < octet.length(); ++j) {
+        if (!isdigit(octet[j])) {
+            return false;
+        }
+        value = value * 10 + (octet[j] - '0');
+    }
+    if (value > 255) {
+        return false;
+    }
+    if (octet.length() > 1 && octet[0] == '0') {
+        return false;
+    }
+    return true;
+}
+
 bool	isValidIpAddress(const std::string &ip) {
+
+	if (ip == "localhost") {
+		return true;
+	}
 	int dots = 0;
 	for (size_t i = 0; i < ip.length(); ++i) {
 		if (ip[i] == '.')
@@ -170,48 +202,18 @@ bool	isValidIpAddress(const std::string &ip) {
 	}
 
 	std::string octet;
-	int value = 0;
-	int count = 0;
-
 	for (size_t i = 0; i < ip.length(); ++i) {
 		if (ip[i] == '.') {
-			if (octet.empty() || octet.length() > 3) {
-				return false;
-			}
-			value = 0;
-			for (size_t j = 0; j < octet.length(); ++j){
-				if (!isdigit(octet[j])) {
-					return false;
-				}
-				value = value * 10 + (octet[j] - '0');
-			}
-			if (value > 255) {
-				return false;
-			}
-			if (octet.length() > 1 && octet[0] == '0') {
-				return false;
-			}
-			count++;
-			octet.clear();
+			if (!isValidOctet(octet)) {
+                return false;
+            }
+            octet.clear();
 		} else {
 			octet += ip[i];
 		}
 	}
 
-	if (octet.empty() || octet.length() > 3) {
-			return false;
-	}
-	value = 0;
-	for (size_t j = 0; j < octet.length(); ++j){
-		if (!isdigit(octet[j])) {
-			return false;
-		}
-		value = value * 10 + (octet[j] - '0');
-	}
-	if (value > 255) {
-		return false;
-	}
-	if (octet.length() > 1 && octet[0] == '0') {
+	if (!isValidOctet(octet)) {
 		return false;
 	}
 
@@ -262,7 +264,6 @@ bool	isValidRouteData(const std::vector<Route> &locationData) {
 			std::cerr << "Invalid path: "<< it->path << ": Path must start with '/'" << std::endl;
 			return false;
 		}
-
 
 		for(size_t i = 0; i < it->allowMethods.size(); ++i) {
 			std::string method = it->allowMethods[i];

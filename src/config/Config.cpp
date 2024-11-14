@@ -6,20 +6,10 @@ Config::Config() {
 Config::~Config() {
 }
 
-// void	initializeRouteData(ServerConfig &currentServer) {
-// 	currentServer.routeData.path = "/";
-// 	currentServer.routeData.root = "";
-// 	currentServer.routeData.autoindex = false;
-// 	currentServer.routeData.indexFile = "index.html";
-// }
-
-//if there are some words in sever {}, it detect error 
-bool checkFileStruct(std::stringstream &file) {
+bool Config::checkFileStruct(std::stringstream &file) {
 
 	std::string stringFile = file.str();
 	int braceCount = 0;
-
-/*should checks and fixed*/
 	for (size_t i = 0; i < stringFile.length(); ++i){
 		if (stringFile[i] == '{' || stringFile[i] == '}' || stringFile[i] == ';') {
 			if (stringFile[i] == '{') {
@@ -47,7 +37,6 @@ bool checkFileStruct(std::stringstream &file) {
 		std::cerr << "Syntax error: Mismatched braces" << std::endl;
 		return false;
 	}
-
 	if (checkValidDirective(file) != true)
 		return false;
 	
@@ -56,7 +45,7 @@ bool checkFileStruct(std::stringstream &file) {
 }
 
 /*parametars check*/
-bool checkServerConfigs(const std::vector<ServerConfig>& servers) {
+bool Config::checkServerConfigs(const std::vector<ServerConfig>& servers) {
     for (std::vector<ServerConfig>::const_iterator server = servers.begin(); server != servers.end(); ++server) {
         if (server->listenPort < 0 || server->listenPort > 65535) {
             std::cerr << "Invalid port number : " << server->listenPort << std::endl;
@@ -90,18 +79,15 @@ bool checkServerConfigs(const std::vector<ServerConfig>& servers) {
 bool	Config::parse(const std::string &filePath) {
 	std::ifstream file(filePath.c_str());
 	if (!file.is_open()) {
-		std::cerr << "Failed to open configuration file: " << filePath << std::endl;
-		return false;
+		throw std::runtime_error("Failed to open configuration file: " + filePath);
 	}
 
-	
 	std::stringstream streamConf;
 	streamConf << file.rdbuf();//return buf to contain the entire file & add it to buffer
 
 	if (checkFileStruct(streamConf) == false) {
 		return false;
 	}
-	/*TODO: check error of file contens*/
 
 	/*Parse the file stream*/
 	std::string		line;
@@ -138,14 +124,10 @@ bool	Config::parse(const std::string &filePath) {
 		}
 	}
 
-
-	/*add func to checks invalid parameter*/
 	if (checkServerConfigs(this->Servers) != true) {
 		return false;
 	}
-
 	decideDefaultServer(this->Servers);
-
 	file.close();
 	return true;
 }

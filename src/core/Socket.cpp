@@ -7,7 +7,6 @@ Socket::Socket(const std::string& host, int port)
 	fd_ = socket(AF_INET, SOCK_STREAM, 0);
 	if (fd_ < 0) {
 		throw std::runtime_error("Failed to create socket");
-		return ; //error management
 	}
 	memset(&address_, 0, sizeof(address_));
 	address_.sin_family = AF_INET;
@@ -15,10 +14,17 @@ Socket::Socket(const std::string& host, int port)
 	if (host_ == "0.0.0.0") {
 		address_.sin_addr.s_addr = INADDR_ANY;
 	} else {
-		if (inet_pton(AF_INET, host_.c_str(), &address_.sin_addr) <= 0) {
+		if (host_ == "localhost") {
+			if (inet_pton(AF_INET, "127.0.0.1", &address_.sin_addr) <= 0) {
+				close();
+				std::cerr << "what a fuck is going on??" << std::endl;
+				return;
+			}
+		}
+		else if (inet_pton(AF_INET, host_.c_str(), &address_.sin_addr) <= 0) {
 			close();
-			std::cerr << "what a fuck is going on??" << std::endl;
-			return;
+				std::cerr << "what a fuck is going on??" << std::endl;
+				return;
 		}
 		return ;
 	}
@@ -33,7 +39,6 @@ Socket::Socket(const Socket &src) {
 }
 
 Socket::~Socket() {
-	// close();//for文内でデストラクターが呼ばれ引き継げなかった。
 }
 
 bool	Socket::bind() {
@@ -53,6 +58,7 @@ bool	Socket::bind() {
 
 bool	Socket::listen(int backlog) {
 	if(::listen(fd_, backlog) < 0) {
+		std::cerr << "failed to listen" << std::endl;
 		return false; // add error message?
 	}
 	is_listening_ = true;

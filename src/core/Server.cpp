@@ -41,30 +41,27 @@ void	Server::run() {
 		}
 		for (int i = 0; i < n; ++i) {
 			int fd = events_[i].data.fd;
-			//listen fd の処理
 			#ifdef DEBUG
 			std::cout << "events: " << events_[i].events << " , fd: " << fd << std::endl;
 			#endif
-
+			//manage listen fd 
 			for (size_t i = 0; i < socket_.size(); ++i) {
 				if (socket_[i].getFd() == fd) {
-					#ifdef DEBUG
-					std::cout << "Make new client: " << fd << std::endl;
-					#endif
 					int client_fd = acceptNewConnection(socket_[i]);
 					Client client(client_fd, epoll_fd_);
 					client_.push_back(client);
+					#ifdef DEBUG
+					std::cout << "Make new client: " << client_fd << std::endl;
+					#endif
 				}
 			}
-			//client fd の処理
+			//manage client fd
 			for (size_t i = 0; i < client_.size(); ++i) {
 				if (client_[i].getClientFd() == fd) {
 					if (events_[i].events & EPOLLIN) {
 						HandleRequest(client_[i]);
 					}
 					if (events_[i].events & EPOLLOUT) {
-						//writeの処理
-						//buffer保存
 						HandleResponse(client_[i]);
 					}
 				}
@@ -85,18 +82,27 @@ int	Server::acceptNewConnection(Socket& listen_socket) {
 
 void	Server::HandleRequest(Client &client) {
 	if (client.getClientMode() == ClientMode::HEADER_READING) {
+		#ifdef DEBUG
+		std::cout << "HEADER_READING NOW" << std::endl;
+		#endif
 		client.parseRequestHeader();
 		client.bindToConfig(this->configData);
 	}
 	if (client.getClientMode() == ClientMode::BODY_READING) {
+		#ifdef DEBUG
+		std::cout << "BODY_READING NOW" << std::endl;
+		#endif
 		client.parseRequestBody();
 	}
 }
 
 void	Server::HandleResponse(Client &	client) {
-	//関数内で処理を変更
-	//bufferの保存、ファイルオフセットの保存
 	if (client.getClientMode() == ClientMode::WRITING) {
+		#ifdef DEBUG
+		std::cout << "WRITING NOW" << std::endl;
+		#endif
 		client.makeResponse();
 	}
+
+	client.setMode(ClientMode::HEADER_READING);
 }

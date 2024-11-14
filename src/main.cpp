@@ -31,6 +31,7 @@ int main(int argc, char *argv[]){
 
 	try {
 		Config conf;
+		//using should try~catch and should set return value
 		if (conf.parse(path) == false) {
 			return 1;
 		} 
