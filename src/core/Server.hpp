@@ -3,10 +3,10 @@
 
 #include "Socket.hpp"
 #include "../config/Config.hpp"
-#include <sys/epoll.h>
-#include <vector>
 #include "../http/Request.hpp"
 #include "Client.hpp"
+#include <sys/epoll.h>
+#include <vector>
 
 #define MAX_EVENTS 10
 
@@ -22,16 +22,15 @@ class Server {
 		void	run();
 		void	setServer();
 	private:
+		int		acceptNewConnection(Socket& listen_socket);
+		void	HandleRequest(Client &client);
+		void	HandleResponse(Client &client);
+
+		struct epoll_event events_[MAX_EVENTS];
 		std::vector<ServerConfig> configData;
 		std::vector<Socket> socket_;
 		std::vector<Client> client_;
 		int	epoll_fd_;
-		struct epoll_event events_[MAX_EVENTS];
-
-		//initialize each server instance
-		int		acceptNewConnection(Socket& listen_socket);
-		void	HandleRequest(Client &client);
-		void	HandleResponse(Client &client);
 };
 
 #endif

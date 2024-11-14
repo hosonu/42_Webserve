@@ -23,26 +23,25 @@ class Server;
 
 class Client
 {
-private:
-	int client_fd;
-	ClientMode mode;
-	std::vector<char> read_buffer;
-	std::vector<char> write_buffer;
-	std::string rawReq;
-	Request req;
+	public:
+		Client(int fd, int epoll_fd);
+		void	bindToConfig(std::vector<ServerConfig> &configData);
+		void 	parseRequestHeader();
+		void	parseRequestBody();
+		void	makeResponse();
 
-public:
-	ServerConfig	configDatum;
-	Client(int fd, int epoll_fd);
-
-	void	setMode(ClientMode mode);
-	int		getClientFd() const;
-	const ClientMode	&getClientMode() const;
-
-	void	bindToConfig(std::vector<ServerConfig> &configData);
-	void 	parseRequestHeader();
-	void	parseRequestBody();
-	void	makeResponse();
+		int					getClientFd() const;
+		const ClientMode	&getClientMode() const;
+		const ServerConfig	&getConfigDatum() const;
+		void				setMode(ClientMode mode);
+	private:
+		int client_fd;
+		ClientMode mode;
+		std::vector<char> read_buffer;
+		std::vector<char> write_buffer;
+		std::string rawReq;
+		Request req;
+		ServerConfig	configDatum;
 };
 
 #endif
