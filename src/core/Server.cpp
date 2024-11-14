@@ -31,8 +31,6 @@ void	Server::setServer() {
 }
 
 Server::~Server() {
-    // close(epoll_fd_);
-	//close fdfdfdfdf
 }
 
 void	Server::run() {
@@ -47,7 +45,6 @@ void	Server::run() {
 			#ifdef DEBUG
 			std::cout << "events: " << events_[i].events << " , fd: " << fd << std::endl;
 			#endif
-
 
 			for (size_t i = 0; i < socket_.size(); ++i) {
 				if (socket_[i].getFd() == fd) {

@@ -22,6 +22,10 @@ const ClientMode&  Client::getClientMode() const {
     return  this->mode;
 }
 
+const ServerConfig	&Client::getConfigDatum() const {
+	return	this->configDatum;
+}
+
 void	Client::parseRequestHeader() {
 	ssize_t count;
 	char	buffer[MAX_BUFEER];
@@ -85,12 +89,15 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 	}
 
 	#ifdef DEBUG
-	std::cout << "configDatum: " 
-	          << "is_default: " << configDatum.is_default << ", "
-	          << "listenPort: " << configDatum.listenPort << ", "
-	          << "host: " << configDatum.host << ", "
-	          << "serverName: " << configDatum.serverName << ", "
-	          << "maxBodySize: " << configDatum.maxBodySize << std::endl;
+	{
+		ServerConfig debug_data = getConfigDatum();
+		std::cout << "configDatum: " 
+				<< "is_default: " << debug_data.is_default << ", "
+				<< "listenPort: " << debug_data.listenPort << ", "
+				<< "host: " << debug_data.host << ", "
+				<< "serverName: " << debug_data.serverName << ", "
+				<< "maxBodySize: " << debug_data.maxBodySize << std::endl;
+	}
 	#endif
 }
 
