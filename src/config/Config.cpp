@@ -1,4 +1,5 @@
 #include "Config.hpp"
+#include <algorithm>
 
 Config::Config() {
 }
@@ -6,54 +7,48 @@ Config::Config() {
 Config::~Config() {
 }
 
-bool Config::checkFileStruct(std::stringstream &file) {
+bool Config::checkFileStruct(std::stringstream &file, const std::string &filePath) {
 
 	std::string stringFile = file.str();
 	int braceCount = 0;
 	for (size_t i = 0; i < stringFile.length(); ++i){
+		int lineNumber = std::count(stringFile.begin(), stringFile.begin() + i, '\n') + 1; // Calculate line number
 		if (stringFile[i] == '{' || stringFile[i] == '}' || stringFile[i] == ';') {
 			if (stringFile[i] == '{') {
 				braceCount++;
 			} else if (stringFile[i] == '}') {
 				braceCount--;
 			}
-			if (stringFile[i + 2] != '\n') {
-				std::cerr << "Syntax error: " << stringFile[i + 2] << ": no line breaks" << std::endl;
-				return false;
+			if (stringFile[i + 1] != '\n') {
+				throw std::logic_error("[emerg] unexpected end of line, expecting \"\\n\" in " + filePath + ": " + customToString(lineNumber));
 			}
 		} else if (stringFile[i] == '\t') {
 			if (!std::isalpha(stringFile[i + 1]) && stringFile[i + 1] != '}' && stringFile[i] != '\t') {
-				std::cerr << "Syntax error: " << stringFile[i + 1] << ": no tokens" << std::endl;
-				return false;
+				throw std::logic_error("[emerg] no directive in " + filePath + ": " + customToString(lineNumber));
 			}
 		} else if (stringFile[i] == ' ') {			
 			if (!std::isalnum(stringFile[i + 1]) && stringFile[i + 1] != '/' && stringFile[i + 1] != '{') {
-				std::cerr << "Syntax error: " << stringFile[i + 1] << ": no appropriate parameter" << std::endl;
-				return false;
+				throw std::logic_error("[emerg] unexpected tokens in " + filePath + ": " + customToString(lineNumber));
+			}
+		}
+		if (i == stringFile.length() - 1) {
+			if (braceCount != 0) {
+				throw std::logic_error("[emerg] unexcepted \"}\" in " + filePath + ": " + customToString(lineNumber));
 			}
 		}
 	}
-	if (braceCount != 0) {
-		std::cerr << "Syntax error: Mismatched braces" << std::endl;
-		return false;
-	}
-	if (checkValidDirective(file) != true)
-		return false;
-	
-
+	checkValidDirective(file, filePath);
 	return true;
 }
 
 /*parametars check*/
-bool Config::checkServerConfigs(const std::vector<ServerConfig>& servers) {
+void	Config::checkServerConfigs(const std::vector<ServerConfig>& servers, const std::string &filePath) {
     for (std::vector<ServerConfig>::const_iterator server = servers.begin(); server != servers.end(); ++server) {
         if (server->listenPort < 0 || server->listenPort > 65535) {
-            std::cerr << "Invalid port number : " << server->listenPort << std::endl;
-            return false;
+			throw std::logic_error("[emerg] unexepcted paramaeter in \"port\" directive in " + filePath);
         }
         if (server->host.empty() || !isValidIpAddress(server->host)) {
-            std::cerr << "Invalid Ip Address : " << server->host << std::endl;
-            return false;
+			throw std::logic_error("[emerg] unexepcted paramaeter in \"listen\" directive in " + filePath);
         }
         if (!isValidErrorPages(server->errorPages)) {
             std::cerr << "Invalid Error pages: ";
@@ -62,30 +57,29 @@ bool Config::checkServerConfigs(const std::vector<ServerConfig>& servers) {
 					if (it->first > 599 || it->first < 400)
                 		std::cerr << it->first << ": " << it->second << ".";
             }
-            std::cerr << std::endl;
-            return false;
+			throw std::logic_error("[emerg] unexepcted paramaeter in \"listen\" directive in " + filePath);
         }
         if (server->maxBodySize.empty() || !isValidMaxBodySize(server->maxBodySize)) {
-            std::cerr << "Invalid MaxBodySize : " << server->maxBodySize << std::endl;
-            return false;
+			throw std::logic_error("[emerg] unexepcted paramaeter in \"client_max_body_size\" directive in " + filePath);
         }
         if (!isValidRouteData(server->LocationData)) {
-            return false;
+            throw std::logic_error("[emerg] unexepcted paramaeter in \"location\" directive in " + filePath);
         }
     }
-    return true;
 }
 
 bool	Config::parse(const std::string &filePath) {
 	std::ifstream file(filePath.c_str());
 	if (!file.is_open()) {
-		throw std::runtime_error("Failed to open configuration file: " + filePath);
+		throw std::invalid_argument("[emerg] open() " + filePath + " failed (No such file or directory)");
+	}
+	if (file.peek() == std::ifstream::traits_type::eof()) {
+		throw std::invalid_argument("[emerg] " + filePath + " is empty");
 	}
 
 	std::stringstream streamConf;
-	streamConf << file.rdbuf();//return buf to contain the entire file & add it to buffer
-
-	if (checkFileStruct(streamConf) == false) {
+	streamConf << file.rdbuf();
+	if (checkFileStruct(streamConf, filePath) == false) {
 		return false;
 	}
 
@@ -123,10 +117,7 @@ bool	Config::parse(const std::string &filePath) {
 			}
 		}
 	}
-
-	if (checkServerConfigs(this->Servers) != true) {
-		return false;
-	}
+	checkServerConfigs(this->Servers, filePath);
 	decideDefaultServer(this->Servers);
 	file.close();
 	return true;

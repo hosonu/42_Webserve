@@ -6,7 +6,7 @@
 void	getListenDirective(std::string &line, ServerConfig &currentServer);
 void	getErrorPage(std::string &line, ServerConfig &currentServer);
 Route	getRouteData(std::string &line, std::stringstream &streamConf);
-bool	checkValidDirective(std::stringstream &file);
+void	checkValidDirective(std::stringstream &file, const std::string &filePath);
 bool	isValidIpAddress(const std::string &ip);
 bool	isValidErrorPages(const std::map<int, std::string>& errorPages);
 bool	isValidMaxBodySize(const std::string &maxBodySize);

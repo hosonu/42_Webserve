@@ -5,6 +5,7 @@
 #include <sys/epoll.h>
 #include <exception>
 #include <iostream>
+#include <cstdlib>
 
 #include "Server.hpp"
 #include "../http/Request.hpp"

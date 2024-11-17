@@ -65,7 +65,7 @@ void	getErrorPage(std::string &line, ServerConfig &currentServer) {
 		} else {
 			int statusCode = std::strtol(tokens[i].c_str(), 0, 10);
 			if (currentServer.errorPages[statusCode].empty() == false)
-				throw std::runtime_error("double booking");
+				throw std::logic_error("[emerg] unexepcted paramaeter in \"listen\" directive");
 			currentServer.errorPages[statusCode] = path;
 		}
 	}
@@ -130,40 +130,38 @@ bool	checksDirectiveExist(const std::string &line) {
 			line == "root";
 }
 
-bool checkValidDirective(std::stringstream &file) {
+void	checkValidDirective(std::stringstream &file, const std::string &filePath) {
 	std::string line;
 	std::stringstream tmp;
     tmp << file.rdbuf();
     file.clear();
     file.seekg(0);
 	
-	size_t line_cnt = 0;
+	size_t line_cnt = 1;
 	while(std::getline(tmp, line)) {
-		if (!line.empty() && line.back() == '\r') {
-			line.pop_back();
-		}
 		if (line.length() > 1) {
 			int start = line.find_first_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ}");
 			int end = line.find_first_of(" \t}", start);
 			std::string word = line.substr(start, end - start);
+			#ifdef DEBUG
+			std::cout << "start=[" << start << "] end=[" << end << "] back=[" << (int)line[line.length() - 1] << "]" << line << std::endl;
+			#endif
 			if (end > 1 && line.find("}") == std::string::npos && checksDirectiveExist(word) == false) {
-				std::cerr << "Syntax error: " << word << " is not valid tokens" << std::endl;
-				return false;
+				throw std::logic_error("[emerg] invalid directive in " + filePath + ": " + customToString(line_cnt));
 			}
-			// std::cout << "start=[" << start << "] end=[" << end << "] back=[" << (int)line.back() << "]" << line << std::endl;
-			if (line.back() != '{' && line.back() != '}') {
-				if (line.back() != ';') {
-					std::cerr << "Syntax error on line [" << line_cnt << "]: Line must end with a semicolon" << std::endl;
-					return false;
+			if (line[line.length() - 1] != '{' && line[line.length() - 1] != '}') {
+				if (line[line.length() - 1] != ';') {
+					throw std::logic_error("[emerg] unexcepted \";\" end of line in " + filePath + ": " + customToString(line_cnt));
 				}
 			}
+			if (end < 0) {
+				throw std::logic_error("[emerg] unexcepted syntax in " + filePath + ": " + customToString(line_cnt));
+			}
+		} else if (line.length() == 1 && line != "}") {
+			throw std::logic_error("[emerg] unexcepted syntax in " + filePath + ": " + customToString(line_cnt));
 		}
 		line_cnt++;
 	}
-
-	
-
-	return true;
 }
 
 /*-----------------------------------------validate Parmeters-----------------------------------------*/
@@ -242,7 +240,7 @@ bool	isValidMaxBodySize(const std::string &maxBodySize) {
 	if (maxBodySize.length() < 2) {
 		return false;
 	}
-	if (maxBodySize.back() != 'm') {
+	if (maxBodySize[maxBodySize.length() - 1] != 'm') {
 		return false;
 	}
 	std::string num = maxBodySize.substr(0, maxBodySize.length() - 1);
