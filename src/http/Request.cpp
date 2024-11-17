@@ -149,7 +149,7 @@ void    print_line(request& test)
 	std::cout << "method: " << test.getMethod() << std::endl;
 	std::cout << "uri: " << test.getUri() << std::endl;
 	std::cout << "version: " << test.getVersion() << std::endl;
-	for (auto ite = t_map.begin(); ite != t_map.end(); ite++)
+	for (std::map<std::string, std::string>::iterator ite = t_map.begin(); ite != t_map.end(); ++ite)
 	{
 		std::cout << "Key = " << ite->first << ", Value = " << ite->second << std::endl;
 	}

@@ -81,14 +81,14 @@ int	Server::acceptNewConnection(Socket& listen_socket) {
 }
 
 void	Server::HandleRequest(Client &client) {
-	if (client.getClientMode() == ClientMode::HEADER_READING) {
+	if (client.getClientMode() == HEADER_READING) {
 		#ifdef DEBUG
 		std::cout << "HEADER_READING NOW" << std::endl;
 		#endif
 		client.parseRequestHeader();
 		client.bindToConfig(this->configData);
 	}
-	if (client.getClientMode() == ClientMode::BODY_READING) {
+	if (client.getClientMode() == BODY_READING) {
 		#ifdef DEBUG
 		std::cout << "BODY_READING NOW" << std::endl;
 		#endif
@@ -97,12 +97,11 @@ void	Server::HandleRequest(Client &client) {
 }
 
 void	Server::HandleResponse(Client &	client) {
-	if (client.getClientMode() == ClientMode::WRITING) {
+	if (client.getClientMode() == WRITING) {
 		#ifdef DEBUG
 		std::cout << "WRITING NOW" << std::endl;
 		#endif
 		client.makeResponse();
 	}
-
-	client.setMode(ClientMode::HEADER_READING);
+	client.setMode(HEADER_READING);
 }

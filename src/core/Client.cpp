@@ -1,7 +1,7 @@
 #include "Client.hpp"
 
 Client::Client(int fd, int epoll_fd)
-: client_fd(fd), mode(ClientMode::HEADER_READING) {
+: client_fd(fd), mode(HEADER_READING) {
     struct epoll_event ev;
     ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
     ev.data.fd = client_fd;
@@ -40,14 +40,14 @@ void	Client::parseRequestHeader() {
 		}
 	}
 	if (req.getCgMode() == true) {
-		this->mode = ClientMode::BODY_READING;
+		this->mode = BODY_READING;
 		req.setCgMode(false);
 	}
 }
 
 void	Client::parseRequestBody() {
 	if (req.checkBodyExist() == false)
-		this->mode = ClientMode::WRITING;
+		this->mode = WRITING;
 	else {
 		//calucurate how many time to read by conten-length
 		ssize_t count;
@@ -80,7 +80,7 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 	int port;
 	if (colonPos != std::string::npos) {
 		host = hostValue.substr(0, colonPos);
-		port = atoi(hostValue.substr(colonPos + 1).c_str());
+		port = std::strtol(hostValue.substr(colonPos + 1).c_str(), 0, 10);
 	} else {
 		host = hostValue;
 		port = 8080;//should set default port number
