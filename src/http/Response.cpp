@@ -62,7 +62,7 @@ void Response::getBody(const std::string& path)
 int readfile(std::string path, std::string& body)
 {
     std::ifstream stream;
-    stream.open(path);
+    stream.open(path.c_str());
     if (!stream)
     {
         //TODO::Error
@@ -77,27 +77,50 @@ std::string Response::getContentType(const std::string& filePath)
 {
     std::string extension = filePath.substr(filePath.find_last_of(".") + 1);
 
+//	typedef	std::map<std::string, std::string> mimeTypeMap;
 
-    static const std::map<std::string, std::string> mimeTypes = {
-        {"html", "text/html"},
-        {"htm", "text/html"},
-        {"css", "text/css"},
-        {"js", "application/javascript"},
-        {"json", "application/json"},
-        {"png", "image/png"},
-        {"jpg", "image/jpeg"},
-        {"jpeg", "image/jpeg"},
-        {"gif", "image/gif"},
-        {"svg", "image/svg+xml"},
-        {"xml", "application/xml"},
-        {"pdf", "application/pdf"},
-        {"txt", "text/plain"}
-        // 他の拡張子とMIMEタイプのペアを追加
+//static const mimeTypeMap mimeTypes = {
+//        {"html", "text/html"},
+//        {"htm", "text/html"},
+//        {"css", "text/css"},
+//        {"js", "application/javascript"},
+//        {"json", "application/json"},
+//        {"png", "image/png"},
+//        {"jpg", "image/jpeg"},
+//        {"jpeg", "image/jpeg"},
+//        {"gif", "image/gif"},
+//        {"svg", "image/svg+xml"},
+//        {"xml", "application/xml"},
+//        {"pdf", "application/pdf"},
+//        {"txt", "text/plain"}
+//        // 他の拡張子とMIMEタイプのペアを追加
+//};
+
+//   mimeTypeMap::const_iterator it = mimeTypes.find(extension);
+//    if (it != mimeTypes.end()) {
+//        return "Content-type: " + it->second;
+//    }
+
+    const char* extensions[] = {
+        "html", "text/html",
+        "htm", "text/html",
+        "css", "text/css",
+        "js", "application/javascript",
+        "json", "application/json",
+        "png", "image/png",
+        "jpg", "image/jpeg",
+        "jpeg", "image/jpeg",
+        "gif", "image/gif",
+        "svg", "image/svg+xml",
+        "xml", "application/xml",
+        "pdf", "application/pdf",
+        "txt", "text/plain"
     };
 
-    std::map<std::string, std::string>::const_iterator it = mimeTypes.find(extension);
-    if (it != mimeTypes.end()) {
-        return "content-type: " + it->second;
+	for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); i += 2) {
+		if (extension == extensions[i]) {
+			return "Content-type: " + std::string(extensions[i + 1]);
+		}
     }
 
     return "Content-type: text/html";  // デフォルトのMIMEタイプ
@@ -180,12 +203,16 @@ std::string generateDirectoryListing(const std::string& path, const std::vector<
          << "</head>\n<body>\n"
          << "<h1>Index of " << path << "</h1>\n"
          << "<table>\n";
-    
-    for (const auto& file : files) {
-        html << "<tr>\n"
-             << "<td><a href=\"" << file << "\">" << file << "</a></td>\n"
-             << "</tr>\n";
-    }
+	for (std::vector<std::string>::const_iterator it = files.begin(); it != files.end(); ++it) {
+		html << "<tr>\n"
+			<< "<td><a href=\"" << *it << "\">" << *it << "</a></td>\n"
+			<< "</tr>\n";
+	}
+    //for (const auto& file : files) {
+    //    html << "<tr>\n"
+    //         << "<td><a href=\"" << file << "\">" << file << "</a></td>\n"
+    //         << "</tr>\n";
+    //}
     
     html << "</table>\n</body>\n</html>";
     return html.str();
@@ -193,5 +220,5 @@ std::string generateDirectoryListing(const std::string& path, const std::vector<
 
 std::string Response::getRequestLine()
 {
-    return "HTTP/1.1 " + std::to_string(this->statCode) + " " + this->situation + "\r\n";
+    return "HTTP/1.1 " + customToString(this->statCode) + " " + this->situation + "\r\n";
 }
