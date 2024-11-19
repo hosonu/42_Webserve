@@ -22,10 +22,6 @@ void Response::createMessage(const std::string& path)
     this->header += this->getDate();
     this->header += this->getServer();
     this->header += this->getConnection();
-
-    // std::cout << "reqline\n" << this->request_line << std::endl;
-    // std::cout << "headline\n" << this->header << std::endl;
-    // std::cout << "bodyline\n" <<this->body << std::endl;
 }
 
 void Response::getBody(const std::string& path)
@@ -51,7 +47,11 @@ void Response::getBody(const std::string& path)
         //TODO:: if(AutoIndex) do autoindex;
         this->body = generateDirectoryListing(path, getContents(path));
         this->statCode = 200;
-    } 
+    }
+    else if (path == "/upload")
+    {
+
+    }
     else
     {
         this->statCode = readfile(path, this->body);

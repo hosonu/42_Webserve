@@ -23,13 +23,17 @@ class request
         bool requestParse(const std::string& rawRequest);
         bool lineParse(const std::string& rawRequest);
         bool headerParse(const std::string& rawRequest);
-        // bool bodyParse();
+        bool bodyParse(const std::string& rawRequest, bool& flag, bool& checkEmptyLine);
         std::string getMethod();
         std::string getUri();
         std::string getVersion();
         std::map<std::string, std::string> getHeader();
+        std::string getQuery();
         void methodProc(int clinet_fd);
+        // bool request::boundaryParse(const std::string& line, bool& flag, bool& checkEmptyLine);
     private:
+        std::string keyword;
+        // std::vector<std::pair<std::string, std::string>> boundary;
         std::string method;
         std::string uri;
         std::string version;

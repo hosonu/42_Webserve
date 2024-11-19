@@ -14,17 +14,26 @@ bool request::requestParse(const std::string& rawRequest)
 {
     std::istringstream stream(rawRequest);
     std::string line;
+    bool flag = true;
 
     if (!std::getline(stream, line) || !lineParse(line))
         return false;
     
     while (std::getline(stream, line) && line != "\r")
     {
-        if (!headerParse(line))
+        if (!headerParse(line) && flag)
             return false;
+        if (line == "\r\n")
+        {
+            continue;
+            if (line == "")
+                break;
+            this->body += line;
+        }
     }
     return true;
 }
+
 
 bool request::lineParse(const std::string& lineRequest)
 {
@@ -50,6 +59,8 @@ bool request::headerParse(const std::string& headerRequest)
     val.erase(0, val.find_first_not_of(" \t"));
     val.erase(val.find_last_not_of(" \t") + 1);
     this->headers[key] = val;
+    if (key == "Content-Type:")
+        this->keyword = val.substr(val.find("="));    
     return true;
 }
 
@@ -94,6 +105,15 @@ std::map<std::string, std::string> request::getHeader()
     return this->headers;
 }
 
+std::string request::getQuery()
+{
+    if (this->uri.find("?") != std::string::npos)
+    {
+        return this->uri.substr(this->uri.find("?"));
+    }
+    else
+        return "";
+}
 
 //test code
 void    print_line(request& test)
