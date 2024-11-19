@@ -96,7 +96,7 @@ bool	Config::parse(const std::string &filePath) {
 				this->Servers.push_back(currentServer);
 				isServerBlock = false;
 			}
-			/* Parse individual directives inside server block*/
+	/* Parse individual directives inside server block*/
 		} else if (isServerBlock) {
 			if (line.find("listen") != std::string::npos) {
 				getListenDirective(line, currentServer);

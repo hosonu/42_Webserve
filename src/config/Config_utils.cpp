@@ -1,15 +1,10 @@
 #include "Config_utils.hpp"
 
-/*if we have to set as follows "host:port", this func should be changed*/
 void	getListenDirective(std::string &line, ServerConfig &currentServer) {
 	size_t start = line.find("listen ") + 7;
 	size_t end = line.find(";", start);
 	if (line.find(":") != std::string::npos) {
 		int posColon = line.find(":", start);
-		//if (line.find("localhost") != std::string::npos) {
-		//	currentServer.host = "127.0.0.1";
-		//} else {
-		//}
 		currentServer.host = line.substr(start, posColon - start);
 		std::stringstream ss(line.substr(posColon + 1, end - (posColon + 1)));
 		int port;
@@ -19,32 +14,17 @@ void	getListenDirective(std::string &line, ServerConfig &currentServer) {
 		}
 		currentServer.listenPort = port;
 	}
-	// else {
-	// 	if (line.find("localhost") != std::string::npos) {
-	// 		currentServer.host = "127.0.0.1";
-	// 		currentServer.listenPort = 80;
-	// 	} if (line.find(".") != std::string::npos) {
-	// 		currentServer.host = line.substr(start, end - start);
-	// 		currentServer.listenPort = 80;
-	// 	} else {
-	// 		std::stringstream ss(line.substr(start, end - start));
-	// 		int port;
-	// 		if (!(ss >> port) || !ss.eof()) {
-	// 		currentServer.listenPort = -1;
-	// 		} else {
-	// 			currentServer.listenPort = port;
-	// 		}
-	// 		currentServer.host = "0.0.0.0";//default host
-	// 	}
-	// }
 }
 
 static std::vector<std::string> splitString(std::string &input) {
 	std::vector<std::string> result;
 	std::istringstream iss(input);
-	std::string token = " ";
+	std::string token;
 
 	while (iss >> token) {
+		if (!token.empty() && token[token.length() - 1] == ';') {
+			token = token.substr(0, token.length() - 1);
+		}
 		result.push_back(token);
 	}
 	return result;
@@ -80,35 +60,37 @@ void	getErrorPage(std::string &line, ServerConfig &currentServer) {
 
 Route	getRouteData(std::string &line, std::stringstream &streamConf) {
 	Route locationDatum;
-
 	initializeRouteData(locationDatum);
 	size_t start = line.find("location ") + 9;
 	size_t end = line.find("{", start);
 	std::string path = line.substr(start, end - start);
 	locationDatum.path = path;
-	while (std::getline(streamConf, line)) {
-		if (line.find("root") != std::string::npos) {
-			size_t start = line.find("root ") + 5;
-			size_t end = line.find(";", start);
-			std::string rootPath = line.substr(start, end - start);
+	std::string line_2;	
+	while (std::getline(streamConf, line_2)) {
+		if (line_2.find("root") != std::string::npos) {
+			size_t start = line_2.find("root ") + 5;
+			size_t end = line_2.find(";", start);
+			std::string rootPath = line_2.substr(start, end - start);
 			locationDatum.root = rootPath;
-		} else if (line.find("allow_methods") != std::string::npos) {
-			std::vector<std::string> tokens = splitString(line);
+		} else if (line_2.find("allow_methods") != std::string::npos) {
+			line_2 = line_2.substr(line_2.find("allow_methods") + 14);
+			std::vector<std::string> tokens = splitString(line_2);
 			locationDatum.allowMethods = tokens;
-		} else if (line.	find("autoindex") != std::string::npos) {
-			size_t start = line.find("autoindex ") + 10;
-			size_t end = line.find(";", start);
-			std::string autoindex = line.substr(start, end - start);
-
-			/*if on or off not here should return*/
+		} else if (line_2.find("autoindex") != std::string::npos) {
+			size_t start = line_2.find("autoindex ") + 10;
+			size_t end = line_2.find(";", start);
+			std::string autoindex = line_2.substr(start, end - start);
+			//std::cout << "autoindex: " << autoindex << std::endl;
 			if (autoindex == "on")
 				locationDatum.autoindex = true;
-			else
+			else if ((autoindex == "off"))
 				locationDatum.autoindex = false;
-		} else if (line.find("index") != std::string::npos) {
+			else
+				throw std::logic_error("[emerg] unexpected token in autoindex line_2 in ");
+		} else if (line_2.find("index") != std::string::npos) {
 			locationDatum.indexFile = "index.html";
 		}
-		if (line.find("}"))
+		if (line_2.find("}") != std::string::npos)
 			break;
 	}
 	return locationDatum;
@@ -259,22 +241,19 @@ bool	isValidRouteData(const std::vector<Route> &locationData) {
 
 	for (std::vector<Route>::const_iterator it = locationData.begin(); it < locationData.end(); ++it) {
 		if (it->path[0] != '/') {
-			std::cerr << "Invalid path: "<< it->path << ": Path must start with '/'" << std::endl;
-			return false;
+			throw std::invalid_argument("[emerg] unexpected path in location{} in ");
 		}
 
 		for(size_t i = 0; i < it->allowMethods.size(); ++i) {
 			std::string method = it->allowMethods[i];
 			if (method != "GET" && method != "POST" && method != "DELETE") {
-				std::cerr << "Invalid method: Only GET, POST, and DELETE are allowed" << std::endl;
-				return false;
+				throw std::invalid_argument("[emerg] unexpected methods in location{} in ");
 			}
 		}
 
 		if (it->indexFile.length() < 5 || 
 		it->indexFile.substr(it->indexFile.length() - 5) != ".html") {
-			std::cerr << "Invalid index file: Index file must end with '.html'" << std::endl;
-			return false;
+			throw std::invalid_argument("[emerg] unexpected indexFile in location{} in ");
 		}
 	}
 
