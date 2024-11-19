@@ -95,7 +95,6 @@ bool	Config::parse(const std::string &filePath) {
 			if (isServerBlock) {
 				this->Servers.push_back(currentServer);
 				isServerBlock = false;
-				i = 0;
 			}
 	/* Parse individual directives inside server block*/
 		} else if (isServerBlock) {

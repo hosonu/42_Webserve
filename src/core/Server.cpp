@@ -104,5 +104,5 @@ void	Server::HandleResponse(Client &	client) {
 		#endif
 		client.makeResponse();
 	}
-	client.setMode(HEADER_READING);
+	client.setMode(CLOSING);
 }

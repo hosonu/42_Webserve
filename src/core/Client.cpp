@@ -38,6 +38,7 @@ void	Client::parseRequestHeader() {
 		if (req.requestParse(req.getRawHeader()) == false) {
 			std::cerr << "Bad Format: Header is not correct format" << std::endl;
 		}
+		req.setCgMode(true);
 	}
 	if (req.getCgMode() == true) {
 		this->mode = BODY_READING;
@@ -113,7 +114,7 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 
 void    Client::makeResponse() {
 	#ifdef DEBUG
- 	print_line(req);
+ 	//print_line(req);
 	#endif
     req.methodProc(client_fd);
 }

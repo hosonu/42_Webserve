@@ -177,6 +177,9 @@ void Response::wirteMessage(int socket)
     int totalLine = reqline + headerLen + bodyLen + 2;
     std::string total = this->request_line + this->header + "\r\n" +this->body;
     //TODO: Error handling
+	#ifdef DEBUG
+	//std::cout << "total " << total << std::endl;
+	#endif
     write(socket, total.c_str(), totalLine);
 }
 

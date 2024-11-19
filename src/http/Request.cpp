@@ -33,7 +33,7 @@ bool Request::requestParse(const std::string &rawRequest)
 }
 
 
-bool request::lineParse(const std::string& lineRequest)
+bool Request::lineParse(const std::string& lineRequest)
 {
 	std::istringstream stream(lineRequest);
 	if (!std::getline(stream, this->method, ' '))
@@ -98,22 +98,6 @@ void	Request::makeBody(char *buffer) {
 	this->body += buffer;
 }
 
-
-bool	Request::checkBodyExist() {
-	std::map<std::string, std::string>::iterator it = headers.find("Content-Length");
-
-	if (it != headers.end()) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-void	Request::makeBody(char *buffer) {
-	std::string add_body = buffer;
-	this->body += buffer;
-}
-
 std::string Request::getMethod()
 {
 	return this->method;
@@ -149,7 +133,7 @@ void	Request::setCgMode(bool mode) {
 	this->cgMode = mode;
 }
 
-std::string request::getQuery()
+std::string Request::getQuery()
 {
     if (this->uri.find("?") != std::string::npos)
     {
@@ -160,13 +144,13 @@ std::string request::getQuery()
 }
 
 //test code
-void    print_line(request& test)
+void    print_line(Request& test)
 {
     std::map<std::string, std::string> t_map = test.getHeader();
     std::cout << "method: " << test.getMethod() << std::endl;
     std::cout << "uri: " << test.getUri() << std::endl;
     std::cout << "version: " << test.getVersion() << std::endl;
-    for (auto ite = t_map.begin(); ite != t_map.end(); ite++) {
+    for (std::map<std::string, std::string>::iterator ite = t_map.begin(); ite != t_map.end(); ite++) {
         std::cout << "Key = " << ite->first << ", Value = " << ite->second << std::endl;
     }
 }
