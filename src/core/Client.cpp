@@ -40,6 +40,7 @@ void	Client::parseRequestHeader() {
 		}
 		req.setCgMode(true);
 	}
+
 	if (req.getCgMode() == true) {
 		this->mode = BODY_READING;
 		req.setCgMode(false);
@@ -51,6 +52,7 @@ void	Client::parseRequestBody() {
 		this->mode = WRITING;
 	else {
 		//calucurate how many time to read by conten-length
+
 		ssize_t count;
 		char	buffer[MAX_BUFEER];
 		count = read(this->client_fd, buffer, sizeof(buffer));
