@@ -79,9 +79,14 @@ bool	Config::parse(const std::string &filePath) {
 
 	std::stringstream streamConf;
 	streamConf << file.rdbuf();
+	
+	
+	
 	if (checkFileStruct(streamConf, filePath) == false) {
 		return false;
 	}
+
+
 
 	/*Parse the file stream*/
 	std::string		line;
