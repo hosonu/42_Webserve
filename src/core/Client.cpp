@@ -112,10 +112,30 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 	#endif
 }
 
+void    Client::methodProc()
+{
+	Response msg;
+	if (this->req.getMethod() == "GET")
+	{
+		msg.createMessage(this->req.getUri());
+		msg.wirteMessage(this->client_fd);
+	}
+	else if (this->req.getMethod() == "POST")
+	{
+	}
+	else if (this->req.getMethod() == "DELETE")
+	{
+	}
+	else
+	{
+		std::cout << "Invalid method" << std::endl;
+	}
+}
+
 void    Client::makeResponse() {
 	#ifdef DEBUG
  	//print_line(req);
 	#endif
-    req.methodProc(client_fd);
+    this->methodProc();
 }
 
