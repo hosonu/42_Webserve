@@ -30,6 +30,7 @@ class Client
 		void 	parseRequestHeader();
 		void	parseRequestBody();
 		void	makeResponse();
+		void	methodProc();
 
 		int					getClientFd() const;
 		const ClientMode	&getClientMode() const;

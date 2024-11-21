@@ -16,7 +16,6 @@ bool Request::requestParse(const std::string &rawRequest)
 
     if (!std::getline(stream, line) || !lineParse(line))
         return false;
-    
     while (std::getline(stream, line) && line != "\r")
     {
         if (!headerParse(line) && flag)
@@ -45,6 +44,11 @@ bool Request::lineParse(const std::string& lineRequest)
 	return true;
 }
 
+void Request::checkValidReqLine()
+{
+
+}
+
 bool Request::headerParse(const std::string &headerRequest)
 {
     size_t pos = headerRequest.find(":");
@@ -61,27 +65,6 @@ bool Request::headerParse(const std::string &headerRequest)
         this->keyword = val.substr(val.find("="));    
     return true;
 }
-
-void Request::methodProc(int clinet_fd)
-{
-	Response msg;
-	if (this->method == "GET")
-	{
-		msg.createMessage(this->uri);
-		msg.wirteMessage(clinet_fd);
-	}
-	else if (this->method == "POST")
-	{
-	}
-	else if (this->method == "DELETE")
-	{
-	}
-	else
-	{
-		std::cout << "Invalid method" << std::endl;
-	}
-}
-
 
 bool	Request::checkBodyExist() {
 	std::map<std::string, std::string>::iterator it = headers.find("Content-Length");

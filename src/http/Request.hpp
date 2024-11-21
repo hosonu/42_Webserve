@@ -21,11 +21,11 @@ class Request
 public:
 	Request();
 	~Request();
-	bool requestParse(const std::string &rawRequest);
-	bool lineParse(const std::string &rawRequest);
-	bool headerParse(const std::string &rawRequest);
-    bool bodyParse(const std::string& rawRequest, bool& flag, bool& checkEmptyLine);
-	void	methodProc(int clinet_fd);
+	bool 	requestParse(const std::string &rawRequest);
+	bool 	lineParse(const std::string &rawRequest);
+	bool 	headerParse(const std::string &rawRequest);
+    bool 	bodyParse(const std::string& rawRequest, bool& flag, bool& checkEmptyLine);
+	void 	checkValidReqLine();
 	bool	checkBodyExist();
 	void	makeBody(char *buffer);
 
