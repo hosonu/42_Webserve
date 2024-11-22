@@ -102,13 +102,13 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 
 	#ifdef DEBUG
 	{
-		ServerConfig debug_data = this->getConfigDatum();
-		std::cout << "configDatum: " << "client fd: " << client_fd << ", " 
-				<< "is_default: " << debug_data.is_default << ", "
-				<< "listenPort: " << debug_data.listenPort << ", "
-				<< "host: " << debug_data.host << ", "
-				<< "serverName: " << debug_data.serverName << ", "
-				<< "maxBodySize: " << debug_data.maxBodySize << std::endl;
+		//ServerConfig debug_data = this->getConfigDatum();
+		//std::cout << "configDatum: " << "client fd: " << client_fd << ", " 
+		//		<< "is_default: " << debug_data << ", "
+		//		<< "listenPort: " << debug_data.listenPort << ", "
+		//		<< "host: " << debug_data.host << ", "
+		//		<< "serverName: " << debug_data.serverName << ", "
+		//		<< "maxBodySize: " << debug_data.maxBodySize << std::endl;
 	}
 	#endif
 }
