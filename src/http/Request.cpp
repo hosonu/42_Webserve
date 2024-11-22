@@ -8,12 +8,12 @@ Request::~Request()
 {
 }
 
-bool Request::requestParse(const std::string &rawRequest)
+bool Request::requestParse(const std::string &rawRequest, ServerConfig conf)
 {
     std::istringstream stream(rawRequest);
     std::string line;
     bool flag = true;
-
+    print_conf(conf);
     if (!std::getline(stream, line) || !lineParse(line))
         return false;
     while (std::getline(stream, line) && line != "\r")
@@ -41,13 +41,25 @@ bool Request::lineParse(const std::string& lineRequest)
 		return false;
 	if (!std::getline(stream, this->version))
 		return false;
+    //if (!checkValidReqLine())
+    //    return false;
 	return true;
 }
 
-void Request::checkValidReqLine()
-{
+//bool Request::checkValidReqLine()
+//{
+//    bool flag;
+//    flag = checkValidMethod();
+//    flag = checkValidUri();
+//    flag = checkValidVersion();
+//    return flag;
+//}
 
-}
+//bool Request::checkValidMethod()
+//{
+    
+//}
+
 
 bool Request::headerParse(const std::string &headerRequest)
 {

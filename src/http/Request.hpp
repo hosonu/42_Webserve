@@ -21,11 +21,14 @@ class Request
 public:
 	Request();
 	~Request();
-	bool 	requestParse(const std::string &rawRequest);
+	bool 	requestParse(const std::string &rawRequest, ServerConfig conf);
 	bool 	lineParse(const std::string &rawRequest);
 	bool 	headerParse(const std::string &rawRequest);
     bool 	bodyParse(const std::string& rawRequest, bool& flag, bool& checkEmptyLine);
-	void 	checkValidReqLine();
+	//bool 	checkValidReqLine();
+	//bool	checkValidMethod();
+	//bool	checkValidUri();
+	//bool	checkValidVersion();
 	bool	checkBodyExist();
 	void	makeBody(char *buffer);
 
@@ -53,7 +56,7 @@ private:
 	std::string rawHeader;
 };
 
-void print_line(Request &test);
-void print_conf(ServerConfig test);
+void	print_line(Request& test);
+void    print_conf(ServerConfig test);
 
 #endif
