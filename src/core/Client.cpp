@@ -35,7 +35,7 @@ void	Client::parseRequestHeader() {
 		#ifdef DEBUG
 		std::cout << "header: \n" << req.getRawHeader() << std::endl;
 		#endif
-		if (req.requestParse(req.getRawHeader()) == false) {
+		if (req.requestParse(req.getRawHeader(), this->getConfigDatum()) == false) {
 			std::cerr << "Bad Format: Header is not correct format" << std::endl;
 		}
 		req.setCgMode(true);

@@ -86,8 +86,8 @@ void	Server::HandleRequest(Client &client) {
 		#ifdef DEBUG
 		std::cout << "HEADER_READING NOW" << std::endl;
 		#endif
-		client.parseRequestHeader();
 		client.bindToConfig(this->configData);
+		client.parseRequestHeader();
 	}
 	if (client.getClientMode() == BODY_READING) {
 		#ifdef DEBUG
