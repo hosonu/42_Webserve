@@ -11,7 +11,6 @@ int	getValidatePath(int argc, char *argv[], std::string &path) {
 		std::cerr << "ERROR: too many arguments" << std::endl;
 		return false;
 	}
-
 	if (path.size() >= 5 && path.substr(path.size() - 5) == ".conf") {
 		return true;
 	} else {
@@ -27,7 +26,6 @@ int main(int argc, char *argv[]){
 	if (getValidatePath(argc, argv, path) == false) {
 		return 1;
 	}
- 
 
 	try {
 		Config conf;

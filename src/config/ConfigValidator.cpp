@@ -30,6 +30,9 @@ void	ConfigValidator::validateBlockStructure(const std::vector<std::string>& tok
 	bool in_server_block = false;
 	bool in_location_block = false;
 
+	if (tokens[0] != "server") {
+		throw std::runtime_error("[emerg] syntax error");
+	}
 	for (size_t i = 0; i < tokens.size(); ++i) {
 		if (tokens[i] == "{") {
 			brace_count++;

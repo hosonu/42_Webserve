@@ -23,8 +23,8 @@ Socket::Socket(const std::string& host, int port)
 		}
 		else if (inet_pton(AF_INET, host_.c_str(), &address_.sin_addr) <= 0) {
 			close();
-				std::cerr << "what a fuck is going on??" << std::endl;
-				return;
+			std::cerr << "what a fuck is going on??" << std::endl;
+			return;
 		}
 		return ;
 	}
@@ -45,12 +45,12 @@ bool	Socket::bind() {
 	int opt = 1;
 
 	if (setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-		std::cerr << "failed to setsockopt" << strerror(errno) << std::endl;
+		std::cerr << "failed to setsockopt: " << strerror(errno) << std::endl;
 		return false;
 	}
 
 	if (::bind(fd_, (struct sockaddr *)&address_, sizeof(address_)) < 0) {
-		std::cerr << "failed to bind" << std::endl;
+		std::cerr << "failed to bind: " << strerror(errno) << std::endl;
 		return false;
 	}
 	return true;
