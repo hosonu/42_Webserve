@@ -154,3 +154,27 @@ void    print_line(Request& test)
         std::cout << "Key = " << ite->first << ", Value = " << ite->second << std::endl;
     }
 }
+
+void    print_conf(ServerConfig test)
+{
+
+
+    std::cout << "is_default: " <<test.getDefault() << std::endl;
+    std::cout << "listenPort: "<<test.getListenPort() << std::endl;
+    std::cout << "host: "<<test.getListenHost() << std::endl;
+    std::cout << "serverName:" <<test.getServerName() << std::endl;
+    std::cout << "maxBodySize:" <<test.getMaxBodySize() << std::endl;
+
+	
+    for (std::vector<Location>::const_iterator it = test.getLocations().begin(); it != test.getLocations().end(); ++it) {
+        std::cout << "Location.path: " << it->getPath() << std::endl;
+        std::cout << "Location.root: " << it->getRoot() << std::endl;
+        for (std::vector<std::string>::const_iterator methodIt = it->getAllowMethods().begin();
+             methodIt != it->getAllowMethods().end(); ++methodIt) {
+            std::cout << *methodIt << " ";
+        }
+        std::cout << "autoindex: " << it->isAutoindex() << std::endl;
+        std::cout << "indexFile: " << it->getIndexFile() << std::endl;
+    }
+
+}

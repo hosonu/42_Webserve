@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server(Config &configs) : configData(configs.getServerConfig()) {
+Server::Server(Config &configs) : configData(configs.getServerConfigs()) {
 }
 
 void	Server::setServer() {
@@ -9,8 +9,8 @@ void	Server::setServer() {
 		throw std::runtime_error("Failed to create epoll file descriptor");
 	}
 	for(std::vector<ServerConfig>::iterator it = configData.begin(); it != configData.end(); ++it) {
-		if (it->is_default == true) {
-			Socket socket(it->host, it->listenPort);
+		if (it->getDefault() == true) {
+			Socket socket(it->getListenHost(), it->getListenPort());
 			if (socket.setNonBlocking(socket.getFd()) == false)
 				throw std::runtime_error("Failed to set non blocking mode");
 			if (socket.bind() == false) {
@@ -69,7 +69,7 @@ void	Server::run() {
 			}
 		}
 	}
-} 
+}
 
 int	Server::acceptNewConnection(Socket& listen_socket) {
 	int client_fd = listen_socket.accept();
@@ -82,6 +82,7 @@ int	Server::acceptNewConnection(Socket& listen_socket) {
 }
 
 void	Server::HandleRequest(Client &client) {
+	std::cout << "mode: " << client.getClientMode() << std::endl;
 	if (client.getClientMode() == HEADER_READING) {
 		#ifdef DEBUG
 		std::cout << "HEADER_READING NOW" << std::endl;
@@ -98,6 +99,7 @@ void	Server::HandleRequest(Client &client) {
 }
 
 void	Server::HandleResponse(Client &	client) {
+	std::cout << "mode: " << client.getClientMode() << std::endl;
 	if (client.getClientMode() == WRITING) {
 		#ifdef DEBUG
 		std::cout << "WRITING NOW" << std::endl;

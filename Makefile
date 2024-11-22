@@ -8,7 +8,17 @@ else
 	CXXFLAGS += $(DEBUGFLAGS)
 endif
 
-SRCS = src/main.cpp src/core/Server.cpp src/core/Socket.cpp src/core/Client.cpp src/config/Config.cpp src/config/Config_utils.cpp src/http/Request.cpp src/http/Response.cpp
+SRCS = \
+    src/main.cpp \
+    src/config/Config.cpp \
+    src/config/ServerConfig.cpp \
+    src/config/ConfigValidator.cpp \
+    src/config/Location.cpp \
+    src/core/Server.cpp \
+    src/core/Socket.cpp \
+    src/core/Client.cpp \
+    src/http/Request.cpp \
+    src/http/Response.cpp
 
 TARGET = program
 

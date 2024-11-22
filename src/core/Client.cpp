@@ -33,7 +33,7 @@ void	Client::parseRequestHeader() {
 	if (count >= 0) {
 		req.setRawHeader(buffer);
 		#ifdef DEBUG
-		std::cout << "header: \n" << req.getRawHeader() << std::endl;
+		//std::cout << "header: \n" << req.getRawHeader() << std::endl;
 		#endif
 		if (req.requestParse(req.getRawHeader()) == false) {
 			std::cerr << "Bad Format: Header is not correct format" << std::endl;
@@ -57,6 +57,7 @@ void	Client::parseRequestBody() {
 		if (count > 0) {
 			this->req.makeBody(buffer);
 		}
+		this->mode = WRITING;
 	}
 }
 
@@ -70,7 +71,7 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 	if (it != header.end()) {
 		hostValue = it->second;
 		#ifdef DEBUG
-		std::cout << "Host: " << hostValue << std::endl;
+		//std::cout << "Host: " << hostValue << std::endl;
 		#endif
 	} else {
 		std::cerr << "None Header Host " << std::endl;
@@ -90,11 +91,11 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 	for(std::vector<ServerConfig>::iterator iter = configData.begin(); iter != configData.end(); ++iter)
 	{
 		#ifdef DEBUG
-		std::cout << "ServerConfig: " << iter->serverName << ", " << iter->host << " : " << iter->listenPort << std::endl; 
+		//std::cout << "ServerConfig: " << iter->serverName << ", " << iter->host << " : " << iter->listenPort << std::endl; 
 		#endif
-		if (iter->serverName == host) {
+		if (iter->getServerName() == host) {
 			this->configDatum = *iter;
-		} else if (iter->host == host && iter->listenPort == port) {
+		} else if (iter->getListenHost() == host && iter->getListenPort() == port) {
 			this->configDatum = *iter;
 		}
 	}
@@ -115,6 +116,7 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 void    Client::makeResponse() {
 	#ifdef DEBUG
  	//print_line(req);
+	print_conf(configDatum);
 	#endif
     req.methodProc(client_fd);
 }

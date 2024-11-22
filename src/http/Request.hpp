@@ -54,5 +54,6 @@ private:
 };
 
 void print_line(Request &test);
+void print_conf(ServerConfig test);
 
 #endif

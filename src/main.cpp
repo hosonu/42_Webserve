@@ -31,13 +31,9 @@ int main(int argc, char *argv[]){
 
 	try {
 		Config conf;
-		//using should try~catch and should set return value
-		if (conf.parse(path) == false) {
-			return 1;
-		} 
+		conf.loadConfigFile(path);
 		Server s(conf);
 		s.setServer();
-
 		s.run();
 	} catch (std::exception &e) {
 		std::cout << e.what() << std::endl;

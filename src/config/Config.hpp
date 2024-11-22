@@ -2,7 +2,7 @@
 #define CONFIG_HPP
 
 #include "ServerConfig.hpp"
-#include "Config_utils.hpp"
+#include "ConfigValidator.hpp"
 #include <cstring>
 #include <iostream>
 #include <fstream>
@@ -16,19 +16,20 @@ std::string customToString(const T& value) {
     return oss.str();
 }
 
-class Config {
-	public:
-		Config();
-		~Config();
-
-		bool	parse(const std::string &filePath);
-		std::vector<ServerConfig> getServerConfig() const;
-
+class	Config {
 	private:
-		bool checkFileStruct(std::stringstream &file, const std::string &filePath);
-		void	checkServerConfigs(const std::vector<ServerConfig>& servers, const std::string &filePath);
+		std::vector<std::string>	tokens;
+		ConfigValidator				validator;
+		std::vector<ServerConfig>	Servers;
 
-		std::vector<ServerConfig> Servers;
+		void	tokenize(const std::string& filePath);
+		void	parseConfig();
+		ServerConfig	parseServerBlock(size_t& start_index);
+		void	decideDefaultServer(std::vector<ServerConfig> &Servers);
+
+	public:
+		void	loadConfigFile(const std::string &filename);
+		const std::vector<ServerConfig>&	getServerConfigs() const;
 };
 
 #endif
