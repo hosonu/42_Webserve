@@ -25,6 +25,7 @@ class Server {
 		int		acceptNewConnection(Socket& listen_socket);
 		void	HandleRequest(Client &client);
 		void	HandleResponse(Client &client);
+		void	removeClient(int client_fd);
 
 		struct epoll_event events_[MAX_EVENTS];
 		std::vector<ServerConfig> configData;

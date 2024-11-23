@@ -30,7 +30,8 @@ public:
 	//bool	checkValidUri();
 	//bool	checkValidVersion();
 	bool	checkBodyExist();
-	void	makeBody(char *buffer);
+	bool	isBodyComplete() const;
+	void	appendBody(char *buffer);
 
     std::string getQuery();
 	std::string getMethod();
@@ -41,7 +42,7 @@ public:
 	const bool	&getCgMode();
 	void	setRawHeader(char *buffer);
 	void	setCgMode(bool mode);
-	void	setBody(char *buffer);
+	void	setBody(std::string body);
 
 private:
     std::string keyword;
@@ -50,6 +51,7 @@ private:
 	std::string version;
 	std::map<std::string, std::string> headers;
 	std::string body;
+	std::string content_length;
 
 	bool cgMode;
 	bool setLine;
