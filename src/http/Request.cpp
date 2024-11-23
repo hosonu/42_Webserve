@@ -13,7 +13,8 @@ bool Request::requestParse(const std::string &rawRequest, ServerConfig conf)
     std::istringstream stream(rawRequest);
     std::string line;
     bool flag = true;
-    print_conf(conf);
+    //print_conf(conf);
+	(void) conf;
     if (!std::getline(stream, line) || !lineParse(line))
         return false;
     while (std::getline(stream, line) && line != "\r")

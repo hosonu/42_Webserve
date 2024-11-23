@@ -3,10 +3,10 @@
 Client::Client(int fd, int epoll_fd)
 : client_fd(fd), mode(HEADER_READING) {
     struct epoll_event ev;
-    ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
-    ev.data.fd = client_fd;
+    eyev.events = EPOLLIN | EPOLLOUT | EPOLLET;
+	ev.data.ptr = this;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &ev) == -1) {
-        // thorow std::runtime_error("Failed to add epoll");
+        throw std::runtime_error("Failed to add epoll");
     }
 }
 
@@ -33,7 +33,7 @@ void	Client::parseRequestHeader() {
 	if (count >= 0) {
 		req.setRawHeader(buffer);
 		#ifdef DEBUG
-		//std::cout << "header: \n" << req.getRawHeader() << std::endl;
+		std::cout << "header: \n" << req.getRawHeader() << std::endl;
 		#endif
 		if (req.requestParse(req.getRawHeader(), this->getConfigDatum()) == false) {
 			std::cerr << "Bad Format: Header is not correct format" << std::endl;
@@ -136,7 +136,7 @@ void    Client::methodProc()
 void    Client::makeResponse() {
 	#ifdef DEBUG
  	//print_line(req);
-	print_conf(configDatum);
+	//print_conf(configDatum);
 	#endif
     this->methodProc();
 }
