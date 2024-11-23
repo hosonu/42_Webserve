@@ -61,13 +61,19 @@ bool	Request::checkBodyExist() {
 	std::map<std::string, std::string>::iterator it = headers.find("Content-Length");
 
 	if (it != headers.end()) {
+		this->content_length = it->second;
 		return true;
 	} else {
 		return false;
 	}
 }
 
-void	Request::makeBody(char *buffer) {
+bool	Request::isBodyComplete() const {
+	size_t expected_length = static_cast<size_t>(std::strtol(this->content_length.c_str(), NULL, 10));
+	return this->body.length() >= expected_length;
+}
+
+void	Request::appendBody(char *buffer) {
 	std::string add_body = buffer;
 	this->body += buffer;
 }
@@ -110,6 +116,10 @@ void Request::setRawHeader(char *buffer) {
 
 void	Request::setCgMode(bool mode) {
 	this->cgMode = mode;
+}
+
+void	Request::setBody(std::string body) {
+	this->body = body;
 }
 
 std::string Request::getQuery()

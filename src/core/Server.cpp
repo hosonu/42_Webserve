@@ -72,26 +72,6 @@ void	Server::run() {
 					}
 				}
 			}
-			//for (int i = 0; i < n; ++i) {
-			//manage client fd
-			//}
-			//for (size_t i = 0; i < client_.size(); ++i) {
-				//if (client_[i].getClientFd() == fd) {
-				//	// クライアント切断時の処理
-				//	if (events_[i].events & EPOLLERR || events_[i].events & EPOLLHUP) {
-				//		close(client_[i].getClientFd());
-				//		return;
-				//	}
-				//	if (events_[i].events & EPOLLIN) {
-				//		std::cout << "EPOLIN" << std::endl;
-				//		HandleRequest(client_[i]);
-				//	}
-				//	if (events_[i].events & EPOLLOUT) {
-				//		std::cout << "EPOLOUT	" << std::endl;
-				//		HandleResponse(client_[i]);
-				//	}
-				//}
-			//}
 			
 		}
 	}
@@ -133,7 +113,19 @@ void	Server::HandleResponse(Client &	client) {
 		client.makeResponse();
 		//client.setMode(HEADER_READING);
 		client.setMode(CLOSING);
-		close(client.getClientFd());
+	}
+	if (client.getClientMode() == CLOSING) {
+		removeClient(client.getClientFd());
+	}
+}
 
+
+void	Server::removeClient(int client_fd) {
+	close(client_fd);
+	for (std::vector<Client>::iterator it = client_.begin(); it != client_.end(); ++it) {
+		if (it->getClientFd() == client_fd) {
+			client_.erase(it);
+			break;
+		}
 	}
 }

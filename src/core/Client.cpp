@@ -3,7 +3,7 @@
 Client::Client(int fd, int epoll_fd)
 : client_fd(fd), mode(HEADER_READING) {
     struct epoll_event ev;
-    eyev.events = EPOLLIN | EPOLLOUT | EPOLLET;
+    ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
 	ev.data.ptr = this;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &ev) == -1) {
         throw std::runtime_error("Failed to add epoll");
@@ -27,21 +27,31 @@ const ServerConfig	&Client::getConfigDatum() const {
 }
 
 void	Client::parseRequestHeader() {
-	ssize_t count;
 	char	buffer[MAX_BUFEER];
-	if (count >= 0) {
+	ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
+
+	if (count > 0) {
 		req.setRawHeader(buffer);
-		#ifdef DEBUG
-		std::cout << "header: \n" << req.getRawHeader() << std::endl;
-		#endif
-		if (req.requestParse(req.getRawHeader(), this->getConfigDatum()) == false) {
-			std::cerr << "Bad Format: Header is not correct format" << std::endl;
+		std::string& current_header = req.getRawHeader();
+		size_t header_end = current_header.find("\r\n\r\n");
+
+		if (header_end != std::string::npos) {
+			std::string body_part = current_header.substr(header_end + 4);
+			current_header = current_header.substr(0, header_end + 4);
+			
+			#ifdef DEBUG
+			//std::cout << "header: \n" << current_header << std::endl;
+			#endif
+
+			if (req.requestParse(req.getRawHeader(), this->getConfigDatum()) == false) {
+				std::cerr << "Bad Format: Header is not correct format" << std::endl;
+			}
+
+			if (!body_part.empty()) {
+				req.setBody(body_part);
+			}
+			this->mode = BODY_READING;
 		}
-		req.setCgMode(true);
-	}
-	if (req.getCgMode() == true) {
-		this->mode = BODY_READING;
-		req.setCgMode(false);
 	}
 }
 
@@ -49,14 +59,15 @@ void	Client::parseRequestBody() {
 	if (req.checkBodyExist() == false)
 		this->mode = WRITING;
 	else {
-		//calucurate how many time to read by conten-length
-		ssize_t count;
 		char	buffer[MAX_BUFEER];
-		count = read(this->client_fd, buffer, sizeof(buffer));
+		ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
 		if (count > 0) {
-			this->req.makeBody(buffer);
+			this->req.appendBody(buffer);
 		}
-		this->mode = WRITING;
+		//calucurate how many time to read by conten-length
+		if (req.isBodyComplete()) {
+			this->mode = WRITING;
+		}
 	}
 }
 

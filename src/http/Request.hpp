@@ -27,7 +27,8 @@ public:
 	bool 	lineParse(const std::string &rawRequest);
 	bool 	headerParse(const std::string &rawRequest);
 	bool	checkBodyExist();
-	void	makeBody(char *buffer);
+	bool	isBodyComplete() const;
+	void	appendBody(char *buffer);
 
     std::string getQuery();
 	std::string getMethod();
@@ -49,6 +50,7 @@ private:
 	std::string body;
 	bool checkDir;
 	HttpParse parse;
+	std::string content_length;
 
 	bool cgMode;
 	bool setLine;
