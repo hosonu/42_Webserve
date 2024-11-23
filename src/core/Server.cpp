@@ -39,12 +39,16 @@ void	Server::run() {
 		if (n == -1) {
 			throw std::runtime_error("epoll_wait failed");
 		}
+		if (n == 0) {
+			continue;
+		}
 		for (int i = 0; i < n; ++i) {
 			int fd = events_[i].data.fd;
 			#ifdef DEBUG
 			std::cout << "events: " << events_[i].events << " , fd: " << fd << std::endl;
 			#endif
-			//manage listen fd 
+			//manage listen fd
+			bool handled = false;
 			for (size_t i = 0; i < socket_.size(); ++i) {
 				if (socket_[i].getFd() == fd) {
 					int client_fd = acceptNewConnection(socket_[i]);
@@ -53,20 +57,42 @@ void	Server::run() {
 					#ifdef DEBUG
 					std::cout << "Make new client: " << client_fd << std::endl;
 					#endif
+					handled = true;
+					break;
 				}
 			}
-			//manage client fd
-			for (size_t i = 0; i < client_.size(); ++i) {
-				if (client_[i].getClientFd() == fd) {
+			if (!handled) {
+				Client* client = static_cast<Client*>(events_[i].data.ptr);
+				if (client != NULL) {
 					if (events_[i].events & EPOLLIN) {
-						HandleRequest(client_[i]);
-
+						HandleRequest(*client);
 					}
 					if (events_[i].events & EPOLLOUT) {
-						HandleResponse(client_[i]);
+						HandleResponse(*client);
 					}
 				}
 			}
+			//for (int i = 0; i < n; ++i) {
+			//manage client fd
+			//}
+			//for (size_t i = 0; i < client_.size(); ++i) {
+				//if (client_[i].getClientFd() == fd) {
+				//	// クライアント切断時の処理
+				//	if (events_[i].events & EPOLLERR || events_[i].events & EPOLLHUP) {
+				//		close(client_[i].getClientFd());
+				//		return;
+				//	}
+				//	if (events_[i].events & EPOLLIN) {
+				//		std::cout << "EPOLIN" << std::endl;
+				//		HandleRequest(client_[i]);
+				//	}
+				//	if (events_[i].events & EPOLLOUT) {
+				//		std::cout << "EPOLOUT	" << std::endl;
+				//		HandleResponse(client_[i]);
+				//	}
+				//}
+			//}
+			
 		}
 	}
 }
@@ -82,7 +108,7 @@ int	Server::acceptNewConnection(Socket& listen_socket) {
 }
 
 void	Server::HandleRequest(Client &client) {
-	std::cout << "mode: " << client.getClientMode() << std::endl;
+	//std::cout << "mode: " << client.getClientMode() << std::endl;
 	if (client.getClientMode() == HEADER_READING) {
 		#ifdef DEBUG
 		std::cout << "HEADER_READING NOW" << std::endl;
@@ -99,12 +125,15 @@ void	Server::HandleRequest(Client &client) {
 }
 
 void	Server::HandleResponse(Client &	client) {
-	std::cout << "mode: " << client.getClientMode() << std::endl;
+	//std::cout << "mode: " << client.getClientMode() << std::endl;
 	if (client.getClientMode() == WRITING) {
 		#ifdef DEBUG
 		std::cout << "WRITING NOW" << std::endl;
 		#endif
 		client.makeResponse();
+		//client.setMode(HEADER_READING);
+		client.setMode(CLOSING);
+		close(client.getClientFd());
+
 	}
-	client.setMode(CLOSING);
 }
