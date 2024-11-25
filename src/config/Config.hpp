@@ -9,13 +9,6 @@
 #include <sstream>
 #include <cstdlib>
 
-template <typename T>
-std::string customToString(const T& value) {
-    std::ostringstream oss;
-    oss << value;
-    return oss.str();
-}
-
 class	Config {
 	private:
 		std::vector<std::string>	tokens;

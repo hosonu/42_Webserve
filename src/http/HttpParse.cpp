@@ -21,7 +21,7 @@ void HttpParse::checkReqLine(const std::string reqLine, std::string method, std:
 bool HttpParse::checkSp(const std::string reqLine)
 {
 	int spCount = 0;
-	for(int i = 0; i < reqLine.size(); i++)
+	for(size_t i = 0; i < reqLine.size(); i++)
 	{
 		if (isspace(reqLine[i]))
 			spCount++;
@@ -98,7 +98,7 @@ bool HttpParse::checkVersion(std::string ver)
 {
 	std::string tmp = ver;
 	std::string name = tmp.erase(4);
-	int slash = ver.find("/");
+	size_t slash = ver.find("/");
 	std::string digit = ver.substr(ver.find("/") + 1);
 
 	if (name != "HTTP" || slash == std::string::npos || digit.size() != 4)
@@ -116,7 +116,7 @@ bool HttpParse::checkVersion(std::string ver)
 
 bool HttpParse::checkStructure(std::string headLine, std::map<std::string, std::string>& headers, std::string& keyword)
 {
-	int colon = headLine.find(":");
+	size_t colon = headLine.find(":");
 	std::string key;
 	std::string val;
 	
@@ -140,8 +140,9 @@ bool HttpParse::checkStructure(std::string headLine, std::map<std::string, std::
 		return false;
 	}
 	headers[key] = val;
-    if (key == "Content-Type:")
+    if (key == "Content-Type:") {
         keyword = val.substr(val.find("="));
+	}
 	this->headerStatus = 200;
 	return true;	
 }
@@ -153,14 +154,15 @@ bool HttpParse::checkStructure(std::string headLine, std::map<std::string, std::
 
 void HttpParse::setTotalStatus()
 {
-	if (this->startStatus != 200 && this->headerStatus != 200)
+	if (this->startStatus != 200 && this->headerStatus != 200) {
         this->totalStatus = this->startStatus;
-    else if (startStatus == 200 && headerStatus != 200)
+	} else if (startStatus == 200 && headerStatus != 200) {
         this->totalStatus = this->headerStatus;
-    else if (startStatus != 200 && headerStatus == 200)
+	} else if (startStatus != 200 && headerStatus == 200) {
         this->totalStatus = this->startStatus;
-    else
+	} else {
         this->totalStatus = this->startStatus;
+	}
 	std::cout<< "start: " << startStatus << std::endl;
 	std::cout << "header: " << headerStatus << std::endl;
 }
@@ -185,10 +187,31 @@ int HttpParse::getTotalStatus()
 	return this->totalStatus;
 }
 
+//bool isValidHeaderFieldName(const std::string& fieldName) 
+//{
+//    for (char c : fieldName) {
+//        if (!(std::isalnum(c) || c == '-' || c == '_')) {
+//            return false;
+//        }
+//    }
+//    return true;
+//}
+
+//bool isValidHeaderFieldValue(const std::string& fieldValue) 
+//{
+//    for (char c : fieldValue) {
+//        if (std::iscntrl(c) && c != '\r' && c != '\n') {
+//            return false;
+//        }
+//    }
+//    return true;
+//}
+
 bool isValidHeaderFieldName(const std::string& fieldName) 
 {
-    for (char c : fieldName) {
-        if (!(std::isalnum(c) || c == '-' || c == '_')) {
+    std::string::const_iterator it;
+    for (it = fieldName.begin(); it != fieldName.end(); ++it) {
+        if (!(std::isalnum(*it) || *it == '-' || *it == '_')) {
             return false;
         }
     }
@@ -197,8 +220,9 @@ bool isValidHeaderFieldName(const std::string& fieldName)
 
 bool isValidHeaderFieldValue(const std::string& fieldValue) 
 {
-    for (char c : fieldValue) {
-        if (std::iscntrl(c) && c != '\r' && c != '\n') {
+    std::string::const_iterator it;
+    for (it = fieldValue.begin(); it != fieldValue.end(); ++it) {
+        if (std::iscntrl(*it) && *it != '\r' && *it != '\n') {
             return false;
         }
     }

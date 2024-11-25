@@ -23,7 +23,7 @@ class Request
 public:
 	Request();
 	~Request();
-	bool 	requestParse(const std::string &rawRequest, ServerConfig conf);
+	bool 	requestParse(const std::string &rawRequest);
 	bool 	lineParse(const std::string &rawRequest);
 	bool 	headerParse(const std::string &rawRequest);
 	bool	checkBodyExist();
@@ -39,7 +39,7 @@ public:
 	const bool	&getCgMode();
 	void	setRawHeader(char *buffer);
 	void	setCgMode(bool mode);
-	void	setBody(char *buffer);
+	void	setBody(std::string body);
 	HttpParse getPrse();
 private:
     std::string keyword;

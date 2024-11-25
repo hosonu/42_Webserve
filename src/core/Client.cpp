@@ -43,7 +43,7 @@ void	Client::parseRequestHeader() {
 			//std::cout << "header: \n" << current_header << std::endl;
 			#endif
 
-			if (req.requestParse(req.getRawHeader(), this->getConfigDatum()) == false) {
+			if (req.requestParse(req.getRawHeader()) == false) {
 				std::cerr << "Bad Format: Header is not correct format" << std::endl;
 			}
 

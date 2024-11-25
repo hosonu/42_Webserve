@@ -10,6 +10,13 @@
 #include <string>
 #include <map>
 
+template <typename T>
+std::string customToString(const T& value) {
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
+}
+
 class ServerConfig {
 private:
 	bool	is_default;

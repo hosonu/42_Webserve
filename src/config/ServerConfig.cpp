@@ -75,7 +75,7 @@ void	ServerConfig::setListen(std::string& listen) {
 		throw std::logic_error("[emerg] unexepcted ip paramaeter in \"listen\" directive : " + host);
 	}
 	if (port < 0 || port > 65535) {
-		throw std::logic_error("[emerg] unexepcted port paramaeter in \"listen\" directive" + port);
+		throw std::logic_error("[emerg] unexepcted port paramaeter in \"listen\" directive" + customToString(port));
 	}
 	this->host = host;
 	this->listenPort = port;

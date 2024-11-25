@@ -97,8 +97,8 @@ int Response::checkFileType(const std::string& path) {
 void Response::getBody(const std::string& path, ServerConfig& conf)
 {
     std::string line;
-    std::ifstream error(createErrorPath(conf));
-    std::ifstream file(path);
+    std::ifstream error(createErrorPath(conf).c_str());
+    std::ifstream file(path.c_str());
     int type = checkFileType(path);
     if (this->statCode != 200)
     {
@@ -284,7 +284,7 @@ void Response::wirteMessage(int socket)
     std::string total = this->request_line + this->header + "\r\n" +this->body;
     //TODO: Error handling
 	#ifdef DEBUG
-	//std::cout << "total " << to	tal << std::endl;
+	//std::cout << "total " << total << std::endl;
 	#endif
     write(socket, total.c_str(), totalLine);
 }

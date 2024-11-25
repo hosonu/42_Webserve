@@ -8,7 +8,7 @@ Request::~Request()
 {
 }
 
-bool Request::requestParse(const std::string &rawRequest, ServerConfig conf)
+bool Request::requestParse(const std::string &rawRequest)
 {
     std::istringstream stream(rawRequest);
     std::string line;
