@@ -14,8 +14,22 @@
 #include <fstream>
 #include <ctime>
 #include "Request.hpp"
+#include "../config/Config.hpp"
+#include "../config/ServerConfig.hpp"
+#include "../config/Location.hpp"
 #include <dirent.h>
 #include <vector>
+#include <sys/stat.h>
+#include <string>
+#include <cerrno>
+#include <cstring>
+#include "RequestValidConf.hpp"
+
+class Request;
+
+#define NOMAL_FILE 1
+#define DIRECT 2
+#define ELSE 0
 
 class Response
 {
@@ -25,19 +39,27 @@ private:
     std::string situation;
     std::string header;
     std::string body;
+    std::string truePath;
 public:
     Response();
     ~Response();
-    void createMessage(const std::string& path);
+    void createMessage(Request &req, ServerConfig& conf);
+    std::string createTruePath(ServerConfig& conf);
+    std::string createErrorPath(ServerConfig& conf);
+    std::string createErrorPage(int statusCode, const std::string& statusMessage);
     std::string getContentType(const std::string& filePath);
     std::string getContentLength();
+    void validReqLine(Request &req, ServerConfig& conf);
+    bool checkAllow(std::string method, std::vector<std::string>& allows);
+    int checkFileType(const std::string& path);
     std::string getDate();
     std::string getServer();
     std::string getConnection();
     std::string getRequestLine();
     void getStatusCode();
-    void    getBody(const std::string& path);
+    void    getBody(const std::string& path, ServerConfig& conf);
     void    wirteMessage(int socket);
+    void    setStatusCode(int parseNum, int confNum);
 };
 
 int readfile(std::string path, std::string& body);

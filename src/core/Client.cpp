@@ -118,7 +118,7 @@ void    Client::methodProc()
 	Response msg;
 	if (this->req.getMethod() == "GET")
 	{
-		msg.createMessage(this->req.getUri());
+		msg.createMessage(this->req, this->configDatum);
 		msg.wirteMessage(this->client_fd);
 	}
 	else if (this->req.getMethod() == "POST")

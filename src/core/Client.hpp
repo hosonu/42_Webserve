@@ -9,6 +9,7 @@
 
 #include "Server.hpp"
 #include "../http/Request.hpp"
+#include "../http/Response.hpp"
 
 #define MAX_BUFEER 1024
 

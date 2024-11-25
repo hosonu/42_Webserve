@@ -12,8 +12,10 @@
 #include <sstream>
 #include <string>
 #include <fstream>
-#include "Response.hpp"
 #include "../config/Config.hpp"
+#include "HttpParse.hpp"
+
+class Response;
 
 class Request
 {
@@ -24,11 +26,6 @@ public:
 	bool 	requestParse(const std::string &rawRequest, ServerConfig conf);
 	bool 	lineParse(const std::string &rawRequest);
 	bool 	headerParse(const std::string &rawRequest);
-    bool 	bodyParse(const std::string& rawRequest, bool& flag, bool& checkEmptyLine);
-	//bool 	checkValidReqLine();
-	//bool	checkValidMethod();
-	//bool	checkValidUri();
-	//bool	checkValidVersion();
 	bool	checkBodyExist();
 	void	makeBody(char *buffer);
 
@@ -42,7 +39,7 @@ public:
 	void	setRawHeader(char *buffer);
 	void	setCgMode(bool mode);
 	void	setBody(char *buffer);
-
+	HttpParse getPrse();
 private:
     std::string keyword;
 	std::string method;
@@ -50,6 +47,8 @@ private:
 	std::string version;
 	std::map<std::string, std::string> headers;
 	std::string body;
+	bool checkDir;
+	HttpParse parse;
 
 	bool cgMode;
 	bool setLine;

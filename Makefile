@@ -1,5 +1,5 @@
 CXX = c++
-CXXFLAGS = -Wall -Werror -Wextra -std=c++98
+#CXXFLAGS = -Wall -Werror -Wextra -std=c++98
 DEBUGFLAGS = -D DEBUG
 
 ifeq ($(DEBUG),)
@@ -18,7 +18,9 @@ SRCS = \
     src/core/Socket.cpp \
     src/core/Client.cpp \
     src/http/Request.cpp \
-    src/http/Response.cpp
+    src/http/Response.cpp \
+    src/http/HttpParse.cpp \
+    src/http/RequestValidConf.cpp
 
 TARGET = program
 

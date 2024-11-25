@@ -12,94 +12,191 @@ Response::Response()
 Response::~Response()
 {}
 
-void Response::createMessage(const std::string& path)
+void Response::createMessage(Request &req, ServerConfig& conf)
 {
-    this->getBody(path);
+    RequestValidConf validConf(req, conf);
+    validConf.validReqLine();
+    this->setStatusCode(req.getPrse().getTotalStatus(), validConf.getStat());
+    this->getBody(this->createTruePath(conf), conf);
     this->getStatusCode();
     this->request_line = this->getRequestLine();
-    this->header += this->getContentType(path) + "\r\n";
+    this->header += this->getContentType(req.getUri()) + "\r\n";
     this->header += this->getContentLength();
     this->header += this->getDate();
     this->header += this->getServer();
     this->header += this->getConnection();
 }
 
-void Response::getBody(const std::string& path)
+void Response::setStatusCode(int parseNum, int confNum)
 {
-    if (path.at(path.length() - 1) == '/')
+    if (parseNum != 200 && confNum != 200)
+        this->statCode = parseNum;
+    else if (parseNum == 200 && confNum != 200)
+        this->statCode = confNum;
+    else if (parseNum != 200 && confNum == 200)
+        this->statCode = parseNum;
+    else
+        this->statCode = confNum;
+}
+
+
+std::string Response::createTruePath(ServerConfig& conf)
+{
+    std::string res = conf.getLocations().begin()->getRoot() + "/" +conf.getLocations().begin()->getIndexFile();
+    return res;
+}
+
+std::string Response::createErrorPath(ServerConfig& conf)
+{
+    std::string res;
+    for (std::map<int, std::string>::const_iterator it = conf.getErrorPages().begin(); it != conf.getErrorPages().end(); ++it) {
+        if (it->first == this->statCode)
+            res = conf.getLocations().begin()->getRoot() + it->second;
+    }
+    return res;
+}
+
+std::string Response::createErrorPage(int statusCode, const std::string& statusMessage)
+{
+    std::ostringstream page;
+
+    page << "<!DOCTYPE html>\n";
+    page << "<html>\n";
+    page << "<head><title>" << statusCode << " " << statusMessage << "</title></head>\n";
+    page << "<body>\n";
+    page << "<center><h1>" << statusCode << " " << statusMessage << "</h1></center>\n";
+    page << "<hr>\n";
+    page << "<center>My Simple Server</center>\n";
+    page << "</body>\n";
+    page << "</html>\n";
+
+    return page.str();
+}
+
+int Response::checkFileType(const std::string& path) {
+    struct stat statBuf;
+
+    if (stat(path.c_str(), &statBuf) != 0) {
+        std::cerr << "Error: " << strerror(errno) << std::endl;
+        return -1;
+    }
+
+    if (S_ISREG(statBuf.st_mode)) {
+        return 1;
+    } else if (S_ISDIR(statBuf.st_mode)) {
+        return 2;
+    } else {
+        return 0;
+    }
+}
+
+void Response::getBody(const std::string& path, ServerConfig& conf)
+{
+    std::string line;
+    std::ifstream error(createErrorPath(conf));
+    std::ifstream file(path);
+    int type = checkFileType(path);
+    if (this->statCode != 200)
     {
-        DIR *dir = opendir(path.c_str());
-        struct dirent *dent;
-        std::string d_name;
-        if (!dir)
+        if (conf.getErrorPages().begin()->second != "")
         {
-            //TODO::Error
-        }
-        while((dent = readdir(dir)) != NULL)
-        {
-            d_name = dent->d_name;
-            if (d_name == "index" || d_name == "index.html")
+            if (error.is_open())
             {
-                this->statCode = readfile(dent->d_name, this->body);
-                return ;
+                while (getline(error, line))
+                {
+                    this->body += line;
+                }
+            }
+            else
+            {
+                this->statCode = 404;
+                this->body = createErrorPage(this->statCode, "Not Found");
+            }
+            error.close();
+        }
+        else
+        {
+            this->statCode = 404;
+            this->body = createErrorPage(this->statCode, "Not Found");
+        }
+    }
+    else if (type == NOMAL_FILE)
+    {
+        if (file.is_open())
+        {
+            while (getline(file, line))
+            {
+                this->body += line;
+            }
+            file.close();
+        }
+        else
+        {
+            if (conf.getErrorPages().begin()->second != "")
+            {
+                if (error.is_open())
+                {
+                    while (getline(error, line))
+                    {
+                        this->body += line;
+                    }
+                }
+                else
+                {
+                    this->statCode = 404;
+                    this->body = createErrorPage(this->statCode, "Not Found");
+                }
+                error.close();
+            }
+            else
+            {
+                this->statCode = 404;
+                this->body = createErrorPage(this->statCode, "Not Found");
             }
         }
-        //TODO:: if(AutoIndex) do autoindex;
-        this->body = generateDirectoryListing(path, getContents(path));
-        this->statCode = 200;
     }
-    else if (path == "/upload")
+    else if (type == DIRECT)
     {
+        if (conf.getLocations().begin()->isAutoindex() == true && conf.getErrorPages().begin()->first == 0)
+        {
+            this->body = generateDirectoryListing(path, getContents(path));
+        }
+        else if (conf.getErrorPages().begin()->second != "")
+        {
+            this->statCode = 404;
+            if (error.is_open())
+            {
+                while (getline(error, line))
+                    this->body += line;
+            }
+            else
+            {
+                this->statCode = 404;
+                this->body = createErrorPage(this->statCode, "Not Found");
+            }
+            error.close();
+        }
 
     }
-    else
-    {
-        this->statCode = readfile(path, this->body);
-    }
-    
 }
 
-int readfile(std::string path, std::string& body)
-{
-    std::ifstream stream;
-    stream.open(path.c_str());
-    if (!stream)
-    {
-        //TODO::Error
-        return 404;
-    }
-    while (std::getline(stream, body))
-    {}
-    return 200;
-}
+//int readfile(std::string path, std::string& body)
+//{
+//    std::ifstream stream;
+//    stream.open(path.c_str());
+//    if (!stream)
+//    {
+//        //TODO::Error
+//        return 404;
+//    }
+//    while (std::getline(stream, body))
+//    {}
+//    return 200;
+//}
 
 std::string Response::getContentType(const std::string& filePath)
 {
     std::string extension = filePath.substr(filePath.find_last_of(".") + 1);
-
-//	typedef	std::map<std::string, std::string> mimeTypeMap;
-
-//static const mimeTypeMap mimeTypes = {
-//        {"html", "text/html"},
-//        {"htm", "text/html"},
-//        {"css", "text/css"},
-//        {"js", "application/javascript"},
-//        {"json", "application/json"},
-//        {"png", "image/png"},
-//        {"jpg", "image/jpeg"},
-//        {"jpeg", "image/jpeg"},
-//        {"gif", "image/gif"},
-//        {"svg", "image/svg+xml"},
-//        {"xml", "application/xml"},
-//        {"pdf", "application/pdf"},
-//        {"txt", "text/plain"}
-//        // 他の拡張子とMIMEタイプのペアを追加
-//};
-
-//   mimeTypeMap::const_iterator it = mimeTypes.find(extension);
-//    if (it != mimeTypes.end()) {
-//        return "Content-type: " + it->second;
-//    }
 
     const char* extensions[] = {
         "html", "text/html",
@@ -159,8 +256,14 @@ void Response::getStatusCode()
         this->situation = "OK";
     else if (this->statCode == 301)
         this->situation = "Moved Permanetly";
+    else if (this->statCode == 400)
+        this->situation = "Bad Reqeust";
+    else if (this->statCode == 404)
+        this->situation = "Not Found";
     else if (this->statCode == 403)
         this->situation = "Forbidden";
+    else if (this->statCode == 405)
+        this->situation = "Method Not Allowed";
     else if (this->statCode == 409)
         this->situation = "Conflict";
     else if (this->statCode == 204)

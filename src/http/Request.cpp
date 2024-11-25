@@ -13,7 +13,6 @@ bool Request::requestParse(const std::string &rawRequest, ServerConfig conf)
     std::istringstream stream(rawRequest);
     std::string line;
     bool flag = true;
-    print_conf(conf);
     if (!std::getline(stream, line) || !lineParse(line))
         return false;
     while (std::getline(stream, line) && line != "\r")
@@ -28,6 +27,7 @@ bool Request::requestParse(const std::string &rawRequest, ServerConfig conf)
             this->body += line;
         }
     }
+    this->parse.setTotalStatus();
     return true;
 }
 
@@ -41,40 +41,18 @@ bool Request::lineParse(const std::string& lineRequest)
 		return false;
 	if (!std::getline(stream, this->version))
 		return false;
-    //if (!checkValidReqLine())
-    //    return false;
+    this->parse.checkReqLine(lineRequest, this->method, this->uri, this->version);
 	return true;
 }
 
-//bool Request::checkValidReqLine()
-//{
-//    bool flag;
-//    flag = checkValidMethod();
-//    flag = checkValidUri();
-//    flag = checkValidVersion();
-//    return flag;
-//}
-
-//bool Request::checkValidMethod()
-//{
-    
-//}
-
-
 bool Request::headerParse(const std::string &headerRequest)
 {
-    size_t pos = headerRequest.find(":");
-    std::string key;
-    std::string val;
-    if (pos == std::string::npos)
-        return false;
-    key = headerRequest.substr(0, pos);
-    val = headerRequest.substr(pos + 1);
-    val.erase(0, val.find_first_not_of(" \t"));
-    val.erase(val.find_last_not_of(" \t") + 1);
-    this->headers[key] = val;
-    if (key == "Content-Type:")
-        this->keyword = val.substr(val.find("="));    
+    this->parse.checkStructure(headerRequest, this->headers, this->keyword);
+    std::string check = this->headers["Host"];
+    if (check.empty())
+    {
+        this->parse.setHeaderStatus(400);
+    }
     return true;
 }
 
@@ -114,6 +92,11 @@ std::map<std::string, std::string> Request::getHeader()
 
 std::string	&Request::getRawHeader() {
 	return this->rawHeader;
+}
+
+HttpParse Request::getPrse()
+{
+    return this->parse;
 }
 
 const bool	&Request::getCgMode() {
