@@ -1,7 +1,7 @@
 #include "Client.hpp"
 
 Client::Client(int fd, int epoll_fd)
-: client_fd(fd), mode(HEADER_READING) {
+: client_fd(fd), epfd(epoll_fd),mode(HEADER_READING) {
     struct epoll_event ev;
     ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
 	ev.data.ptr = this;
@@ -30,6 +30,13 @@ void	Client::parseRequestHeader() {
 	char	buffer[MAX_BUFEER];
 	ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
 
+	if (count == sizeof(buffer)) {
+		struct epoll_event ev;
+		ev.events = EPOLLIN | EPOLLOUT | EPOLLET | EPOLLONESHOT;
+		ev.data.ptr = this;
+		epoll_ctl(this->epfd, EPOLL_CTL_MOD, this->client_fd, &ev);
+	}
+
 	if (count > 0) {
 		req.setRawHeader(buffer);
 		std::string& current_header = req.getRawHeader();
@@ -56,11 +63,18 @@ void	Client::parseRequestHeader() {
 }
 
 void	Client::parseRequestBody() {
-	if (req.checkBodyExist() == false)
+	if (req.checkBodyExist() == false) {
 		this->mode = WRITING;
-	else {
+	} else {
 		char	buffer[MAX_BUFEER];
 		ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
+
+		if (count == sizeof(buffer)) {
+			struct epoll_event ev;
+			ev.events = EPOLLIN | EPOLLOUT | EPOLLET | EPOLLONESHOT;
+			ev.data.ptr = this;
+			epoll_ctl(this->epfd, EPOLL_CTL_MOD, this->client_fd, &ev);
+		}
 		if (count > 0) {
 			this->req.appendBody(buffer);
 		}
@@ -135,6 +149,7 @@ void    Client::makeResponse() {
  	//print_line(req);
 	//print_conf(configDatum);
 	#endif
+	std::cout << req.getBody() << std::endl;
     this->methodProc();
 }
 

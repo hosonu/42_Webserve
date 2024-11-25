@@ -1,6 +1,6 @@
 #include "Request.hpp"
 
-Request::Request() : cgMode(false), setLine(false)
+Request::Request() : cgMode(false)
 {
 }
 
@@ -59,7 +59,6 @@ bool Request::headerParse(const std::string &headerRequest)
 
 bool	Request::checkBodyExist() {
 	std::map<std::string, std::string>::iterator it = headers.find("Content-Length");
-
 	if (it != headers.end()) {
 		this->content_length = it->second;
 		return true;
@@ -70,12 +69,17 @@ bool	Request::checkBodyExist() {
 
 bool	Request::isBodyComplete() const {
 	size_t expected_length = static_cast<size_t>(std::strtol(this->content_length.c_str(), NULL, 10));
+	std::cout << "body length: " << expected_length <<" , current length:" << this->body.length() << std::endl;
 	return this->body.length() >= expected_length;
 }
 
 void	Request::appendBody(char *buffer) {
 	std::string add_body = buffer;
 	this->body += buffer;
+}
+
+std::string& Request::getBody() {
+	return this->body;
 }
 
 std::string Request::getMethod()

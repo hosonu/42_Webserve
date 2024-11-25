@@ -39,7 +39,9 @@ class Client
 		void				setMode(ClientMode mode);
 	private:
 		int client_fd;
+		int epfd;
 		ClientMode mode;
+
 		std::vector<char> read_buffer;
 		std::vector<char> write_buffer;
 		std::string rawReq;

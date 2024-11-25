@@ -88,7 +88,7 @@ int	Server::acceptNewConnection(Socket& listen_socket) {
 }
 
 void	Server::HandleRequest(Client &client) {
-	//std::cout << "mode: " << client.getClientMode() << " , in HandleRequest" <<  std::endl;
+	std::cout << "mode: " << client.getClientMode() << " , in HandleRequest" <<  std::endl;
 	if (client.getClientMode() == HEADER_READING) {
 		#ifdef DEBUG
 		std::cout << "HEADER_READING NOW" << std::endl;
@@ -105,13 +105,12 @@ void	Server::HandleRequest(Client &client) {
 }
 
 void	Server::HandleResponse(Client &	client) {
-	//std::cout << "mode: " << client.getClientMode() << " , in HandleResponse" << std::endl;
+	std::cout << "mode: " << client.getClientMode() << " , in HandleResponse" << std::endl;
 	if (client.getClientMode() == WRITING) {
 		#ifdef DEBUG
 		std::cout << "WRITING NOW" << std::endl;
 		#endif
 		client.makeResponse();
-		//client.setMode(HEADER_READING);
 		client.setMode(CLOSING);
 	}
 	if (client.getClientMode() == CLOSING) {

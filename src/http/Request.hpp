@@ -30,6 +30,7 @@ public:
 	bool	isBodyComplete() const;
 	void	appendBody(char *buffer);
 
+	std::string &getBody();
     std::string getQuery();
 	std::string getMethod();
 	std::string getUri();
@@ -53,7 +54,6 @@ private:
 	std::string content_length;
 
 	bool cgMode;
-	bool setLine;
 	std::string rawHeader;
 };
 
