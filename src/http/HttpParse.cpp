@@ -146,6 +146,11 @@ bool HttpParse::checkStructure(std::string headLine, std::map<std::string, std::
 	return true;	
 }
 
+//void HttpParse::unChunckedBody(std::string body)
+//{
+
+//}
+
 void HttpParse::setTotalStatus()
 {
 	if (this->startStatus != 200 && this->headerStatus != 200)

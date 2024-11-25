@@ -17,7 +17,9 @@ void Response::createMessage(Request &req, ServerConfig& conf)
     RequestValidConf validConf(req, conf);
     validConf.validReqLine();
     this->setStatusCode(req.getPrse().getTotalStatus(), validConf.getStat());
-    this->getBody(this->createTruePath(conf), conf);
+    if (req.getMethod() == "GET")
+        this->getBody(this->createTruePath(conf), conf);
+    //else if (req.getMethod() == "POST")
     this->getStatusCode();
     this->request_line = this->getRequestLine();
     this->header += this->getContentType(req.getUri()) + "\r\n";
@@ -43,13 +45,15 @@ void Response::setStatusCode(int parseNum, int confNum)
 std::string Response::createTruePath(ServerConfig& conf)
 {
     std::string res = conf.getLocations().begin()->getRoot() + "/" +conf.getLocations().begin()->getIndexFile();
+    std::cout << res << std::endl;
     return res;
 }
 
 std::string Response::createErrorPath(ServerConfig& conf)
 {
     std::string res;
-    for (std::map<int, std::string>::const_iterator it = conf.getErrorPages().begin(); it != conf.getErrorPages().end(); ++it) {
+    for (std::map<int, std::string>::const_iterator it = conf.getErrorPages().begin(); it != conf.getErrorPages().end(); ++it) 
+    {
         if (it->first == this->statCode)
             res = conf.getLocations().begin()->getRoot() + it->second;
     }
@@ -109,8 +113,7 @@ void Response::getBody(const std::string& path, ServerConfig& conf)
             }
             else
             {
-                this->statCode = 404;
-                this->body = createErrorPage(this->statCode, "Not Found");
+                this->body = createErrorPage(this->statCode, "Bad Reqeust");
             }
             error.close();
         }

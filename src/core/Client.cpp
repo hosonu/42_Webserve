@@ -29,7 +29,6 @@ const ServerConfig	&Client::getConfigDatum() const {
 void	Client::parseRequestHeader() {
 	ssize_t count;
 	char	buffer[MAX_BUFEER];
-	count = read(this->client_fd, buffer, sizeof(buffer));
 	if (count >= 0) {
 		req.setRawHeader(buffer);
 		#ifdef DEBUG
@@ -116,21 +115,8 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 void    Client::methodProc()
 {
 	Response msg;
-	if (this->req.getMethod() == "GET")
-	{
-		msg.createMessage(this->req, this->configDatum);
-		msg.wirteMessage(this->client_fd);
-	}
-	else if (this->req.getMethod() == "POST")
-	{
-	}
-	else if (this->req.getMethod() == "DELETE")
-	{
-	}
-	else
-	{
-		std::cout << "Invalid method" << std::endl;
-	}
+	msg.createMessage(this->req, this->configDatum);
+	msg.wirteMessage(this->client_fd);
 }
 
 void    Client::makeResponse() {

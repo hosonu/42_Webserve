@@ -27,9 +27,13 @@ class HttpParse
 		bool checkMethod(std::string method);
 		bool checkUri(std::string &uri);
 		bool checkVersion(std::string ver);
-
+		//header
 		bool checkStructure(std::string headLine, std::map<std::string, std::string>& headers, std::string& keyword);
+
+		//body
+		//void unChunckedBody(std::string body);
 		
+		//Getter
 		void setHeaderStatus(int set);
 		void setTotalStatus();
 		int getHeaderStatus();

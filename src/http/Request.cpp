@@ -15,18 +15,19 @@ bool Request::requestParse(const std::string &rawRequest, ServerConfig conf)
     bool flag = true;
     if (!std::getline(stream, line) || !lineParse(line))
         return false;
-    while (std::getline(stream, line) && line != "\r")
+    while (std::getline(stream, line))
     {
+        //std::cout << line << std::endl;
         if (!headerParse(line) && flag)
             return false;
-        if (line == "\r\n")
+        else if (line == "\r")
         {
-            continue;
             if (line == "")
                 break;
             this->body += line;
         }
     }
+    //this->parse.unChunckedBody(this->body);
     this->parse.setTotalStatus();
     return true;
 }
