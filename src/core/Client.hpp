@@ -37,6 +37,7 @@ class Client
 		const ClientMode	&getClientMode() const;
 		const ServerConfig	&getConfigDatum() const;
 		void				setMode(ClientMode mode);
+		void 				updateEpollEvent();
 	private:
 		int client_fd;
 		int epfd;
