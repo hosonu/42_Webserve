@@ -26,15 +26,19 @@ const ServerConfig	&Client::getConfigDatum() const {
 	return	this->configDatum;
 }
 
+void Client::updateEpollEvent() {
+	struct epoll_event ev;
+	ev.events = EPOLLIN | EPOLLOUT | EPOLLET | EPOLLONESHOT;
+	ev.data.ptr = this;
+	epoll_ctl(this->epfd, EPOLL_CTL_MOD, this->client_fd, &ev);
+}
+
 void	Client::parseRequestHeader() {
 	char	buffer[MAX_BUFEER];
 	ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
 
 	if (count == sizeof(buffer)) {
-		struct epoll_event ev;
-		ev.events = EPOLLIN | EPOLLOUT | EPOLLET | EPOLLONESHOT;
-		ev.data.ptr = this;
-		epoll_ctl(this->epfd, EPOLL_CTL_MOD, this->client_fd, &ev);
+		updateEpollEvent();
 	}
 
 	if (count > 0) {
@@ -70,10 +74,7 @@ void	Client::parseRequestBody() {
 		ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
 
 		if (count == sizeof(buffer)) {
-			struct epoll_event ev;
-			ev.events = EPOLLIN | EPOLLOUT | EPOLLET | EPOLLONESHOT;
-			ev.data.ptr = this;
-			epoll_ctl(this->epfd, EPOLL_CTL_MOD, this->client_fd, &ev);
+			updateEpollEvent();
 		}
 		if (count > 0) {
 			this->req.appendBody(buffer);
