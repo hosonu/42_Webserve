@@ -163,8 +163,8 @@ void HttpParse::setTotalStatus()
 	} else {
         this->totalStatus = this->startStatus;
 	}
-	std::cout<< "start: " << startStatus << std::endl;
-	std::cout << "header: " << headerStatus << std::endl;
+	//std::cout<< "start: " << startStatus << std::endl;
+	//std::cout << "header: " << headerStatus << std::endl;
 }
 
 void HttpParse::setHeaderStatus(int set)

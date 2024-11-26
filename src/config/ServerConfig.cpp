@@ -57,6 +57,8 @@ bool	isValidIpAddress(const std::string &ip) {
 	return true;
 }
 
+
+
 void	ServerConfig::setListen(std::string& listen) {
 	int	port;
 	std::string host;
