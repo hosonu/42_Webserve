@@ -87,7 +87,7 @@ int Response::checkFileType(const std::string& path) {
 
     if (stat(path.c_str(), &statBuf) != 0) {
         this->statCode = 400;
-        return -1
+        return -1;
     }
 
     if (S_ISREG(statBuf.st_mode)) {
