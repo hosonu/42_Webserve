@@ -28,7 +28,7 @@ const ServerConfig	&Client::getConfigDatum() const {
 
 void Client::updateEpollEvent() {
 	struct epoll_event ev;
-	ev.events = EPOLLIN | EPOLLOUT | EPOLLET | EPOLLONESHOT;
+	ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
 	ev.data.ptr = this;
 	epoll_ctl(this->epfd, EPOLL_CTL_MOD, this->client_fd, &ev);
 }
@@ -150,8 +150,8 @@ void    Client::makeResponse() {
 	#ifdef DEBUG
  	//print_line(req);
 	//print_conf(configDatum);
-	#endif
 	//std::cout << req.getBody() << std::endl;
+	#endif
     this->methodProc();
 }
 

@@ -4,7 +4,9 @@
 #include <iostream>
 #include <cstring>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -33,5 +35,7 @@ class Socket {
 		struct sockaddr_in	address_;
 		bool	is_listening_;
 };
+
+std::string getLocalhostIpv4();
 
 #endif

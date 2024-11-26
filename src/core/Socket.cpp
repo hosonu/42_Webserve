@@ -15,7 +15,8 @@ Socket::Socket(const std::string& host, int port)
 		address_.sin_addr.s_addr = INADDR_ANY;
 	} else {
 		if (host_ == "localhost") {
-			if (inet_pton(AF_INET, "127.0.0.1", &address_.sin_addr) <= 0) {
+			std::string ip = getLocalhostIpv4();
+			if (inet_pton(AF_INET, ip.c_str(), &address_.sin_addr) <= 0) {
 				close();
 				std::cerr << "what a fuck is going on??" << std::endl;
 				return;
@@ -39,6 +40,29 @@ Socket::Socket(const Socket &src) {
 }
 
 Socket::~Socket() {
+}
+
+std::string getLocalhostIpv4() {
+	char ip[INET_ADDRSTRLEN];
+	struct addrinfo hints, *res;
+	int status;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+
+	status = getaddrinfo("localhost", NULL, &hints, &res);
+	if (status != 0) {
+		std::cerr << "errrrrrrr" << std::endl;
+	}
+
+	struct sockaddr_in *ipv4 = (struct sockaddr_in *)res->ai_addr;
+	if (inet_ntop(AF_INET, &(ipv4->sin_addr), ip, sizeof(ip)) == NULL) {
+        freeaddrinfo(res);
+		std::cerr << "serrererer" << std::endl;
+	}
+    freeaddrinfo(res);
+	return ip;
 }
 
 bool	Socket::bind() {
