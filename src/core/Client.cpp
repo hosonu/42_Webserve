@@ -72,15 +72,16 @@ void	Client::parseRequestBody() {
 	} else {
 		char	buffer[MAX_BUFEER];
 		ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
-
 		if (count == sizeof(buffer)) {
 			updateEpollEvent();
 		}
 		if (count > 0) {
+			std::cout << "aaaa" << std::endl;
 			this->req.appendBody(buffer);
 		}
 		//calucurate how many time to read by conten-length
 		if (req.isBodyComplete()) {
+
 			this->mode = WRITING;
 		}
 	}
@@ -150,7 +151,7 @@ void    Client::makeResponse() {
  	//print_line(req);
 	//print_conf(configDatum);
 	#endif
-	std::cout << req.getBody() << std::endl;
+	//std::cout << req.getBody() << std::endl;
     this->methodProc();
 }
 

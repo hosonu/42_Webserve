@@ -32,7 +32,7 @@ class Client
 		void	parseRequestBody();
 		void	makeResponse();
 		void	methodProc();
-
+		void 	updateEpollEvent();
 		int					getClientFd() const;
 		const ClientMode	&getClientMode() const;
 		const ServerConfig	&getConfigDatum() const;

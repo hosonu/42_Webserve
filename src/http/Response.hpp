@@ -24,6 +24,7 @@
 #include <cerrno>
 #include <cstring>
 #include "RequestValidConf.hpp"
+#include <cstdio> 
 
 class Request;
 
@@ -57,12 +58,14 @@ public:
     std::string getConnection();
     std::string getRequestLine();
     void getStatusCode();
-    void    getBody(const std::string& path, ServerConfig& conf);
+    void    getBodyGet(const std::string& path, ServerConfig& conf);
+    void    getBodyPost(Request& req);
+    void    getBodyDel(Request& req, ServerConfig& conf);
     void    wirteMessage(int socket);
     void    setStatusCode(int parseNum, int confNum);
 };
 
-int readfile(std::string path, std::string& body);
+std::string generateRandomFileName() ;
 std::string generateDirectoryListing(const std::string& path, const std::vector<std::string>& files);
 std::vector<std::string> getContents(const std::string& path);
 

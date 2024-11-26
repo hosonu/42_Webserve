@@ -18,8 +18,11 @@ void Response::createMessage(Request &req, ServerConfig& conf)
     validConf.validReqLine();
     this->setStatusCode(req.getPrse().getTotalStatus(), validConf.getStat());
     if (req.getMethod() == "GET")
-        this->getBody(this->createTruePath(conf), conf);
-    //else if (req.getMethod() == "POST")
+        this->getBodyGet(this->createTruePath(conf), conf);
+    else if (req.getMethod() == "POST") 
+        this->getBodyPost(req);
+    else if (req.getMethod() == "DELETE")
+        this->getBodyDel(req, conf);
     this->getStatusCode();
     this->request_line = this->getRequestLine();
     this->header += this->getContentType(req.getUri()) + "\r\n";
@@ -44,8 +47,10 @@ void Response::setStatusCode(int parseNum, int confNum)
 
 std::string Response::createTruePath(ServerConfig& conf)
 {
+    //TODO::if(localtionのあとに続くものがreq.getUri()と同じであれば)
     std::string res = conf.getLocations().begin()->getRoot() + "/" +conf.getLocations().begin()->getIndexFile();
-    std::cout << res << std::endl;
+    //else
+    //そのままpathをresに設定
     return res;
 }
 
@@ -81,8 +86,8 @@ int Response::checkFileType(const std::string& path) {
     struct stat statBuf;
 
     if (stat(path.c_str(), &statBuf) != 0) {
-        std::cerr << "Error: " << strerror(errno) << std::endl;
-        return -1;
+        this->statCode = 400;
+        return -1
     }
 
     if (S_ISREG(statBuf.st_mode)) {
@@ -94,7 +99,7 @@ int Response::checkFileType(const std::string& path) {
     }
 }
 
-void Response::getBody(const std::string& path, ServerConfig& conf)
+void Response::getBodyGet(const std::string& path, ServerConfig& conf)
 {
     std::string line;
     std::ifstream error(createErrorPath(conf).c_str());
@@ -183,19 +188,45 @@ void Response::getBody(const std::string& path, ServerConfig& conf)
     }
 }
 
-//int readfile(std::string path, std::string& body)
-//{
-//    std::ifstream stream;
-//    stream.open(path.c_str());
-//    if (!stream)
-//    {
-//        //TODO::Error
-//        return 404;
-//    }
-//    while (std::getline(stream, body))
-//    {}
-//    return 200;
-//}
+std::string generateRandomFileName() 
+{
+    std::ostringstream fileName;
+    std::srand(std::time(0));
+    fileName << "temp_file_" << std::rand();
+    return fileName.str();
+}
+
+void Response::getBodyPost(Request& req)
+{
+    //TODO:configの設定を反映
+    //TODO:pathの設定も反映
+    std::string fileName = generateRandomFileName();
+    std::ofstream file(fileName.c_str());
+    //TODO:Errorページ設定
+    //TODO:statcode設定
+    if (!file.is_open()) 
+    {
+        std::cerr << "Failed to open file: " << fileName << std::endl;
+    }
+    this->body = req.getBody();
+    file << req.getBody();
+    file.close();
+}
+
+void Response::getBodyDel(Request& req, ServerConfig& conf)
+{
+    std::string path = conf.getLocations().begin()->getRoot() + req.getUri();
+    std::cout << path << std::endl;
+    if (std::remove(path.c_str()) == 0)
+    {
+        this->statCode = 200;
+        return ;
+    }
+    else
+    {
+        //TODO:Errorページ設定
+    }
+}
 
 std::string Response::getContentType(const std::string& filePath)
 {

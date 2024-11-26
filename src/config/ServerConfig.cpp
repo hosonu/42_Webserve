@@ -134,7 +134,7 @@ void	ServerConfig::setClientMaxBodySize(const std::string& size) {
 void	ServerConfig::addLocation(const std::vector<std::string>& tokens, size_t& index) {
 	index += 1;
 	Location	currentLocation;
-	size_t length;
+	size_t length = 0;
 	currentLocation.setPath(tokens[index]);
 	for (size_t i = index + 1; i < tokens.size(); ++i) {
 		if (tokens[i] == "allow_methods") {

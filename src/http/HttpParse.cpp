@@ -120,8 +120,16 @@ bool HttpParse::checkStructure(std::string headLine, std::map<std::string, std::
 	std::string key;
 	std::string val;
 	
-	if (colon == std::string::npos || headLine[headLine.size() - 1] != '\r')
+	if (colon == std::string::npos)
 	{
+		if (headLine[0] == '\r')
+			return true;
+		else
+			return false;
+	}
+	if (headLine[headLine.size() - 1] != '\r')
+	{
+		//std::cout << headLine << std::endl;
 		this->headerStatus = 400;
 		return false;
 	}
@@ -147,10 +155,29 @@ bool HttpParse::checkStructure(std::string headLine, std::map<std::string, std::
 	return true;	
 }
 
-//void HttpParse::unChunckedBody(std::string body)
-//{
+void HttpParse::unChunckedBody(std::string body, std::string& unChunk)
+{
+	std::istringstream stream(body);
+    std::string decodedBody;
+    std::string line;
 
-//}
+    while (std::getline(stream, line)) {
+        std::istringstream sizeStream(line);
+        size_t chunkSize = 0;
+        sizeStream >> std::hex >> chunkSize;
+
+        if (chunkSize == 0) {
+            break;
+        }
+
+        char *buffer = new char[chunkSize];
+        stream.read(buffer, chunkSize);
+        decodedBody.append(buffer, chunkSize);
+        delete[] buffer;
+        stream.ignore(1);
+    }
+	unChunk = decodedBody;
+}
 
 void HttpParse::setTotalStatus()
 {
@@ -163,8 +190,8 @@ void HttpParse::setTotalStatus()
 	} else {
         this->totalStatus = this->startStatus;
 	}
-	std::cout<< "start: " << startStatus << std::endl;
-	std::cout << "header: " << headerStatus << std::endl;
+	//std::cout<< "start: " << startStatus << std::endl;
+	//std::cout << "header: " << headerStatus << std::endl;
 }
 
 void HttpParse::setHeaderStatus(int set)
@@ -186,26 +213,6 @@ int HttpParse::getTotalStatus()
 {
 	return this->totalStatus;
 }
-
-//bool isValidHeaderFieldName(const std::string& fieldName) 
-//{
-//    for (char c : fieldName) {
-//        if (!(std::isalnum(c) || c == '-' || c == '_')) {
-//            return false;
-//        }
-//    }
-//    return true;
-//}
-
-//bool isValidHeaderFieldValue(const std::string& fieldValue) 
-//{
-//    for (char c : fieldValue) {
-//        if (std::iscntrl(c) && c != '\r' && c != '\n') {
-//            return false;
-//        }
-//    }
-//    return true;
-//}
 
 bool isValidHeaderFieldName(const std::string& fieldName) 
 {

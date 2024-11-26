@@ -2,6 +2,7 @@
 
 Request::Request() : cgMode(false)
 {
+    this->body = "";
 }
 
 Request::~Request()
@@ -17,17 +18,9 @@ bool Request::requestParse(const std::string &rawRequest)
         return false;
     while (std::getline(stream, line))
     {
-        //std::cout << line << std::endl;
         if (!headerParse(line) && flag)
             return false;
-        else if (line == "\r")
-        {
-            if (line == "")
-                break;
-            this->body += line;
-        }
     }
-    //this->parse.unChunckedBody(this->body);
     this->parse.setTotalStatus();
     return true;
 }
@@ -57,6 +50,14 @@ bool Request::headerParse(const std::string &headerRequest)
     return true;
 }
 
+void Request::bodyParse()
+{
+    if(this->headers["Transfer-Encoding"] == "chunked")
+        this->parse.unChunckedBody(this->body, this->unChunked);
+    else
+        this->unChunked = this->body;
+}
+
 bool	Request::checkBodyExist() {
 	std::map<std::string, std::string>::iterator it = headers.find("Content-Length");
 	if (it != headers.end()) {
@@ -69,7 +70,7 @@ bool	Request::checkBodyExist() {
 
 bool	Request::isBodyComplete() const {
 	size_t expected_length = static_cast<size_t>(std::strtol(this->content_length.c_str(), NULL, 10));
-	std::cout << "body length: " << expected_length <<" , current length:" << this->body.length() << std::endl;
+ 	std::cout << "body length: " << expected_length <<" , current length:" << this->body.length() << std::endl;
 	return this->body.length() >= expected_length;
 }
 

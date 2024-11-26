@@ -31,7 +31,7 @@ class HttpParse
 		bool checkStructure(std::string headLine, std::map<std::string, std::string>& headers, std::string& keyword);
 
 		//body
-		//void unChunckedBody(std::string body);
+		void unChunckedBody(std::string body, std::string& unChunk);
 		
 		//Getter
 		void setHeaderStatus(int set);

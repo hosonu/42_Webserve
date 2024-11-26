@@ -29,7 +29,7 @@ public:
 	bool	checkBodyExist();
 	bool	isBodyComplete() const;
 	void	appendBody(char *buffer);
-
+	void	bodyParse();
 	std::string &getBody();
     std::string getQuery();
 	std::string getMethod();
@@ -49,7 +49,7 @@ private:
 	std::string version;
 	std::map<std::string, std::string> headers;
 	std::string body;
-	bool checkDir;
+	std::string unChunked;
 	HttpParse parse;
 	std::string content_length;
 
