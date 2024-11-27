@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <sstream>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -37,5 +38,7 @@ class Socket {
 };
 
 std::string getLocalhostIpv4();
+unsigned long ipToLong(const std::string& ip);
+std::string convertIpToString(uint32_t ipAddress);
 
 #endif

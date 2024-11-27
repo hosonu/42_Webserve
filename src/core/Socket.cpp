@@ -14,21 +14,13 @@ Socket::Socket(const std::string& host, int port)
 	if (host_ == "0.0.0.0") {
 		address_.sin_addr.s_addr = INADDR_ANY;
 	} else {
+		std::string ip = host_;
 		if (host_ == "localhost") {
-			std::string ip = getLocalhostIpv4();
-			if (inet_pton(AF_INET, ip.c_str(), &address_.sin_addr) <= 0) {
-				close();
-				std::cerr << "what a fuck is going on??" << std::endl;
-				return;
-			}
+			ip = getLocalhostIpv4();
 		}
-		else if (inet_pton(AF_INET, host_.c_str(), &address_.sin_addr) <= 0) {
-			close();
-			std::cerr << "what a fuck is going on??" << std::endl;
-			return;
-		}
-		return ;
+		address_.sin_addr.s_addr = htonl(ipToLong(ip));
 	}
+	return ;
 }
 
 Socket::Socket(const Socket &src) {
@@ -43,7 +35,6 @@ Socket::~Socket() {
 }
 
 std::string getLocalhostIpv4() {
-	char ip[INET_ADDRSTRLEN];
 	struct addrinfo hints, *res;
 	int status;
 
@@ -57,12 +48,43 @@ std::string getLocalhostIpv4() {
 	}
 
 	struct sockaddr_in *ipv4 = (struct sockaddr_in *)res->ai_addr;
-	if (inet_ntop(AF_INET, &(ipv4->sin_addr), ip, sizeof(ip)) == NULL) {
-        freeaddrinfo(res);
-		std::cerr << "serrererer" << std::endl;
-	}
+	std::string ip = convertIpToString(ipv4->sin_addr.s_addr);
     freeaddrinfo(res);
 	return ip;
+}
+
+std::string convertIpToString(uint32_t ipAddress) {
+	uint32_t hostOrderIp = ntohl(ipAddress);
+
+	unsigned char octets[4];
+	octets[0] = (hostOrderIp >> 24) & 0xFF;
+	octets[1] = (hostOrderIp >> 16) & 0xFF;
+	octets[2] = (hostOrderIp >> 8) & 0xFF;
+	octets[3] = hostOrderIp & 0xFF;
+
+
+	std::ostringstream oss;
+	oss << static_cast<int>(octets[0]) << "."
+		<< static_cast<int>(octets[1]) << "."
+		<< static_cast<int>(octets[2]) << "."
+		<< static_cast<int>(octets[3]);
+
+	return oss.str();
+}
+
+unsigned long ipToLong(const std::string& ip) {
+    std::istringstream iss(ip);
+	std::string		token;
+    unsigned long result = 0;
+	unsigned int	octet;
+
+	while (std::getline(iss, token, '.')) {
+		std::istringstream octet_stream(token);
+		octet_stream >> octet;
+
+		result = (result << 8) | octet;
+	}
+    return result;
 }
 
 bool	Socket::bind() {
@@ -74,7 +96,9 @@ bool	Socket::bind() {
 	}
 
 	if (::bind(fd_, (struct sockaddr *)&address_, sizeof(address_)) < 0) {
-		std::cerr << "failed to bind: " << strerror(errno) << std::endl;
+		 std::cerr << "Failed to bind socket to " << host_ << ":" << port_ 
+                  << " - Error: " << strerror(errno) 
+                  << " (errno: " << errno << ")" << std::endl;
 		return false;
 	}
 	return true;
