@@ -44,9 +44,12 @@ std::string getLocalhostIpv4() {
 
 	status = getaddrinfo("localhost", NULL, &hints, &res);
 	if (status != 0) {
-		std::cerr << "errrrrrrr" << std::endl;
+		 throw std::runtime_error("getaddrinfo failed: ");
 	}
-
+	if (res == NULL) {
+        freeaddrinfo(res);
+        throw std::runtime_error("No address found for localhost");
+    }
 	struct sockaddr_in *ipv4 = (struct sockaddr_in *)res->ai_addr;
 	std::string ip = convertIpToString(ipv4->sin_addr.s_addr);
     freeaddrinfo(res);
