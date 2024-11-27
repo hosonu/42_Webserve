@@ -3,7 +3,7 @@
 Client::Client(int fd, int epoll_fd)
 : client_fd(fd), epfd(epoll_fd),mode(HEADER_READING) {
     struct epoll_event ev;
-    ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
+    ev.events = EPOLLIN | EPOLLOUT;
 	ev.data.ptr = this;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &ev) == -1) {
         throw std::runtime_error("Failed to add epoll");
@@ -28,7 +28,7 @@ const ServerConfig	&Client::getConfigDatum() const {
 
 void Client::updateEpollEvent() {
 	struct epoll_event ev;
-	ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
+	ev.events = EPOLLIN | EPOLLOUT;
 	ev.data.ptr = this;
 	epoll_ctl(this->epfd, EPOLL_CTL_MOD, this->client_fd, &ev);
 }

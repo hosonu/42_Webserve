@@ -20,7 +20,7 @@ void	Server::setServer() {
 				throw std::runtime_error("Failed to listen on socket");
 			}
 			struct epoll_event ev;
-			ev.events = EPOLLIN | EPOLLET;
+			ev.events = EPOLLIN;
 			ev.data.fd = socket.getFd();
 			if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, socket.getFd(), &ev) == -1) {
 				throw std::runtime_error("Failed to add to epoll");
