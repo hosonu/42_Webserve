@@ -17,6 +17,28 @@ std::string customToString(const T& value) {
     return oss.str();
 }
 
+struct LocationCompare {
+	int countSlashes(const std::string& path) const {
+		int count = 0;
+		for (std::string::size_type i = 0; i < path.length(); ++i) {
+			if (path[i] == '/') {
+				++count;
+			}
+		}
+		return count;
+	}
+
+	bool operator()(const Location& a, const Location& b) const {
+		int slashesA = countSlashes(a.getPath());
+		int slashesB = countSlashes(b.getPath());
+		
+		if (slashesA != slashesB) {
+			return slashesA < slashesB;
+		}
+		return a.getPath().length() < b.getPath().length();
+	}
+};
+
 class ServerConfig {
 private:
 	bool	is_default;
@@ -35,6 +57,7 @@ public:
 	void	setErrorPage(const std::vector<std::string>& tokens, size_t& i);
 	void	setClientMaxBodySize(const std::string& size);
     void	addLocation(const std::vector<std::string>& tokens, size_t& index);
+	void	sortLocations();
 
     bool getDefault() const;
     std::string getListenHost() const;
