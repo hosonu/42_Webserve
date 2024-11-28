@@ -35,7 +35,7 @@ Server::~Server() {
 
 void	Server::run() {
 	while(true) {
-		int n = epoll_wait(epoll_fd_, events_, MAX_EVENTS, 10);
+		int n = epoll_wait(epoll_fd_, events_, MAX_EVENTS, 10000);
 		if (n == -1) {
 			throw std::runtime_error("epoll_wait failed");
 		}
@@ -72,7 +72,6 @@ void	Server::run() {
 					}
 				}
 			}
-			
 		}
 	}
 }

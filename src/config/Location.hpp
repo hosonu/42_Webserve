@@ -8,6 +8,7 @@
 #include <string>
 #include <map>
 #include <cstdlib>
+#include <algorithm>
 
 class Location
 {

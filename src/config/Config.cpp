@@ -54,6 +54,7 @@ ServerConfig	Config::parseServerBlock(size_t& start_index) {
 			break;
 		}
 	}
+	server_config.sortLocations();
 	return server_config;
 }
 

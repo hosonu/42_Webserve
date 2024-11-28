@@ -57,8 +57,6 @@ bool	isValidIpAddress(const std::string &ip) {
 	return true;
 }
 
-
-
 void	ServerConfig::setListen(std::string& listen) {
 	int	port;
 	std::string host;
@@ -166,6 +164,10 @@ void	ServerConfig::addLocation(const std::vector<std::string>& tokens, size_t& i
 	}
 	index += (length - index);
 	locations.push_back(currentLocation);
+}
+
+void ServerConfig::sortLocations() {
+	std::sort(locations.begin(), locations.end(), LocationCompare());
 }
 
 bool	ServerConfig::getDefault() const {
