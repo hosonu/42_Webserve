@@ -1,5 +1,8 @@
 #include "Location.hpp"
 
+Location::Location()
+: root(""), autoindex(false), indexFile("index.html") {}
+
 void Location::setPath(const std::string& path) {
 	if (path[0] != '/') {
 			throw std::invalid_argument("[emerg] unexpected path in location{} : " + path);

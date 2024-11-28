@@ -1,5 +1,8 @@
 #include "ServerConfig.hpp"
 
+ServerConfig::ServerConfig()
+: is_default(false), listenPort(80), host("0.0.0.0"), serverName("") {}
+
 void	ServerConfig::setDefault(bool flag) {
 	this->is_default = flag;
 }
