@@ -7,6 +7,7 @@ Response::Response()
     this->header = "";
     this->body = "";
     this->request_line = "";
+    this->cgiBody = "";
 }
 
 Response::~Response()
@@ -17,12 +18,20 @@ void Response::createMessage(Request &req, ServerConfig& conf)
     RequestValidConf validConf(req, conf);
     validConf.validReqLine();
     this->setStatusCode(req.getPrse().getTotalStatus(), validConf.getStat());
+    this->truePath = this->createTruePath(conf, req.getUri());
+    //指定されたpathがの末尾が.pyかつlocationで合致してところがis cgi on;かつ
+    if (req.getUri() == "/cgi/bin/test.py")
+    {
+        CGIHandler executor(req);
+        this->cgiBody = executor.CGIExecute();
+        return ;
+    }
     if (req.getMethod() == "GET")
-        this->getBodyGet(this->createTruePath(conf), conf);
+        this->getBodyGet(this->truePath, conf);
     else if (req.getMethod() == "POST") 
-        this->getBodyPost(req);
+        this->getBodyPost(req, conf);
     else if (req.getMethod() == "DELETE")
-        this->getBodyDel(req, conf);
+        this->getBodyDel(conf);
     this->getStatusCode();
     this->request_line = this->getRequestLine();
     this->header += this->getContentType(req.getUri()) + "\r\n";
@@ -44,25 +53,91 @@ void Response::setStatusCode(int parseNum, int confNum)
         this->statCode = confNum;
 }
 
-
-std::string Response::createTruePath(ServerConfig& conf)
+bool Response::checkMatching(std::string locPath, std::string uri)
 {
-    //TODO::if(localtionのあとに続くものがreq.getUri()と同じであれば)
-    std::string res = conf.getLocations().begin()->getRoot() + "/" +conf.getLocations().begin()->getIndexFile();
-    //else
-    //そのままpathをresに設定
+    size_t count = 0;
+    for (size_t i = 0; i < locPath.size(); i++)
+    {
+        if (locPath[i] == uri[i])
+            count++;
+    }
+    if (count == locPath.size())
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+std::string Response::createTruePath(ServerConfig& conf, std::string uri)
+{
+    std::string res = uri;
+    std::string indexFile;
+    for (std::vector<Location>::const_iterator it = conf.getLocations().begin(); it != conf.getLocations().end(); ++it)
+    {
+        if ((checkMatching(it->getPath(), uri) == true))
+        {
+            this->serverLocation = *it;
+            res = it->getRoot() + uri;
+        }
+    }
     return res;
 }
 
-std::string Response::createErrorPath(ServerConfig& conf)
+std::string Response::createErrorPath(ServerConfig& conf, std::string& path)
 {
-    std::string res;
     for (std::map<int, std::string>::const_iterator it = conf.getErrorPages().begin(); it != conf.getErrorPages().end(); ++it) 
     {
         if (it->first == this->statCode)
-            res = conf.getLocations().begin()->getRoot() + it->second;
+        {
+            //最初のルートが'/'の前提
+            std::string tmp = conf.getLocations().begin()->getRoot();
+            if (tmp == "/")
+            {
+                path = tmp;
+                path += it->second;
+            }
+            else
+            {
+                path = "/usr/share/nginx/html/404.html";
+            }
+        }
+        else if (it == conf.getErrorPages().end())
+        {
+            path = "";
+        }
+    }
+    return path;
+}
+
+std::string Response::addIndexFile(std::string res)
+{
+    if (checkFileType(res) == DIRECT)
+    {
+        res += this->serverLocation.getIndexFile();
     }
     return res;
+}
+
+void Response::readErrorFile(std::ifstream& error)
+{
+    std::string line;
+
+    if (error.is_open())
+    {
+        while (getline(error, line))
+        {
+            this->body += line;
+        }
+    }
+    else
+    {
+        this->statCode = 404;
+        this->body = createErrorPage(this->statCode, "Not Found");
+    }
+    error.close();
 }
 
 std::string Response::createErrorPage(int statusCode, const std::string& statusMessage)
@@ -82,7 +157,7 @@ std::string Response::createErrorPage(int statusCode, const std::string& statusM
     return page.str();
 }
 
-int Response::checkFileType(const std::string& path) {
+int Response::checkFileType(std::string path) {
     struct stat statBuf;
 
     if (stat(path.c_str(), &statBuf) != 0) {
@@ -99,36 +174,34 @@ int Response::checkFileType(const std::string& path) {
     }
 }
 
-void Response::getBodyGet(const std::string& path, ServerConfig& conf)
+bool Response::checkErroPath(ServerConfig& conf)
+{
+    for (std::map<int, std::string>::const_iterator it = conf.getErrorPages().begin(); it != conf.getErrorPages().end(); ++it) 
+    {
+        if (it->first == this->statCode)
+            return true;
+    }
+    return false;
+}
+
+
+void Response::getBodyGet(std::string path, ServerConfig& conf)
 {
     std::string line;
-    std::ifstream error(createErrorPath(conf).c_str());
-    std::ifstream file(path.c_str());
-    int type = checkFileType(path);
+    std::ifstream error(createErrorPath(conf, path).c_str());
+    std::string index = addIndexFile(path);
+    std::ifstream file(index.c_str());
+    int type = checkFileType(index);
     if (this->statCode != 200)
     {
-        if (conf.getErrorPages().begin()->second != "")
-        {
-            if (error.is_open())
-            {
-                while (getline(error, line))
-                {
-                    this->body += line;
-                }
-            }
-            else
-            {
-                this->body = createErrorPage(this->statCode, "Bad Reqeust");
-            }
-            error.close();
-        }
-        else
+        readErrorFile(error);
+        if (checkErroPath(conf) == false)
         {
             this->statCode = 404;
             this->body = createErrorPage(this->statCode, "Not Found");
         }
     }
-    else if (type == NOMAL_FILE)
+    else if (type == NORMAL_FILE)
     {
         if (file.is_open())
         {
@@ -140,23 +213,8 @@ void Response::getBodyGet(const std::string& path, ServerConfig& conf)
         }
         else
         {
-            if (conf.getErrorPages().begin()->second != "")
-            {
-                if (error.is_open())
-                {
-                    while (getline(error, line))
-                    {
-                        this->body += line;
-                    }
-                }
-                else
-                {
-                    this->statCode = 404;
-                    this->body = createErrorPage(this->statCode, "Not Found");
-                }
-                error.close();
-            }
-            else
+            readErrorFile(error);
+            if (checkErroPath(conf) == false)
             {
                 this->statCode = 404;
                 this->body = createErrorPage(this->statCode, "Not Found");
@@ -165,66 +223,86 @@ void Response::getBodyGet(const std::string& path, ServerConfig& conf)
     }
     else if (type == DIRECT)
     {
-        if (conf.getLocations().begin()->isAutoindex() == true && conf.getErrorPages().begin()->first == 0)
+        //autoindexの項目がそもそもない場合の対応
+        if (this->serverLocation.isAutoindex() == true && this->serverLocation.getIndexFile() == "")
         {
             this->body = generateDirectoryListing(path, getContents(path));
         }
-        else if (conf.getErrorPages().begin()->second != "")
+        else
         {
-            this->statCode = 404;
-            if (error.is_open())
-            {
-                while (getline(error, line))
-                    this->body += line;
-            }
-            else
+            readErrorFile(error);
+            if (checkErroPath(conf) == false)
             {
                 this->statCode = 404;
                 this->body = createErrorPage(this->statCode, "Not Found");
             }
-            error.close();
         }
 
     }
 }
 
-std::string generateRandomFileName() 
+std::string generateRandomFileName(std::string dir) 
 {
-    std::ostringstream fileName;
-    std::srand(std::time(0));
-    fileName << "temp_file_" << std::rand();
-    return fileName.str();
+    std::ostringstream oss;
+    oss << dir << "/uploaded_file_" << time(0) << ".txt";
+    std::cout << oss.str() << std::endl;
+    return oss.str();
 }
 
-void Response::getBodyPost(Request& req)
+void Response::getBodyPost(Request& req, ServerConfig& conf)
 {
     //TODO:configの設定を反映
-    //TODO:pathの設定も反映
-    std::string fileName = generateRandomFileName();
+    std::ifstream error(createErrorPath(conf, this->truePath).c_str());
+    std::string fileName = generateRandomFileName(this->truePath);
     std::ofstream file(fileName.c_str());
-    //TODO:Errorページ設定
-    //TODO:statcode設定
     if (!file.is_open()) 
     {
-        std::cerr << "Failed to open file: " << fileName << std::endl;
+        readErrorFile(error);
+        if (checkErroPath(conf) == false)
+        {
+            this->statCode = 404;
+            this->body = createErrorPage(this->statCode, "Not Found");
+        }
+        return ;
     }
     this->body = req.getBody();
     file << req.getBody();
+    this->statCode = 200;
     file.close();
 }
 
-void Response::getBodyDel(Request& req, ServerConfig& conf)
+void Response::getBodyDel( ServerConfig& conf)
 {
-    std::string path = conf.getLocations().begin()->getRoot() + req.getUri();
-    std::cout << path << std::endl;
-    if (std::remove(path.c_str()) == 0)
+    std::ifstream error(createErrorPath(conf, this->truePath).c_str());
+    int fType = checkFileType(this->truePath);
+    if (fType == NORMAL_FILE)
     {
-        this->statCode = 200;
-        return ;
+        if (std::remove(this->truePath.c_str()) == 0)
+        {
+            this->statCode = 200;
+            return ;
+        }
+        else
+        {
+            //TODO:Errorページ設定
+            readErrorFile(error);
+            if (checkErroPath(conf) == false)
+            {
+                this->statCode = 404;
+                this->body = createErrorPage(this->statCode, "Not Found");
+            }
+        }
     }
     else
     {
-        //TODO:Errorページ設定
+        this->statCode = 404;
+        readErrorFile(error);
+        if (checkErroPath(conf) == false)
+        {
+            this->statCode = 404;
+            this->body = createErrorPage(this->statCode, "Not Found");
+        }
+
     }
 }
 
@@ -276,7 +354,7 @@ std::string Response::getDate()
 
 std::string Response::getServer()
 {
-    return "Server: Apache/2.4.41\r\n";
+    return "Server: Webserve\r\n";
 }
 
 std::string Response::getConnection()
@@ -308,16 +386,24 @@ void Response::getStatusCode()
 
 void Response::wirteMessage(int socket)
 {
-    int reqline = this->request_line.length();
-    int headerLen = this->header.length();
-    int bodyLen = this->body.length();
-    int totalLine = reqline + headerLen + bodyLen + 2;
-    std::string total = this->request_line + this->header + "\r\n" +this->body;
-    //TODO: Error handling
-	#ifdef DEBUG
-	//std::cout << "total " << total << std::endl;
-	#endif
-    write(socket, total.c_str(), totalLine);
+    if (cgiBody.empty())
+    {
+        int reqline = this->request_line.length();
+        int headerLen = this->header.length();
+        int bodyLen = this->body.length();
+        int totalLine = reqline + headerLen + bodyLen + 2;
+        std::string total = this->request_line + this->header + "\r\n" +this->body;
+        //TODO: Error handling
+        #ifdef DEBUG
+        //std::cout << "total " << total << std::endl;
+        #endif
+        write(socket, total.c_str(), totalLine);
+    }
+    else
+    {
+        int length = this->cgiBody.length();
+        write(socket, this->cgiBody.c_str(), length);
+    }
 }
 
 std::vector<std::string> getContents(const std::string& path)

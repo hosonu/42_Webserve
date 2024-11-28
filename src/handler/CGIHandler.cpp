@@ -5,7 +5,16 @@ CGIHandler::CGIHandler()
     //config依存　ファイルパス socket rootのパス
     //test 
     this->filePath = "/cgi/bin";
+    this->InitCGIPath();
 }
+
+CGIHandler::CGIHandler(Request req)
+{
+    this->filePath = "/cgi/bin";
+    this->req = req;
+    this->InitCGIPath();
+}
+
 
 CGIHandler::~CGIHandler()
 {}
@@ -17,11 +26,11 @@ void CGIHandler::InitCGIPath()
         perror("getcwd");
     }
     this->env["REDIRECT_STATUS"] = "200";
-    this->env["REQUEST_METHOD"] = req->getMethod();
-    this->env["CONTENT_LENGTH"] = req->getHeader()["Content-length"];
-    this->env["CONTENT_TYPE"] = req->getHeader()["Content-Type"];
-    this->env["QUERY_STRING"] = req->getQuery();
-    this->env["REQUEST_URI"] = req->getUri() + req->getQuery();
+    this->env["REQUEST_METHOD"] = req.getMethod();
+    this->env["CONTENT_LENGTH"] = req.getHeader()["Content-length"];
+    this->env["CONTENT_TYPE"] = req.getHeader()["Content-Type"];
+    this->env["QUERY_STRING"] = req.getQuery();
+    this->env["REQUEST_URI"] = req.getUri() + req.getQuery();
     this->env["SERVER_PROTOCOL"] = "HTTP/1.1";
     this->env["SERVER_SOFTWARE"] = "Weebserv/1.0";
     this->getPathInfo();
@@ -30,10 +39,14 @@ void CGIHandler::InitCGIPath()
 
 void CGIHandler::getPathInfo()
 {
-    std::string uri = this->req->getUri();
+    std::string uri = this->req.getUri();
     int pos = uri.find(".py/");
+    if (pos == -1)
+    {
+        pos = uri.find(".py");
+    }
     std::string tmp = uri.substr(0, pos + 3);
-    this->env["SCRIPT_NAME"] = uri.substr(0, pos + 3);
+    this->env["SCRIPT_NAME"] = "cgi/bin/test.py";
     this->env["PATH_INFO"] = uri.substr(pos + 3, uri.size());
 }
 
@@ -61,16 +74,48 @@ void freeCharArray(char** array) {
     delete[] array;
 }
 
-void CGIHandler::CGIExecute()
+std::string	CGIHandler::addContentLength(const std::string& httpResponse)
 {
-    //TODO:socketからレスポンスを読む readのepoll確認
-    //TODO:socektにレスポンス返す
-    //TODO:content-length取得
+    //if (_filePath.substr(_filePath.find_last_of('.') + 1) != "py") return (httpResponse);
+    
+	size_t headerEndPos = httpResponse.find("\r\n\r\n");
+    std::string headers = httpResponse.substr(0, headerEndPos);
+    std::string body = httpResponse.substr(headerEndPos + 4);
+
+    std::istringstream headersStream(headers);
+    std::vector<std::string> headerLines;
+    std::string line;
+    while (std::getline(headersStream, line)) {
+        if (!line.empty()) {
+            headerLines.push_back(line);
+        }
+    }
+
+    std::ostringstream oSS;
+    oSS << "Content-Length: " << body.size();
+    headerLines.push_back(oSS.str());
+
+    std::ostringstream modifiedHeaders;
+    for (size_t i = 0; i < headerLines.size(); ++i) {
+        modifiedHeaders << headerLines[i];
+        if (i < headerLines.size() - 1) {
+            modifiedHeaders << "\r\n";
+        }
+    }
+
+    return modifiedHeaders.str() + "\r\n\r\n" + body;
+}
+
+std::string CGIHandler::CGIExecute()
+{
+    //TODO:cgiが失敗したばあい
     int pid;
     int fds[2];
     const char *inteprinter = "/usr/bin/python3";
     std::string py = "python3";
     std::string path = this->env["SCRIPT_NAME"];
+    int ret;
+    std::string newBody;
     char *argv[] = {
         const_cast<char*>(py.c_str()),
         const_cast<char*>(path.c_str()),
@@ -80,10 +125,20 @@ void CGIHandler::CGIExecute()
     pid = fork();
     if (pid > 0)
     {
-        int status;
-        waitpid(-1, &status, 0);
-        close(fds[1]);
-        dup2(fds[0], 0);
+        char	buffer[BUFFER_CGI] = {0};
+		int		status;
+		waitpid(-1, &status, 0);
+		close(fds[1]);
+		dup2(fds[0], 0);
+		if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+			return ("\0");
+		ret = 1;
+		while (ret > 0)
+		{
+			memset(buffer, 0, BUFFER_CGI);
+			ret = read(fds[0], buffer, BUFFER_CGI - 1);
+			newBody += buffer;
+		}
     }
     else if (pid == 0)
     {
@@ -91,4 +146,5 @@ void CGIHandler::CGIExecute()
         dup2(fds[1], 1);
         execve(inteprinter, argv, this->envp);
     }
+    return ("HTTP/1.1 200 OK\r\n" + addContentLength(newBody));
 }

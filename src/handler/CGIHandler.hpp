@@ -18,21 +18,25 @@
 #include "../http/Request.hpp"
 #include <string.h>
 
+#define BUFFER_CGI 1024
+
 class CGIHandler
 {
 private:
     std::map<std::string, std::string> env;
     std::string cgiPath;
     std::string filePath;
-    request* req;
+    Request req;
     char **envp;
     void InitCGIPath();
 public:
     CGIHandler();
+    CGIHandler(Request req);
     ~CGIHandler();
     void getEnvAsChar();
     void getPathInfo();
-    void CGIExecute();
+    std::string CGIExecute();
+    std::string	addContentLength(const std::string& httpResponse);
 };
 
 

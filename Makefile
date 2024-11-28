@@ -20,8 +20,8 @@ SRCS = \
     src/http/Request.cpp \
     src/http/Response.cpp \
     src/http/HttpParse.cpp \
-    src/http/RequestValidConf.cpp
-
+    src/http/RequestValidConf.cpp \
+    src/handler/CGIHandler.cpp
 TARGET = program
 
 OBJECTS = $(SRCS:.cpp=.o)
