@@ -28,7 +28,7 @@ class Client
 	public:
 		Client(int fd, int epoll_fd);
 		void	bindToConfig(std::vector<ServerConfig> &configData);
-		void 	parseRequestHeader();
+		void 	parseRequestHeader(std::vector<ServerConfig> &configData);
 		void	parseRequestBody();
 		void	makeResponse();
 		void	methodProc();

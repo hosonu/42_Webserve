@@ -8,7 +8,7 @@
 #include <sys/epoll.h>
 #include <vector>
 
-#define MAX_EVENTS 10
+#define MAX_EVENTS 250
 
 /*main class of this server*/
 class Client;

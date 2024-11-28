@@ -33,7 +33,7 @@ void Client::updateEpollEvent() {
 	epoll_ctl(this->epfd, EPOLL_CTL_MOD, this->client_fd, &ev);
 }
 
-void	Client::parseRequestHeader() {
+void	Client::parseRequestHeader(std::vector<ServerConfig> &configData) {
 	char	buffer[MAX_BUFEER];
 	ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
 
@@ -61,6 +61,7 @@ void	Client::parseRequestHeader() {
 			if (!body_part.empty()) {
 				req.setBody(body_part);
 			}
+			this->bindToConfig(configData);
 			this->mode = BODY_READING;
 		}
 	}
@@ -81,7 +82,6 @@ void	Client::parseRequestBody() {
 		}
 		//calucurate how many time to read by conten-length
 		if (req.isBodyComplete()) {
-
 			this->mode = WRITING;
 		}
 	}
@@ -94,6 +94,10 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 	std::map<std::string, std::string> header = this->req.getHeader();
 	std::string hostValue;
 	std::map<std::string, std::string>::iterator it = header.find("Host");
+	#ifdef DEBUG
+		std::cout << "Request Header: " << req.getRawHeader() << std::endl;
+		std::cout << "Parsed Host: " << it->second << std::endl;
+	#endif
 	if (it != header.end()) {
 		hostValue = it->second;
 		#ifdef DEBUG
