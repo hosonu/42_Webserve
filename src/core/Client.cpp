@@ -42,7 +42,7 @@ void	Client::parseRequestHeader(std::vector<ServerConfig> &configData) {
 	}
 
 	if (count > 0) {
-		req.setRawHeader(buffer);
+		req.setRawHeader(std::string(buffer, count));
 		std::string& current_header = req.getRawHeader();
 		size_t header_end = current_header.find("\r\n\r\n");
 
@@ -58,7 +58,7 @@ void	Client::parseRequestHeader(std::vector<ServerConfig> &configData) {
 				std::cerr << "Bad Format: Header is not correct format" << std::endl;
 			}
 
-			if (!body_part.empty()) {
+			if (!body_part.empty()) {	
 				req.setBody(body_part);
 			}
 			this->bindToConfig(configData);
@@ -95,7 +95,7 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 	std::string hostValue;
 	std::map<std::string, std::string>::iterator it = header.find("Host");
 	#ifdef DEBUG
-		std::cout << "Request Header: " << req.getRawHeader() << std::endl;
+		//std::cout << "Request Header: " << req.getRawHeader() << std::endl;
 		std::cout << "Parsed Host: " << it->second << std::endl;
 	#endif
 	if (it != header.end()) {

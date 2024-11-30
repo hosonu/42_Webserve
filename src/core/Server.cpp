@@ -20,7 +20,7 @@ void	Server::setServer() {
 				throw std::runtime_error("Failed to listen on socket");
 			}
 			struct epoll_event ev;
-			ev.events = EPOLLIN | EPOLLET;
+			ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
 			ev.data.fd = socket.getFd();
 			if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, socket.getFd(), &ev) == -1) {
 				throw std::runtime_error("Failed to add to epoll");
@@ -35,24 +35,38 @@ Server::~Server() {
 
 void	Server::run() {
 	while(true) {
+		time_t current_time = time(NULL);
 		int n = epoll_wait(epoll_fd_, events_, MAX_EVENTS, 10000);
 		if (n == -1) {
 			throw std::runtime_error("epoll_wait failed");
 		}
 		if (n == 0) {
+			for (std::vector<Client>::iterator it = client_.begin(); it != client_.end();) {
+				if (it->isTimedOut(current_time, CLIENT_TIMEOUT_SEC)) {
+					#ifdef DEBUG
+					std::cout << "Client timed out: " << it->getClientFd() << std::endl;
+					#endif
+					removeClient(it->getClientFd());
+				} else {
+					++it;
+				}
+			}
 			continue;
 		}
+
 		for (int i = 0; i < n; ++i) {
 			int fd = events_[i].data.fd;
 			#ifdef DEBUG
-			std::cout << "events: " << events_[i].events << " , fd: " << fd << std::endl;
+			std::cout << "events: " << events_[i].events << std::flush;
 			#endif
 			//manage listen fd
 			bool handled = false;
 			for (size_t i = 0; i < socket_.size(); ++i) {
 				if (socket_[i].getFd() == fd) {
+					std::cout << " , fd: " << fd << std::endl;
 					int client_fd = acceptNewConnection(socket_[i]);
 					Client client(client_fd, epoll_fd_);
+					client.updateActivity();
 					client_.push_back(client);
 					#ifdef DEBUG
 					std::cout << "Make new client: " << client_fd << std::endl;
@@ -63,7 +77,9 @@ void	Server::run() {
 			}
 			if (!handled) {
 				Client* client = static_cast<Client*>(events_[i].data.ptr);
+				std::cout << " , fd: " << client->getClientFd() << std::endl;
 				if (client != NULL) {
+					client->updateActivity();
 					if (events_[i].events & EPOLLIN) {
 						HandleRequest(*client);
 					}
@@ -119,10 +135,16 @@ void	Server::HandleResponse(Client &	client) {
 
 void	Server::removeClient(int client_fd) {
 	close(client_fd);
-	for (std::vector<Client>::iterator it = client_.begin(); it != client_.end(); ++it) {
+	epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, client_fd, NULL);
+	for (std::vector<Client>::iterator it = client_.begin(); it != client_.end();) {
 		if (it->getClientFd() == client_fd) {
-			client_.erase(it);
+			#ifdef DEBUG
+			std::cout << "remove client : " << it->getClientFd() << std::endl;
+			#endif
+			it = client_.erase(it);
 			break;
+		} else {
+			++it;
 		}
 	}
 }

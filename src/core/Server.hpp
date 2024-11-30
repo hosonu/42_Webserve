@@ -10,6 +10,9 @@
 
 #define MAX_EVENTS 250
 
+const int EPOLL_TIMEOUT_MS = 10000;  // 10 seconds
+const time_t CLIENT_TIMEOUT_SEC = 60;
+
 /*main class of this server*/
 class Client;
 class Server {

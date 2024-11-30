@@ -37,10 +37,20 @@ class Client
 		const ClientMode	&getClientMode() const;
 		const ServerConfig	&getConfigDatum() const;
 		void				setMode(ClientMode mode);
+
+		void updateActivity() {
+        	last_activity = time(NULL);
+    	}
+
+		bool isTimedOut(time_t current_time, time_t timeout_seconds) const {
+			return (current_time - last_activity) > timeout_seconds;
+		}
 	private:
 		int client_fd;
 		int epfd;
 		ClientMode mode;
+
+		time_t	last_activity;
 
 		std::vector<char> read_buffer;
 		std::vector<char> write_buffer;

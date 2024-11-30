@@ -115,8 +115,8 @@ const bool	&Request::getCgMode() {
 	return this->cgMode;
 }
 
-void Request::setRawHeader(char *buffer) {
-	this->rawHeader = buffer;
+void Request::setRawHeader(const std::string &buffer) {
+	this->rawHeader += buffer;
 }
 
 void	Request::setCgMode(bool mode) {

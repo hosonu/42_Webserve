@@ -38,7 +38,7 @@ public:
 	std::map<std::string, std::string> getHeader();
 	std::string &getRawHeader();
 	const bool	&getCgMode();
-	void	setRawHeader(char *buffer);
+	void	setRawHeader(const std::string &buffer);
 	void	setCgMode(bool mode);
 	void	setBody(std::string body);
 	HttpParse getPrse();
