@@ -33,6 +33,7 @@ void	Server::setServer() {
 Server::~Server() {
 }
 
+
 void	Server::run() {
 	while(true) {
 		time_t current_time = time(NULL);
