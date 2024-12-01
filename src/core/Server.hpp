@@ -8,10 +8,10 @@
 #include <sys/epoll.h>
 #include <vector>
 
-#define MAX_EVENTS 1025
+#define MAX_EVENTS 1024
 
 const int EPOLL_TIMEOUT_MS = 10000;  // 10 seconds
-const time_t CLIENT_TIMEOUT_SEC = 60;
+const time_t CLIENT_TIMEOUT_SEC = 10;
 
 /*main class of this server*/
 class Client;

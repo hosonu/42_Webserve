@@ -20,7 +20,7 @@ void	Server::setServer() {
 				throw std::runtime_error("Failed to listen on socket");
 			}
 			struct epoll_event ev;
-			ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
+			ev.events = EPOLLIN | EPOLLOUT;
 			ev.data.fd = socket.getFd();
 			if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, socket.getFd(), &ev) == -1) {
 				throw std::runtime_error("Failed to add to epoll");
@@ -64,12 +64,12 @@ void	Server::run() {
 			bool handled = false;
 			for (size_t i = 0; i < socket_.size(); ++i) {
 				if (socket_[i].getFd() == fd) {
-					std::cout << " , fd: " << fd << std::endl;
 					int client_fd = acceptNewConnection(socket_[i]);
 					Client client(client_fd, epoll_fd_);
 					client.updateActivity();
 					client_.push_back(client);
 					#ifdef DEBUG
+					std::cout << " , fd: " << fd << std::endl;
 					std::cout << "Make new client: " << client_fd << std::endl;
 					#endif
 					handled = true;
@@ -78,7 +78,9 @@ void	Server::run() {
 			}
 			if (!handled) {
 				Client* client = static_cast<Client*>(events_[i].data.ptr);
+				#ifdef DEBUG
 				std::cout << " , fd: " << client->getClientFd() << std::endl;
+				#endif
 				if (client != NULL) {
 					client->updateActivity();
 					if (events_[i].events & EPOLLIN) {

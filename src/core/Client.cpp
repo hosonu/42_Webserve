@@ -3,7 +3,7 @@
 Client::Client(int fd, int epoll_fd)
 : client_fd(fd), epfd(epoll_fd),mode(HEADER_READING) {
     struct epoll_event ev;
-    ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
+    ev.events = EPOLLIN | EPOLLOUT;
 	ev.data.ptr = this;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &ev) == -1) {
         throw std::runtime_error("Failed to add epoll");
@@ -37,9 +37,9 @@ void	Client::parseRequestHeader(std::vector<ServerConfig> &configData) {
 	char	buffer[MAX_BUFEER];
 	ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
 
-	if (count == sizeof(buffer)) {
-		updateEpollEvent();
-	}
+	//if (count == sizeof(buffer)) {
+	//	updateEpollEvent();
+	//}
 
 	if (count > 0) {
 		req.setRawHeader(std::string(buffer, count));
@@ -73,9 +73,9 @@ void	Client::parseRequestBody() {
 	} else {
 		char	buffer[MAX_BUFEER];
 		ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
-		if (count == sizeof(buffer)) {
-			updateEpollEvent();
-		}
+		//if (count == sizeof(buffer)) {
+		//	updateEpollEvent();
+		//}
 		if (count > 0) {
 			std::cout << "aaaa" << std::endl;
 			this->req.appendBody(buffer);
