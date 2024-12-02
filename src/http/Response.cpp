@@ -19,7 +19,6 @@ void Response::createMessage(Request &req, ServerConfig& conf)
     validConf.validReqLine();
     this->setStatusCode(req.getPrse().getTotalStatus(), validConf.getStat());
     this->truePath = this->createTruePath(conf, req.getUri());
-    //指定されたpathがの末尾が.pyかつlocationで合致してところがis cgi on;かつ
     if (req.getUri() == "/cgi/bin/test.py")
     {
         CGIHandler executor(req);
@@ -40,6 +39,11 @@ void Response::createMessage(Request &req, ServerConfig& conf)
     this->header += this->getServer();
     this->header += this->getConnection();
 }
+
+//void Response::serachCgiPath()
+//{
+//    this.getCgi
+//}
 
 void Response::setStatusCode(int parseNum, int confNum)
 {
@@ -63,6 +67,10 @@ bool Response::checkMatching(std::string locPath, std::string uri)
     }
     if (count == locPath.size())
     {
+        if (locPath == this->cgiPath)
+        {
+            this->cgiFlag = true;
+        }
         return true;
     }
     else
@@ -191,6 +199,7 @@ void Response::getBodyGet(std::string path, ServerConfig& conf)
     std::ifstream error(createErrorPath(conf, path).c_str());
     std::string index = addIndexFile(path);
     std::ifstream file(index.c_str());
+    std::cout << index << std::endl;
     int type = checkFileType(index);
     if (this->statCode != 200)
     {
@@ -198,7 +207,8 @@ void Response::getBodyGet(std::string path, ServerConfig& conf)
         if (checkErroPath(conf) == false)
         {
             this->statCode = 404;
-            this->body = createErrorPage(this->statCode, "Not Found");
+            this->getStatusCode();
+            this->body = createErrorPage(this->statCode, this->situation);
         }
     }
     else if (type == NORMAL_FILE)
@@ -217,7 +227,8 @@ void Response::getBodyGet(std::string path, ServerConfig& conf)
             if (checkErroPath(conf) == false)
             {
                 this->statCode = 404;
-                this->body = createErrorPage(this->statCode, "Not Found");
+                this->getStatusCode();
+                this->body = createErrorPage(this->statCode, this->situation);
             }
         }
     }
@@ -234,7 +245,8 @@ void Response::getBodyGet(std::string path, ServerConfig& conf)
             if (checkErroPath(conf) == false)
             {
                 this->statCode = 404;
-                this->body = createErrorPage(this->statCode, "Not Found");
+                this->getStatusCode();
+                this->body = createErrorPage(this->statCode, this->situation);
             }
         }
 
@@ -279,7 +291,7 @@ void Response::getBodyDel( ServerConfig& conf)
     {
         if (std::remove(this->truePath.c_str()) == 0)
         {
-            this->statCode = 200;
+            this->statCode = 201;
             return ;
         }
         else
@@ -366,6 +378,10 @@ void Response::getStatusCode()
 {
     if (this->statCode == 200)
         this->situation = "OK";
+    else if (this->statCode == 201)
+        this->situation = "Created";
+    else if (this->statCode == 204)
+        this->situation = "No content";
     else if (this->statCode == 301)
         this->situation = "Moved Permanetly";
     else if (this->statCode == 400)
@@ -378,8 +394,6 @@ void Response::getStatusCode()
         this->situation = "Method Not Allowed";
     else if (this->statCode == 409)
         this->situation = "Conflict";
-    else if (this->statCode == 204)
-        this->situation = "No Content";
     else if (this->statCode == 500)
         this->situation = "Internal Server Error";
 }       
