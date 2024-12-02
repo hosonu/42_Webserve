@@ -45,6 +45,15 @@ void	Location::setReturnPath(const std::string& r_path) {
     this->return_path = r_path;
 }
 
+void	Location::setCGI(const std::string& flag) {
+	if (flag == "true") {
+    	this->autoindex = true;
+	} else if (flag != "false") {
+    	this->autoindex = false;
+	} else 
+		throw std::invalid_argument("[emerg] unexpected autoindex in location{} : " + flag);
+}
+
 const std::string& Location::getPath() const {
     return this->path;
 }
@@ -63,4 +72,8 @@ bool Location::isAutoindex() const {
 
 const std::string& Location::getIndexFile() const {
     return this->indexFile;
+}
+
+bool	Location::flagCGI() const {
+	return this->isCGI;
 }

@@ -22,7 +22,7 @@ void	ConfigValidator::initializeValidLocationDirectives() {
 	valid_location_directives.insert("root");
 	valid_location_directives.insert("index");
 	valid_location_directives.insert("return");
-	//valid_location_directives.insert("");
+	valid_location_directives.insert("isCGI");
 }
 
 void	ConfigValidator::validateBlockStructure(const std::vector<std::string>& tokens) {

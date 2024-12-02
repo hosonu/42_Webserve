@@ -155,6 +155,8 @@ void	ServerConfig::addLocation(const std::vector<std::string>& tokens, size_t& i
 		} else if (tokens[i] == "return") {
 			currentLocation.setReturnPath(tokens[i + 1]);
 			i++;
+		} else if (tokens[i] == "isCGI") {
+			currentLocation.setCGI(tokens[i + 1]);
 		}
 		else if (tokens[i] == "}") {
 			length = i;
