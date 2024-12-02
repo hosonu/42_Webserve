@@ -37,22 +37,20 @@ Server::~Server() {
 void	Server::run() {
 	while(true) {
 		time_t current_time = time(NULL);
-		int n = epoll_wait(epoll_fd_, events_, MAX_EVENTS, 10000);
+		int n = epoll_wait(epoll_fd_, events_, MAX_EVENTS, EPOLL_TIMEOUT_MS);
 		if (n == -1) {
 			throw std::runtime_error("epoll_wait failed");
 		}
-		if (n == 0) {
-			for (std::vector<Client>::iterator it = client_.begin(); it != client_.end();) {
-				if (it->isTimedOut(current_time, CLIENT_TIMEOUT_SEC)) {
-					#ifdef DEBUG
-					std::cout << "Client timed out: " << it->getClientFd() << std::endl;
-					#endif
-					removeClient(it->getClientFd());
-				} else {
-					++it;
-				}
+		for (std::vector<Client>::iterator it = client_.begin(); it != client_.end();) {
+			if (it->isTimedOut(current_time, CLIENT_TIMEOUT_SEC)) {
+				#ifdef DEBUG
+				std::cout << "Client timed out: " << it->getClientFd() << ", size: " << client_.size() << std::endl;
+				#endif
+				removeClient(it->getClientFd());
+				//continue;
+			} else {
+				++it;
 			}
-			continue;
 		}
 
 		for (int i = 0; i < n; ++i) {
@@ -82,7 +80,6 @@ void	Server::run() {
 				std::cout << " , fd: " << client->getClientFd() << std::endl;
 				#endif
 				if (client != NULL) {
-					client->updateActivity();
 					if (events_[i].events & EPOLLIN) {
 						HandleRequest(*client);
 					}
@@ -106,12 +103,13 @@ int	Server::acceptNewConnection(Socket& listen_socket) {
 }
 
 void	Server::HandleRequest(Client &client) {
-	//std::cout << "mode: " << client.getClientMode() << " , in HandleRequest" <<  std::endl;
+	std::cout << "mode: " << client.getClientMode() << " , in HandleRequest" <<  std::endl;
 	if (client.getClientMode() == HEADER_READING) {
 		#ifdef DEBUG
 		std::cout << "HEADER_READING NOW" << std::endl;
 		#endif
 		client.parseRequestHeader(this->configData);
+		client.updateActivity();
 		//client.bindToConfig(this->configData);
 	}
 	if (client.getClientMode() == BODY_READING) {
@@ -119,30 +117,40 @@ void	Server::HandleRequest(Client &client) {
 		std::cout << "BODY_READING NOW" << std::endl;
 		#endif
 		client.parseRequestBody();
+		client.updateActivity();
 	}
 }
 
 void	Server::HandleResponse(Client &	client) {
-	//std::cout << "mode: " << client.getClientMode() << " , in HandleResponse" << std::endl;
+	std::cout << "mode: " << client.getClientMode() << " , in HandleResponse" << std::endl;
 	if (client.getClientMode() == WRITING) {
 		#ifdef DEBUG
 		std::cout << "WRITING NOW" << std::endl;
 		#endif
 		client.makeResponse();
+		client.updateActivity();
 		client.setMode(CLOSING);
 	}
 	if (client.getClientMode() == CLOSING) {
+		#ifdef DEBUG
+		std::cout << "REMOVING NOW" << std::endl;
+		#endif
 		removeClient(client.getClientFd());
 	}
 }
 
 void	Server::removeClient(int client_fd) {
+	if (epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, client_fd, NULL) == -1) {
+        #ifdef DEBUG
+        std::cerr << "Failed to remove client_fd from epoll: " << client_fd
+                  << " , error: " << strerror(errno) << std::endl;
+        #endif
+    }
 	close(client_fd);
-	epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, client_fd, NULL);
 	for (std::vector<Client>::iterator it = client_.begin(); it != client_.end();) {
 		if (it->getClientFd() == client_fd) {
 			#ifdef DEBUG
-			std::cout << "remove client : " << it->getClientFd() << std::endl;
+			std::cout << "remove client : " << it->getClientFd() << ", client size : " << client_.size() << std::endl;
 			#endif
 			it = client_.erase(it);
 			break;
