@@ -36,11 +36,6 @@ void Client::updateEpollEvent() {
 void	Client::parseRequestHeader(std::vector<ServerConfig> &configData) {
 	char	buffer[MAX_BUFEER];
 	ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
-
-	//if (count == sizeof(buffer)) {
-	//	updateEpollEvent();
-	//}
-
 	if (count > 0) {
 		req.setRawHeader(std::string(buffer, count));
 		std::string& current_header = req.getRawHeader();
@@ -73,14 +68,9 @@ void	Client::parseRequestBody() {
 	} else {
 		char	buffer[MAX_BUFEER];
 		ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
-		//if (count == sizeof(buffer)) {
-		//	updateEpollEvent();
-		//}
 		if (count > 0) {
-			std::cout << "aaaa" << std::endl;
 			this->req.appendBody(buffer);
 		}
-		//calucurate how many time to read by conten-length
 		if (req.isBodyComplete()) {
 			this->mode = WRITING;
 		}
