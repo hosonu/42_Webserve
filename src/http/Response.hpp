@@ -37,12 +37,14 @@ class Response
 {
 private:
     int statCode;
+    bool cgiFlag;
     std::string request_line;
     std::string situation;
     std::string header;
     std::string body;
     std::string cgiBody;
     std::string truePath;
+    std::string cgiPath;
     Location serverLocation;
 public:
     Response();
@@ -69,6 +71,7 @@ public:
     void    getBodyDel(ServerConfig& conf);
     void    wirteMessage(int socket);
     void    setStatusCode(int parseNum, int confNum);
+    bool    serachCgiPath(ServerConfig& conf);
 
     void readErrorFile(std::ifstream& error);
     std::string addIndexFile(std::string res);
