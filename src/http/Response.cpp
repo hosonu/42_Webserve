@@ -13,7 +13,7 @@ Response::Response()
 Response::~Response()
 {}
 
-void Response::createMessage(Request &req, ServerConfig& conf)
+std::string Response::createMessage(Request &req, ServerConfig& conf)
 {
     RequestValidConf validConf(req, conf);
     validConf.validReqLine();
@@ -21,9 +21,9 @@ void Response::createMessage(Request &req, ServerConfig& conf)
     this->truePath = this->createTruePath(conf, req.getUri());
     if (req.getUri() == "/cgi/bin/test.py")
     {
-        CGIHandler executor(req);
-        this->cgiBody = executor.CGIExecute();
-        return ;
+        return "CGI_READING";
+        //CGIHandler executor(req);
+        //this->cgiBody = executor.CGIExecute();
     }
     if (req.getMethod() == "GET")
         this->getBodyGet(this->truePath, conf);
@@ -38,6 +38,7 @@ void Response::createMessage(Request &req, ServerConfig& conf)
     this->header += this->getDate();
     this->header += this->getServer();
     this->header += this->getConnection();
+	return "WRITING";
 }
 
 //void Response::serachCgiPath()
@@ -320,6 +321,9 @@ void Response::getBodyDel( ServerConfig& conf)
 
 std::string Response::getContentType(const std::string& filePath)
 {
+	if (filePath.empty()) {
+		return "Content-type: text/html";
+	}
     std::string extension = filePath.substr(filePath.find_last_of(".") + 1);
 
     const char* extensions[] = {
@@ -461,4 +465,9 @@ std::string generateDirectoryListing(const std::string& path, const std::vector<
 std::string Response::getRequestLine()
 {
     return "HTTP/1.1 " + customToString(this->statCode) + " " + this->situation + "\r\n";
+}
+
+void Response::setCGIBody(std::string body)
+{
+	this->cgiBody = body;
 }

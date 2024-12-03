@@ -50,7 +50,7 @@ public:
     Response();
     ~Response();
 
-    void createMessage(Request &req, ServerConfig& conf);
+    std::string createMessage(Request &req, ServerConfig& conf);
     std::string createTruePath(ServerConfig& conf, std::string uri);
     std::string createErrorPath(ServerConfig& conf, std::string& path);
     std::string createErrorPage(int statusCode, const std::string& statusMessage);
@@ -72,6 +72,7 @@ public:
     void    wirteMessage(int socket);
     void    setStatusCode(int parseNum, int confNum);
     bool    serachCgiPath(ServerConfig& conf);
+	void setCGIBody(std::string body);
 
     void readErrorFile(std::ifstream& error);
     std::string addIndexFile(std::string res);

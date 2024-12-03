@@ -40,6 +40,8 @@ void	Server::run() {
 		int n = epoll_wait(epoll_fd_, events_, MAX_EVENTS, EPOLL_TIMEOUT_MS);
 		if (n == -1) {
 			throw std::runtime_error("epoll_wait failed");
+		} else if (n == 0) {
+			continue;
 		}
 		for (std::vector<Client>::iterator it = client_.begin(); it != client_.end();) {
 			if (it->isTimedOut(current_time, CLIENT_TIMEOUT_SEC)) {
@@ -47,7 +49,7 @@ void	Server::run() {
 				std::cout << "Client timed out: " << it->getClientFd() << ", size: " << client_.size() << std::endl;
 				#endif
 				removeClient(it->getClientFd());
-				//continue;
+				continue;
 			} else {
 				++it;
 			}
@@ -84,6 +86,10 @@ void	Server::run() {
 						HandleRequest(*client);
 					}
 					if (events_[i].events & EPOLLOUT) {
+						if (client->getClientMode() == CGI_READING) {
+							client->readCGI();
+							client->updateActivity();
+						} 
 						HandleResponse(*client);
 					}
 				}
@@ -123,13 +129,13 @@ void	Server::HandleRequest(Client &client) {
 
 void	Server::HandleResponse(Client &	client) {
 	std::cout << "mode: " << client.getClientMode() << " , in HandleResponse" << std::endl;
-	if (client.getClientMode() == WRITING) {
+	if (client.getClientMode() == WAITING || client.getClientMode() == WRITING) {
 		#ifdef DEBUG
 		std::cout << "WRITING NOW" << std::endl;
-		#endif
 		client.makeResponse();
+		#endif
+		//client.setMode(CLOSING);
 		client.updateActivity();
-		client.setMode(CLOSING);
 	}
 	if (client.getClientMode() == CLOSING) {
 		#ifdef DEBUG

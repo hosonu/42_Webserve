@@ -18,6 +18,9 @@
 #include "../http/Request.hpp"
 #include <string.h>
 
+#include <sys/epoll.h>
+
+
 #define BUFFER_CGI 1024
 
 class CGIHandler
@@ -28,15 +31,19 @@ private:
     std::string filePath;
     Request req;
     char **envp;
+	std::string newBody;
+
+    void getEnvAsChar();
+    void getPathInfo();
     void InitCGIPath();
 public:
     CGIHandler();
     CGIHandler(Request req);
     ~CGIHandler();
-    void getEnvAsChar();
-    void getPathInfo();
-    std::string CGIExecute();
+    int CGIExecute(int epoll_fd);
     std::string	addContentLength(const std::string& httpResponse);
+	std::string	getCGIBody();
+	void appendCGIBody(char *buffer);
 };
 
 

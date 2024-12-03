@@ -10,6 +10,7 @@
 #include "Server.hpp"
 #include "../http/Request.hpp"
 #include "../http/Response.hpp"
+#include "../handler/CGIHandler.hpp"
 
 #define MAX_BUFEER 1024
 
@@ -17,6 +18,8 @@ enum ClientMode
 {
 	HEADER_READING,
 	BODY_READING,
+	WAITING,
+	CGI_READING,
 	WRITING,
 	CLOSING
 };
@@ -36,6 +39,7 @@ class Client
 		int					getClientFd() const;
 		const ClientMode	&getClientMode() const;
 		const ServerConfig	&getConfigDatum() const;
+		int					getCGIfd() const;
 		void				setMode(ClientMode mode);
 
 		void updateActivity() {
@@ -45,9 +49,12 @@ class Client
 		bool isTimedOut(time_t current_time, time_t timeout_seconds) const {
 			return (current_time - last_activity) > timeout_seconds;
 		}
+
+		void readCGI();
 	private:
 		int client_fd;
 		int epfd;
+		int cgi_fd;
 		ClientMode mode;
 
 		time_t	last_activity;
@@ -56,6 +63,8 @@ class Client
 		std::vector<char> write_buffer;
 		std::string rawReq;
 		Request req;
+		Response msg;
+		CGIHandler cgi;
 		ServerConfig	configDatum;
 };
 

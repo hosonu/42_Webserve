@@ -8,7 +8,7 @@ CGIHandler::CGIHandler()
     this->InitCGIPath();
 }
 
-CGIHandler::CGIHandler(Request req)
+CGIHandler::CGIHandler(Request req) : newBody("")
 {
     this->filePath = "/cgi/bin";
     this->req = req;
@@ -106,7 +106,7 @@ std::string	CGIHandler::addContentLength(const std::string& httpResponse)
     return modifiedHeaders.str() + "\r\n\r\n" + body;
 }
 
-std::string CGIHandler::CGIExecute()
+int CGIHandler::CGIExecute(int epoll_fd)
 {
     //TODO:cgiが失敗したばあい
     int pid;
@@ -114,8 +114,6 @@ std::string CGIHandler::CGIExecute()
     const char *inteprinter = "/usr/bin/python3";
     std::string py = "python3";
     std::string path = this->env["SCRIPT_NAME"];
-    int ret;
-    std::string newBody;
     char *argv[] = {
         const_cast<char*>(py.c_str()),
         const_cast<char*>(path.c_str()),
@@ -125,20 +123,17 @@ std::string CGIHandler::CGIExecute()
     pid = fork();
     if (pid > 0)
     {
-        char	buffer[BUFFER_CGI] = {0};
-		int		status;
-		waitpid(-1, &status, 0);
+		//usleep(1);
+		//int		status;
+		//waitpid(-1, &status, 0);
 		close(fds[1]);
-		dup2(fds[0], 0);
-		if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
-			return ("\0");
-		ret = 1;
-		while (ret > 0)
-		{
-			memset(buffer, 0, BUFFER_CGI);
-			ret = read(fds[0], buffer, BUFFER_CGI - 1);
-			newBody += buffer;
-		}
+		struct epoll_event	ev;
+		ev.events = EPOLLIN | EPOLLOUT;
+		ev.data.fd = fds[0];
+		epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fds[0], &ev);
+	
+		//if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+		//	return ("\0");
     }
     else if (pid == 0)
     {
@@ -146,5 +141,15 @@ std::string CGIHandler::CGIExecute()
         dup2(fds[1], 1);
         execve(inteprinter, argv, this->envp);
     }
-    return ("HTTP/1.1 200 OK\r\n" + addContentLength(newBody));
+	return fds[0];
+}
+
+void CGIHandler::appendCGIBody(char *buffer)
+{
+	this->newBody += buffer;
+}
+
+std::string CGIHandler::getCGIBody()
+{
+	return this->newBody;
 }

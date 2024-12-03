@@ -1,7 +1,7 @@
 #include "Client.hpp"
 
 Client::Client(int fd, int epoll_fd)
-: client_fd(fd), epfd(epoll_fd),mode(HEADER_READING) {
+: client_fd(fd), epfd(epoll_fd), mode(HEADER_READING) {
     struct epoll_event ev;
     ev.events = EPOLLIN | EPOLLOUT;
 	ev.data.ptr = this;
@@ -24,6 +24,10 @@ const ClientMode&  Client::getClientMode() const {
 
 const ServerConfig	&Client::getConfigDatum() const {
 	return	this->configDatum;
+}
+
+int Client::getCGIfd() const {
+	return this->cgi_fd;
 }
 
 void Client::updateEpollEvent() {
@@ -64,7 +68,7 @@ void	Client::parseRequestHeader(std::vector<ServerConfig> &configData) {
 
 void	Client::parseRequestBody() {
 	if (req.checkBodyExist() == false) {
-		this->mode = WRITING;
+		this->mode = WAITING;
 	} else {
 		char	buffer[MAX_BUFEER];
 		ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
@@ -72,7 +76,7 @@ void	Client::parseRequestBody() {
 			this->req.appendBody(buffer);
 		}
 		if (req.isBodyComplete()) {
-			this->mode = WRITING;
+			this->mode = WAITING;
 		}
 	}
 }
@@ -135,9 +139,18 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 
 void    Client::methodProc()
 {
-	Response msg;
-	msg.createMessage(this->req, this->configDatum);
-	msg.wirteMessage(this->client_fd);
+	if (this->mode == WAITING) {
+		if (this->msg.createMessage(this->req, this->configDatum) == "CGI_READING") {
+			this->mode = CGI_READING;
+			this->cgi = CGIHandler(this->req);
+			dup2(this->cgi.CGIExecute(this->epfd), this->cgi_fd);
+		} else {
+			this->mode = WRITING;
+		}
+	}
+	if (this->mode == WRITING) {
+		this->msg.wirteMessage(this->client_fd);
+	}
 }
 
 void    Client::makeResponse() {
@@ -149,3 +162,16 @@ void    Client::makeResponse() {
     this->methodProc();
 }
 
+void	Client::readCGI() {
+	char	buffer[MAX_BUFEER];
+	ssize_t count = read(this->cgi_fd, buffer, sizeof(buffer));
+	if (count > 0) {
+		this->cgi.appendCGIBody(buffer);
+	}
+	if (count == 0) {
+		epoll_ctl(this->epfd, EPOLL_CTL_DEL, this->cgi_fd, NULL);
+		close(this->cgi_fd);
+		this->msg.setCGIBody("HTTP/1.1 200 OK\r\n" + this->cgi.addContentLength(this->cgi.getCGIBody()));
+		this->mode = WRITING;
+	}
+}
