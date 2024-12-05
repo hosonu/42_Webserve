@@ -3,10 +3,10 @@
 RequestValidConf::RequestValidConf()
 {}
 
-RequestValidConf::RequestValidConf(Request& req, ServerConfig& conf)
+RequestValidConf::RequestValidConf(Request& req, Location& loc)
 {
     this->req = req;
-    this->conf = conf;
+    this->loc = loc;
 }
 
 RequestValidConf::~RequestValidConf()
@@ -15,7 +15,7 @@ RequestValidConf::~RequestValidConf()
 void RequestValidConf::validReqLine()
 {
     std::string method = req.getMethod();
-    std::vector<std::string> allow = conf.getLocations().begin()->getAllowMethods();
+    std::vector<std::string> allow = this->loc.getAllowMethods();
     if (method == "GET" || method == "POST" || method == "DELETE")
     {
         if (checkAllow(method, allow))
@@ -31,7 +31,9 @@ void RequestValidConf::validReqLine()
 
 bool RequestValidConf::checkAllow(std::string method, std::vector<std::string>& allows)
 {
-    for (std::vector<std::string>::size_type i = 0; i < allows.size(); ++i) {
+    for (std::vector<std::string>::size_type i = 0; i < allows.size(); ++i) 
+    {
+        //std::cout << allows[i] << std::endl;
         if (method == allows[i])
             return true;
     }

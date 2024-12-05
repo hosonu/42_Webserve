@@ -32,6 +32,7 @@ class Location
 		const std::vector<std::string>& getAllowMethods() const;
 		bool isAutoindex() const;
 		const std::string& getIndexFile() const;
+		const std::string& getReturnPath() const;
 };
 
 #endif

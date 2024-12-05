@@ -28,11 +28,11 @@ class RequestValidConf
 {
 	private:
 		Request req;
-		ServerConfig conf;
+		Location loc;
 		int	stat;
 	public:
 		RequestValidConf();
-		RequestValidConf(Request& req, ServerConfig& conf);
+		RequestValidConf(Request& req, Location& loc);
 		~RequestValidConf();
 		bool checkAllow(std::string method, std::vector<std::string>& allows);
 		void validReqLine();

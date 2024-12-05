@@ -28,7 +28,7 @@ class HttpParse
 		bool checkUri(std::string &uri);
 		bool checkVersion(std::string ver);
 		//header
-		bool checkStructure(std::string headLine, std::map<std::string, std::string>& headers, std::string& keyword);
+		bool checkStructure(std::string headLine, std::map<std::string, std::string>& headers);
 
 		//body
 		void unChunckedBody(std::string body, std::string& unChunk);

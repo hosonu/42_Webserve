@@ -52,7 +52,7 @@ public:
 
     void createMessage(Request &req, ServerConfig& conf);
     std::string createTruePath(ServerConfig& conf, std::string uri);
-    std::string createErrorPath(ServerConfig& conf, std::string& path);
+    std::string createErrorPath(ServerConfig& conf);
     std::string createErrorPage(int statusCode, const std::string& statusMessage);
     std::string getContentType(const std::string& filePath);
     std::string getContentLength();
@@ -66,7 +66,7 @@ public:
     std::string getRequestLine();
     
     void getStatusCode();
-    void    getBodyGet(std::string path, ServerConfig& conf);
+    void    getBodyGet(std::string path, ServerConfig& conf, std::string uri);
     void    getBodyPost(Request& req, ServerConfig& conf);
     void    getBodyDel(ServerConfig& conf);
     void    wirteMessage(int socket);
@@ -79,6 +79,6 @@ public:
 
 std::string generateRandomFileName(std::string dir) ;
 std::string generateDirectoryListing(const std::string& path, const std::vector<std::string>& files);
-std::vector<std::string> getContents(const std::string& path);
+std::vector<std::string> getContents(const std::string& path, const std::string& uri);
 
 #endif

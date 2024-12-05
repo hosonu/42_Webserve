@@ -64,3 +64,7 @@ bool Location::isAutoindex() const {
 const std::string& Location::getIndexFile() const {
     return this->indexFile;
 }
+
+const std::string& Location::getReturnPath() const {
+    return this->return_path;
+}
