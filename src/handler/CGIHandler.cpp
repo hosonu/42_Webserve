@@ -4,8 +4,8 @@ CGIHandler::CGIHandler()
 {
     //config依存　ファイルパス socket rootのパス
     //test 
-    this->filePath = "/cgi/bin";
-    this->InitCGIPath();
+    //this->filePath = "/cgi/bin";
+    //this->InitCGIPath();
 }
 
 CGIHandler::CGIHandler(Request req) : newBody("")
@@ -123,17 +123,15 @@ int CGIHandler::CGIExecute(int epoll_fd)
     pid = fork();
     if (pid > 0)
     {
-		//usleep(1);
-		//int		status;
-		//waitpid(-1, &status, 0);
 		close(fds[1]);
+
+		int flags = fcntl(fds[0], F_GETFL, 0);
+		fcntl(fds[0], F_SETFL, flags | O_NONBLOCK);
+		
 		struct epoll_event	ev;
 		ev.events = EPOLLIN | EPOLLOUT;
 		ev.data.fd = fds[0];
 		epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fds[0], &ev);
-	
-		//if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
-		//	return ("\0");
     }
     else if (pid == 0)
     {

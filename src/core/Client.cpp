@@ -150,6 +150,7 @@ void    Client::methodProc()
 	}
 	if (this->mode == WRITING) {
 		this->msg.wirteMessage(this->client_fd);
+		this->mode = CLOSING;
 	}
 }
 
