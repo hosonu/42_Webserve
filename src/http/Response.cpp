@@ -8,6 +8,7 @@ Response::Response()
     this->body = "";
     this->request_line = "";
     this->cgiBody = "";
+    this->truePath = "a";
 }
 
 Response::~Response()
@@ -15,9 +16,11 @@ Response::~Response()
 
 std::string Response::createMessage(Request &req, ServerConfig& conf)
 {
-    RequestValidConf validConf(req, conf);
+    this->truePath = this->createTruePath(conf, req.getUri());
+    RequestValidConf validConf(req, this->serverLocation);
     validConf.validReqLine();
     this->setStatusCode(req.getPrse().getTotalStatus(), validConf.getStat());
+<<<<<<< HEAD
     this->truePath = this->createTruePath(conf, req.getUri());
     if (req.getUri() == "/cgi/bin/test.py")
     {
@@ -25,8 +28,16 @@ std::string Response::createMessage(Request &req, ServerConfig& conf)
         //CGIHandler executor(req);
         //this->cgiBody = executor.CGIExecute();
     }
+=======
+    //if (this->cgiFlag == true)
+    //{
+    //    CGIHandler executor(req);
+    //    this->cgiBody = executor.CGIExecute();
+    //    return ;
+    //}
+>>>>>>> 2cc98b4 (あとはcgi周り　たぶん)
     if (req.getMethod() == "GET")
-        this->getBodyGet(this->truePath, conf);
+        this->getBodyGet(this->truePath, conf, req.getUri());
     else if (req.getMethod() == "POST") 
         this->getBodyPost(req, conf);
     else if (req.getMethod() == "DELETE")
@@ -48,6 +59,8 @@ std::string Response::createMessage(Request &req, ServerConfig& conf)
 
 void Response::setStatusCode(int parseNum, int confNum)
 {
+    //std::cout << parseNum << std::endl;
+    //std::cout << confNum << std::endl;
     if (parseNum != 200 && confNum != 200)
         this->statCode = parseNum;
     else if (parseNum == 200 && confNum != 200)
@@ -95,37 +108,34 @@ std::string Response::createTruePath(ServerConfig& conf, std::string uri)
     return res;
 }
 
-std::string Response::createErrorPath(ServerConfig& conf, std::string& path)
+std::string Response::createErrorPath(ServerConfig& conf)
 {
+    std::string res;
     for (std::map<int, std::string>::const_iterator it = conf.getErrorPages().begin(); it != conf.getErrorPages().end(); ++it) 
     {
         if (it->first == this->statCode)
         {
-            //最初のルートが'/'の前提
-            std::string tmp = conf.getLocations().begin()->getRoot();
-            if (tmp == "/")
-            {
-                path = tmp;
-                path += it->second;
-            }
-            else
-            {
-                path = "/usr/share/nginx/html/404.html";
-            }
+            res = this->serverLocation.getRoot() + it->second;
         }
         else if (it == conf.getErrorPages().end())
         {
-            path = "";
+            res = "";
+
         }
     }
-    return path;
+    return res;
 }
 
 std::string Response::addIndexFile(std::string res)
 {
+    std::string tmp = res;
     if (checkFileType(res) == DIRECT)
     {
-        res += this->serverLocation.getIndexFile();
+        tmp += this->serverLocation.getIndexFile();
+        if (checkFileType(tmp) == NORMAL_FILE)
+        {
+            res += this->serverLocation.getIndexFile();
+        }
     }
     return res;
 }
@@ -143,8 +153,7 @@ void Response::readErrorFile(std::ifstream& error)
     }
     else
     {
-        this->statCode = 404;
-        this->body = createErrorPage(this->statCode, "Not Found");
+        this->body = createErrorPage(this->statCode, this->situation);
     }
     error.close();
 }
@@ -169,8 +178,8 @@ std::string Response::createErrorPage(int statusCode, const std::string& statusM
 int Response::checkFileType(std::string path) {
     struct stat statBuf;
 
-    if (stat(path.c_str(), &statBuf) != 0) {
-        this->statCode = 400;
+    if (stat(path.c_str(), &statBuf) != 0) 
+    {
         return -1;
     }
 
@@ -194,23 +203,21 @@ bool Response::checkErroPath(ServerConfig& conf)
 }
 
 
-void Response::getBodyGet(std::string path, ServerConfig& conf)
+void Response::getBodyGet(std::string path, ServerConfig& conf, std::string uri)
 {
     std::string line;
-    std::ifstream error(createErrorPath(conf, path).c_str());
     std::string index = addIndexFile(path);
     std::ifstream file(index.c_str());
-    std::cout << index << std::endl;
     int type = checkFileType(index);
-    if (this->statCode != 200)
+    if (!this->serverLocation.getReturnPath().empty())
     {
+        this->statCode = 301;
+        this->getStatusCode();
+    }
+    else if (this->statCode != 200)
+    {
+        std::ifstream error(createErrorPath(conf).c_str());
         readErrorFile(error);
-        if (checkErroPath(conf) == false)
-        {
-            this->statCode = 404;
-            this->getStatusCode();
-            this->body = createErrorPage(this->statCode, this->situation);
-        }
     }
     else if (type == NORMAL_FILE)
     {
@@ -224,33 +231,31 @@ void Response::getBodyGet(std::string path, ServerConfig& conf)
         }
         else
         {
+            this->statCode = 404;
+            std::ifstream error(createErrorPath(conf).c_str());
             readErrorFile(error);
-            if (checkErroPath(conf) == false)
-            {
-                this->statCode = 404;
-                this->getStatusCode();
-                this->body = createErrorPage(this->statCode, this->situation);
-            }
         }
     }
     else if (type == DIRECT)
     {
         //autoindexの項目がそもそもない場合の対応
-        if (this->serverLocation.isAutoindex() == true && this->serverLocation.getIndexFile() == "")
+        if (this->serverLocation.isAutoindex() == true)
         {
-            this->body = generateDirectoryListing(path, getContents(path));
+            this->body = generateDirectoryListing(path, getContents(path, uri));
         }
         else
         {
+            this->statCode = 404;
+            std::ifstream error(createErrorPath(conf).c_str());
             readErrorFile(error);
-            if (checkErroPath(conf) == false)
-            {
-                this->statCode = 404;
-                this->getStatusCode();
-                this->body = createErrorPage(this->statCode, this->situation);
-            }
         }
 
+    }
+    else
+    {
+        this->statCode = 404;
+        std::ifstream error(createErrorPath(conf).c_str());
+        readErrorFile(error);
     }
 }
 
@@ -265,66 +270,69 @@ std::string generateRandomFileName(std::string dir)
 void Response::getBodyPost(Request& req, ServerConfig& conf)
 {
     //TODO:configの設定を反映
-    std::ifstream error(createErrorPath(conf, this->truePath).c_str());
+    std::ifstream error(createErrorPath(conf).c_str());
+    if (!this->serverLocation.getReturnPath().empty())
+    {
+        this->statCode = 301;
+        this->getStatusCode();
+        return ;
+    }
+    else if (req.getBody().empty())
+    {
+        this->statCode = 400;
+        readErrorFile(error);
+        return ;
+    }
     std::string fileName = generateRandomFileName(this->truePath);
     std::ofstream file(fileName.c_str());
     if (!file.is_open()) 
     {
         readErrorFile(error);
-        if (checkErroPath(conf) == false)
-        {
-            this->statCode = 404;
-            this->body = createErrorPage(this->statCode, "Not Found");
-        }
         return ;
     }
     this->body = req.getBody();
     file << req.getBody();
-    this->statCode = 200;
+    this->statCode = 201;
     file.close();
 }
 
 void Response::getBodyDel( ServerConfig& conf)
 {
-    std::ifstream error(createErrorPath(conf, this->truePath).c_str());
+    std::ifstream error(createErrorPath(conf).c_str());
     int fType = checkFileType(this->truePath);
+    if (this->statCode != 200)
+    {
+        readErrorFile(error);
+        return ;
+    }
     if (fType == NORMAL_FILE)
     {
         if (std::remove(this->truePath.c_str()) == 0)
         {
-            this->statCode = 201;
+            this->statCode = 204;
             return ;
         }
         else
         {
+            this->statCode = 400;
             //TODO:Errorページ設定
             readErrorFile(error);
-            if (checkErroPath(conf) == false)
-            {
-                this->statCode = 404;
-                this->body = createErrorPage(this->statCode, "Not Found");
-            }
         }
     }
     else
     {
         this->statCode = 404;
         readErrorFile(error);
-        if (checkErroPath(conf) == false)
-        {
-            this->statCode = 404;
-            this->body = createErrorPage(this->statCode, "Not Found");
-        }
-
     }
 }
 
 std::string Response::getContentType(const std::string& filePath)
 {
-	if (filePath.empty()) {
-		return "Content-type: text/html";
-	}
-    std::string extension = filePath.substr(filePath.find_last_of(".") + 1);
+    size_t pos = filePath.find_last_of(".");
+    if (pos == std::string::npos || pos == filePath.size() - 1) {
+       return "Content-type: text/html";
+    }
+    std::string extension = filePath.substr(pos + 1);
 
     const char* extensions[] = {
         "html", "text/html",
@@ -424,41 +432,71 @@ void Response::wirteMessage(int socket)
     }
 }
 
-std::vector<std::string> getContents(const std::string& path)
-{
+std::vector<std::string> getContents(const std::string& path, const std::string& uri) {
     std::vector<std::string> files;
     DIR* dir = opendir(path.c_str());
-
-    if (dir != NULL)
-    {
+    if (dir != NULL) {
         struct dirent* entry;
-        while ((entry = readdir(dir)) != NULL)
-            files.push_back(entry->d_name);
+        while ((entry = readdir(dir)) != NULL) {
+            std::string name = entry->d_name;
+            if (name != "." && name != "..") {
+                std::string fullUri = uri;
+                if (!fullUri.empty() && fullUri[fullUri.size() - 1] != '/') {
+                    fullUri += "/";
+                }
+                fullUri += name;
+                files.push_back(fullUri); // リクエストパスを保存
+            }
+        }
         closedir(dir);
     }
     return files;
 }
 
-std::string generateDirectoryListing(const std::string& path, const std::vector<std::string>& files) {
+std::string generateDirectoryListing(const std::string& uri, const std::vector<std::string>& files) {
     std::stringstream html;
-    
+
+    // HTMLヘッダーとスタイルの追加
     html << "<html>\n<head>\n"
-         << "<title>Index of " << path << "</title>\n"
-         << "</head>\n<body>\n"
-         << "<h1>Index of " << path << "</h1>\n"
-         << "<table>\n";
-	for (std::vector<std::string>::const_iterator it = files.begin(); it != files.end(); ++it) {
-		html << "<tr>\n"
-			<< "<td><a href=\"" << *it << "\">" << *it << "</a></td>\n"
-			<< "</tr>\n";
-	}
-    //for (const auto& file : files) {
-    //    html << "<tr>\n"
-    //         << "<td><a href=\"" << file << "\">" << file << "</a></td>\n"
-    //         << "</tr>\n";
-    //}
-    
+         << "<title>Index of " << uri << "</title>\n"
+         << "<style>\n"
+         << "body { font-family: Arial, sans-serif; margin: 20px; }\n"
+         << "h1 { color: #333; }\n"
+         << "table { width: 100%; border-collapse: collapse; }\n"
+         << "th, td { padding: 8px 12px; border: 1px solid #ddd; text-align: left; }\n"
+         << "th { background-color: #f4f4f4; }\n"
+         << "tr:hover { background-color: #f9f9f9; }\n"
+         << "a { text-decoration: none; color: #007BFF; }\n"
+         << "a:hover { text-decoration: underline; }\n"
+         << "</style>\n"
+         << "</head>\n<body>\n";
+
+    // タイトルと見出し
+    html << "<h1>Index of " << uri << "</h1>\n";
+
+    // テーブルの開始
+    html << "<table>\n"
+         << "<tr>\n"
+         << "<th>Name</th>\n"
+         << "</tr>\n";
+
+    // ファイルリストをテーブルに追加
+    for (std::vector<std::string>::const_iterator it = files.begin(); it != files.end(); ++it) {
+        // リンク表示用にファイル名を抽出
+        std::string fileName = *it;
+        std::size_t lastSlash = fileName.find_last_of('/');
+        if (lastSlash != std::string::npos) {
+            fileName = fileName.substr(lastSlash + 1);
+        }
+
+        html << "<tr>\n"
+             << "<td><a href=\"" << *it << "\">" << fileName << "</a></td>\n"
+             << "</tr>\n";
+    }
+
+    // テーブルの終了
     html << "</table>\n</body>\n</html>";
+
     return html.str();
 }
 

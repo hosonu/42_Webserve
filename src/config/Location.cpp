@@ -77,3 +77,6 @@ const std::string& Location::getIndexFile() const {
 bool	Location::flagCGI() const {
 	return this->isCGI;
 }
+const std::string& Location::getReturnPath() const {
+    return this->return_path;
+}

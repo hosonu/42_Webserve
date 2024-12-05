@@ -99,9 +99,13 @@ bool HttpParse::checkVersion(std::string ver)
 	std::string tmp = ver;
 	std::string name = tmp.erase(4);
 	size_t slash = ver.find("/");
-	std::string digit = ver.substr(ver.find("/") + 1);
 
-	if (name != "HTTP" || slash == std::string::npos || digit.size() != 4)
+	if (name != "HTTP" || slash == std::string::npos)
+	{
+		return false;
+	}
+	std::string digit = ver.substr(ver.find("/") + 1);
+	if (digit.size() != 4)
 	{
 		return false;
 	}
@@ -114,7 +118,7 @@ bool HttpParse::checkVersion(std::string ver)
 	return true;
 }
 
-bool HttpParse::checkStructure(std::string headLine, std::map<std::string, std::string>& headers, std::string& keyword)
+bool HttpParse::checkStructure(std::string headLine, std::map<std::string, std::string>& headers)
 {
 	size_t colon = headLine.find(":");
 	std::string key;
@@ -129,7 +133,6 @@ bool HttpParse::checkStructure(std::string headLine, std::map<std::string, std::
 	}
 	if (headLine[headLine.size() - 1] != '\r')
 	{
-		//std::cout << headLine << std::endl;
 		this->headerStatus = 400;
 		return false;
 	}
@@ -148,9 +151,6 @@ bool HttpParse::checkStructure(std::string headLine, std::map<std::string, std::
 		return false;
 	}
 	headers[key] = val;
-    if (key == "Content-Type:") {
-        keyword = val.substr(val.find("="));
-	}
 	this->headerStatus = 200;
 	return true;	
 }
@@ -190,8 +190,6 @@ void HttpParse::setTotalStatus()
 	} else {
         this->totalStatus = this->startStatus;
 	}
-	//std::cout<< "start: " << startStatus << std::endl;
-	//std::cout << "header: " << headerStatus << std::endl;
 }
 
 void HttpParse::setHeaderStatus(int set)
@@ -225,11 +223,11 @@ bool isValidHeaderFieldName(const std::string& fieldName)
     return true;
 }
 
-bool isValidHeaderFieldValue(const std::string& fieldValue) 
+bool isValidHeaderFieldValue(const std::string& fieldValue)
 {
     std::string::const_iterator it;
     for (it = fieldValue.begin(); it != fieldValue.end(); ++it) {
-        if (std::iscntrl(*it) && *it != '\r' && *it != '\n') {
+        if (std::iscntrl(*it) == true) {
             return false;
         }
     }

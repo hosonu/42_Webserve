@@ -43,7 +43,6 @@ public:
 	void	setBody(std::string body);
 	HttpParse getPrse();
 private:
-    std::string keyword;
 	std::string method;
 	std::string uri;
 	std::string version;
@@ -59,5 +58,7 @@ private:
 
 void	print_line(Request& test);
 void    print_conf(ServerConfig test);
+bool 	isValidHostName(const std::string& host);
+bool 	isValidPort(const std::string& port);
 
 #endif

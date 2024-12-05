@@ -35,6 +35,7 @@ class Location
 		bool isAutoindex() const;
 		const std::string& getIndexFile() const;
 		bool	flagCGI() const;
+		const std::string& getReturnPath() const;
 };
 
 #endif

@@ -18,6 +18,7 @@ bool Request::requestParse(const std::string &rawRequest)
         return false;
     while (std::getline(stream, line))
     {
+        //std::cout << line << std::endl;
         if (!headerParse(line) && flag)
             return false;
     }
@@ -29,6 +30,7 @@ bool Request::requestParse(const std::string &rawRequest)
 bool Request::lineParse(const std::string& lineRequest)
 {
 	std::istringstream stream(lineRequest);
+    //std::cout << lineRequest << std::endl;
 	if (!std::getline(stream, this->method, ' '))
 		return false;
 	if (!std::getline(stream, this->uri, ' '))
@@ -41,11 +43,70 @@ bool Request::lineParse(const std::string& lineRequest)
 
 bool Request::headerParse(const std::string &headerRequest)
 {
-    this->parse.checkStructure(headerRequest, this->headers, this->keyword);
+    this->parse.checkStructure(headerRequest, this->headers);
     std::string check = this->headers["Host"];
-    if (check.empty())
+    check.erase(check.length() - 1);
+    if (check.find(":") == std::string::npos)
     {
         this->parse.setHeaderStatus(400);
+        return true;
+    }
+    if (check.empty() || !isValidPort(check.substr(check.find(":") + 1)) || !isValidHostName(check.substr(0, check.find(":"))))
+    {
+        if (check.substr(0, check.find(":")) != "localhost")
+        {
+            this->parse.setHeaderStatus(400);
+        }
+    }
+    return true;
+}
+
+bool isValidHostName(const std::string& host) {
+    size_t start = 0, end;
+    std::string part;
+    while ((end = host.find('.', start)) != std::string::npos) 
+    {
+        part = host.substr(start, end - start);
+        if (part.empty() || part.length() > 63)
+        {
+            return false;
+        }
+        for (size_t i = 0; i < part.length(); ++i) {
+            if (!isalnum(part[i]) && part[i] != '-') 
+            {
+                return false;
+            }
+        }
+        if (part[0] == '-' || part[part.length() - 1] == '-') 
+        {   
+            return false;
+        }
+        start = end + 1;
+    }
+    if (part.empty() || part.length() > 63) 
+    {   
+        return false;
+    }
+    for (size_t i = 0; i < part.length(); ++i) {
+        if (!isalnum(part[i]) && part[i] != '-') 
+        {   
+            return false;
+        }
+    }
+    if (part[0] == '-' || part[part.length() - 1] == '-') 
+    {
+        return false;
+    }
+    return true;
+}
+
+bool isValidPort(const std::string& port) {
+    for (size_t i = 0; i < port.length(); ++i) 
+    {
+        if (!isdigit(port[i]))
+        {
+            return false;
+        }
     }
     return true;
 }
