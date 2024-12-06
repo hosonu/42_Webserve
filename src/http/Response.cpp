@@ -258,6 +258,28 @@ std::string generateRandomFileName(std::string dir)
     return oss.str();
 }
 
+//over flow 未対応
+size_t convert_stos(const std::string& max_body_size) 
+{
+    if (max_body_size.empty())
+        return (-1);
+    std::string num = max_body_size.substr(0, max_body_size.length() - 1);
+    char unit = max_body_size[max_body_size.length() - 1];
+
+    char* endptr = NULL;
+    size_t size = std::strtol(num.c_str(), &endptr, 10);
+
+    switch (unit) {
+        case 'k':
+            return size * 1024;
+        case 'm':
+            return size * 1024 * 1024;
+        case 'g':
+            return size * 1024 * 1024 * 1024;
+    }
+    return (-1);
+}
+
 void Response::getBodyPost(Request& req, ServerConfig& conf)
 {
     //TODO:configの設定を反映
@@ -271,6 +293,12 @@ void Response::getBodyPost(Request& req, ServerConfig& conf)
     else if (req.getBody().empty())
     {
         this->statCode = 400;
+        readErrorFile(error);
+        return ;
+    }
+    else if (convert_stos(conf.getMaxBodySize()) > 0 && req.getBody().size() > convert_stos(conf.getMaxBodySize()))
+    {
+        this->statCode = 413;
         readErrorFile(error);
         return ;
     }
@@ -397,6 +425,8 @@ void Response::getStatusCode()
         this->situation = "Method Not Allowed";
     else if (this->statCode == 409)
         this->situation = "Conflict";
+    else if (this->statCode == 413)
+        this->situation = "Payload Too Large";
     else if (this->statCode == 500)
         this->situation = "Internal Server Error";
 }       
