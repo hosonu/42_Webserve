@@ -20,7 +20,6 @@ std::string Response::createMessage(Request &req, ServerConfig& conf)
     RequestValidConf validConf(req, this->serverLocation);
     validConf.validReqLine();
     this->setStatusCode(req.getPrse().getTotalStatus(), validConf.getStat());
-<<<<<<< HEAD
     this->truePath = this->createTruePath(conf, req.getUri());
     if (req.getUri() == "/cgi/bin/test.py")
     {
@@ -28,14 +27,6 @@ std::string Response::createMessage(Request &req, ServerConfig& conf)
         //CGIHandler executor(req);
         //this->cgiBody = executor.CGIExecute();
     }
-=======
-    //if (this->cgiFlag == true)
-    //{
-    //    CGIHandler executor(req);
-    //    this->cgiBody = executor.CGIExecute();
-    //    return ;
-    //}
->>>>>>> 2cc98b4 (あとはcgi周り　たぶん)
     if (req.getMethod() == "GET")
         this->getBodyGet(this->truePath, conf, req.getUri());
     else if (req.getMethod() == "POST") 
