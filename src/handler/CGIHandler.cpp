@@ -45,8 +45,9 @@ void CGIHandler::getPathInfo()
     {
         pos = uri.find(".py");
     }
-    std::string tmp = uri.substr(0, pos + 3);
-    this->env["SCRIPT_NAME"] = "cgi/bin/test.py";
+    std::string tmp = uri.substr(1, pos + 3);
+    std::cout << tmp << std::endl;
+    this->env["SCRIPT_NAME"] = tmp;qqqq
     this->env["PATH_INFO"] = uri.substr(pos + 3, uri.size());
 }
 
@@ -108,7 +109,10 @@ std::string	CGIHandler::addContentLength(const std::string& httpResponse)
 
 int CGIHandler::CGIExecute(int epoll_fd)
 {
-    //TODO:cgiが失敗したばあい
+    //TODO:cgiが失敗したばあい(解決予定)
+    //cgiが失敗しても特になにもしないで正解っぽい(以下ryanagit)
+    //execveの成功でメッセージが変わることはないっぽい
+    //timeoutは本体で回収するのみ
     int pid;
     int fds[2];
     const char *inteprinter = "/usr/bin/python3";
@@ -127,7 +131,8 @@ int CGIHandler::CGIExecute(int epoll_fd)
 
 		int flags = fcntl(fds[0], F_GETFL, 0);
 		fcntl(fds[0], F_SETFL, flags | O_NONBLOCK);
-		
+        //これ必要じゃね(ryanagit)
+		wait(NULL);
 		struct epoll_event	ev;
 		ev.events = EPOLLIN | EPOLLOUT;
 		ev.data.fd = fds[0];
@@ -138,6 +143,8 @@ int CGIHandler::CGIExecute(int epoll_fd)
         close(fds[0]);
         dup2(fds[1], 1);
         execve(inteprinter, argv, this->envp);
+        //read/writeしたわけではないのでのerronoは見るが回収しない(ryanagit)
+	    std::exit(errno);
     }
 	return fds[0];
 }
