@@ -21,8 +21,9 @@ std::string Response::createMessage(Request &req, ServerConfig& conf)
     validConf.validReqLine();
     this->setStatusCode(req.getPrse().getTotalStatus(), validConf.getStat());
     this->truePath = this->createTruePath(conf, req.getUri());
-    if (req.getUri() == "/cgi/bin/test.py")
+    if (this->cgiFlag)
     {
+        std::cout << "hello" << std::endl;
         return "CGI_READING";
         //CGIHandler executor(req);
         //this->cgiBody = executor.CGIExecute();
@@ -222,7 +223,7 @@ void Response::getBodyGet(std::string path, ServerConfig& conf, std::string uri)
         }
         else
         {
-            this->statCode = 404;
+            this->statCode = 403;
             std::ifstream error(createErrorPath(conf).c_str());
             readErrorFile(error);
         }
