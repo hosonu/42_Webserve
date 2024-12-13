@@ -21,6 +21,7 @@ std::string Response::createMessage(Request &req, ServerConfig& conf)
     validConf.validReqLine();
     this->setStatusCode(req.getPrse().getTotalStatus(), validConf.getStat());
     this->truePath = this->createTruePath(conf, req.getUri());
+	//std::cout << "URI: " << req.getUri() << ", cgiFlag: " << this->cgiFlag << std::endl;
     if (this->cgiFlag)
     {
         std::cout << "hello" << std::endl;
@@ -73,10 +74,10 @@ bool Response::checkMatching(std::string locPath, std::string uri)
     }
     if (count == locPath.size())
     {
-        if (locPath == this->cgiPath)
-        {
-            this->cgiFlag = true;
-        }
+        //if (locPath == this->cgiPath)
+        //{
+		//	this->cgiFlag = true;
+        //}
         return true;
     }
     else
@@ -94,6 +95,7 @@ std::string Response::createTruePath(ServerConfig& conf, std::string uri)
         if ((checkMatching(it->getPath(), uri) == true))
         {
             this->serverLocation = *it;
+			this->cgiFlag = it->flagCGI();
             res = it->getRoot() + uri;
         }
     }

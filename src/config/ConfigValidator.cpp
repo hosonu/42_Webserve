@@ -57,7 +57,7 @@ void	ConfigValidator::validateBlockStructure(const std::vector<std::string>& tok
 				throw std::runtime_error("Unbalanced braces in configuration");
 			
 			if (in_location_block) in_location_block = false;
-			if (in_server_block) in_server_block = false;
+			else if (in_server_block) in_server_block = false;
 		}
 	}
 
