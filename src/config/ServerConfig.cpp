@@ -121,7 +121,7 @@ void	ServerConfig::setClientMaxBodySize(const std::string& size) {
 	if (size[size.length() - 1] != 'm' && size[size.length() - 1] != 'k' && size[size.length() - 1] != 'g') {
 		throw std::logic_error("[emerg] unexepcted clientMaxBodySize paramaeter in \"listen\" directive : " + size);
 	}
-
+	char unit = size[size.length() - 1];
 	std::string num = size.substr(0, size.length() - 1);
 	for (size_t i = 0; i < num.size(); ++i) {
 		if (!std::isdigit(num[i])) {
@@ -131,6 +131,23 @@ void	ServerConfig::setClientMaxBodySize(const std::string& size) {
 			throw std::logic_error("[emerg] unexepcted clientMaxBodySize paramaeter in \"listen\" directive");
 		}
 	}
+	
+	size_t maxDigits;
+	switch (unit) {
+		case 'k':
+			maxDigits = 13;
+			break;
+		case 'm':
+			maxDigits = 10;
+			break;
+		case 'g':
+			maxDigits = 7;
+			break;
+	}
+	if (num.length() > maxDigits) {
+		throw std::logic_error("[emerg] unexepcted clientMaxBodySize paramaeter in \"listen\" directive");
+	}
+
 	this->maxBodySize = size;
 }
 
