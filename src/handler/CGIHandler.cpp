@@ -47,7 +47,7 @@ void CGIHandler::getPathInfo()
     }
     std::string tmp = uri.substr(1, pos + 3);
     std::cout << tmp << std::endl;
-    this->env["SCRIPT_NAME"] = tmp;qqqq
+    this->env["SCRIPT_NAME"] = tmp;
     this->env["PATH_INFO"] = uri.substr(pos + 3, uri.size());
 }
 
