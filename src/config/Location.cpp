@@ -1,5 +1,8 @@
 #include "Location.hpp"
 
+Location::Location()
+: path(""), root(""), allowMethods(), autoindex(false), indexFile(""), return_path(""), isCGI(false) {}
+
 void Location::setPath(const std::string& path) {
 	if (path[0] != '/') {
 			throw std::invalid_argument("[emerg] unexpected path in location{} : " + path);

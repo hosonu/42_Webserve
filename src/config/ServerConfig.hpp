@@ -50,6 +50,7 @@ private:
 	std::vector<Location> locations;
 
 public:
+	ServerConfig();
 	void	setDefault(bool flag);
     void	setListen(std::string& listen);
     void	setServerName(const std::string& name);

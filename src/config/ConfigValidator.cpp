@@ -36,17 +36,19 @@ void	ConfigValidator::validateBlockStructure(const std::vector<std::string>& tok
 	for (size_t i = 0; i < tokens.size(); ++i) {
 		if (tokens[i] == "{") {
 			brace_count++;
-			if (tokens[i-1] == "server") {
+			if (tokens[i - 1] == "server") {
 				if (in_server_block) 
 					throw std::runtime_error("Nested server blocks are not allowed");
 				in_server_block = true;
 			}
-			if (tokens[i-1] == "location") {
+			else if (tokens[i - 2] == "location") {
 				if (!in_server_block)
 					throw std::runtime_error("Location block must be inside a server block");
 				if (in_location_block)
 					throw std::runtime_error("Nested location blocks are not allowed");
 				in_location_block = true;
+			} else {
+				throw std::runtime_error("Invalid block structure");
 			}
 		}
 		else if (tokens[i] == "}") {
@@ -74,15 +76,24 @@ void	ConfigValidator::validateDirectives(const std::vector<std::string>& tokens)
 		}
 		if (tokens[i] == "location") {
 			current_context = "location";
+			while (i < tokens.size() && tokens[i] != "{") {
+				++i;
+			}
 			continue;
 		} else if (tokens[i] == "{" || tokens[i] == "}") {
 			continue;
 		}
 		else if (current_context == "server") {
 			validateServerDirective(tokens[i], i, tokens);
+			while (i < tokens.size() && tokens[i] != ";") {
+				++i;
+			}
 		}
 		else if (current_context == "location") {
 			validateLocationDirective(tokens[i], i, tokens);
+			while (i < tokens.size() && tokens[i] != ";") {
+				++i;
+			}
 		}
 	}
 }
@@ -101,6 +112,8 @@ void	ConfigValidator::validateServerDirective(const std::string& directive, size
 		if (!isDirectiveTerminatedCorrectly(tokens, index)) {
 			throw std::runtime_error("Invalid termination for server directive: " + directive);
 		}
+	} else {
+		throw std::runtime_error("Invalid server directive: " + directive);
 	}
 }
 
@@ -109,6 +122,8 @@ void	ConfigValidator::validateLocationDirective(const std::string& directive, si
 		if (!isDirectiveTerminatedCorrectly(tokens, index)) {
 			throw std::runtime_error("Invalid termination for location directive: " + directive);
 		}
+	} else {
+		throw std::runtime_error("Invalid location directive: " + directive);
 	}
 }
 
