@@ -50,9 +50,9 @@ void	Location::setReturnPath(const std::string& r_path) {
 
 void	Location::setCGI(const std::string& flag) {
 	if (flag == "on") {
-    	this->autoindex = true;
+    	this->isCGI = true;
 	} else if (flag == "off") {
-    	this->autoindex = false;
+    	this->isCGI = false;
 	} else 
 		throw std::invalid_argument("[emerg] unexpected autoindex in location{} : " + flag);
 }
