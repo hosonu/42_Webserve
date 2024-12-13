@@ -65,9 +65,12 @@ void	Server::run() {
 			for (size_t i = 0; i < socket_.size(); ++i) {
 				if (socket_[i].getFd() == fd) {
 					int client_fd = acceptNewConnection(socket_[i]);
+					//client_.push_back(Client(client_fd, epoll_fd_));
+					//client_.back().updateActivity();
 					Client client(client_fd, epoll_fd_);
 					client.updateActivity();
 					client_.push_back(client);
+
 					#ifdef DEBUG
 					std::cout << " , fd: " << fd << std::endl;
 					std::cout << "Make new client: " << client_fd << std::endl;
@@ -87,10 +90,12 @@ void	Server::run() {
 					}
 					if (events_[i].events & EPOLLOUT) {
 						if (client->getClientMode() == CGI_READING) {
+							std::cout << "CGI_READING NOW" << std::endl;
 							client->readCGI();
 							client->updateActivity();
-						} 
-						HandleResponse(*client);
+						} else {
+							HandleResponse(*client);
+						}
 					}
 				}
 			}

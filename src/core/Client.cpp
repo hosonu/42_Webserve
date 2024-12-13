@@ -1,11 +1,11 @@
 #include "Client.hpp"
 
 Client::Client(int fd, int epoll_fd)
-: client_fd(fd), epfd(epoll_fd), mode(HEADER_READING) {
+: client_fd(fd), epfd(epoll_fd), cgi_fd(-1), mode(HEADER_READING) {
     struct epoll_event ev;
     ev.events = EPOLLIN | EPOLLOUT;
 	ev.data.ptr = this;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &ev) == -1) {
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &ev) == -1) {
         throw std::runtime_error("Failed to add epoll");
     }
 }
@@ -143,12 +143,14 @@ void    Client::methodProc()
 		if (this->msg.createMessage(this->req, this->configDatum) == "CGI_READING") {
 			this->mode = CGI_READING;
 			this->cgi = CGIHandler(this->req);
-			dup2(this->cgi.CGIExecute(this->epfd), this->cgi_fd);
+			//dup2(this->cgi.CGIExecute(this->epfd), this->cgi_fd);
+			this->cgi_fd = this->cgi.CGIExecute(this->epfd);
 		} else {
 			this->mode = WRITING;
 		}
 	}
 	if (this->mode == WRITING) {
+		std::cout << "WRITING NOW" << std::endl;
 		this->msg.wirteMessage(this->client_fd);
 		this->mode = CLOSING;
 	}
@@ -165,6 +167,7 @@ void    Client::makeResponse() {
 
 void	Client::readCGI() {
 	char	buffer[MAX_BUFEER];
+	std::cout << "readCGI NOW, cgi_fd: " << this->cgi_fd << std::endl;
 	ssize_t count = read(this->cgi_fd, buffer, sizeof(buffer));
 	if (count > 0) {
 		this->cgi.appendCGIBody(buffer);

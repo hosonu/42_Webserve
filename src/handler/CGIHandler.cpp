@@ -44,10 +44,12 @@ void CGIHandler::getPathInfo()
     if (pos == -1)
     {
         pos = uri.find(".py");
+		this->env["SCRIPT_NAME"] = uri.substr(1, pos + 3);
+		this->env["PATH_INFO"] = "";
+		return;
     }
-    std::string tmp = uri.substr(1, pos + 3);
-    std::cout << tmp << std::endl;
-    this->env["SCRIPT_NAME"] = tmp;
+
+    this->env["SCRIPT_NAME"] = uri.substr(1, pos + 3);
     this->env["PATH_INFO"] = uri.substr(pos + 3, uri.size());
 }
 
@@ -146,6 +148,7 @@ int CGIHandler::CGIExecute(int epoll_fd)
         //read/writeしたわけではないのでのerronoは見るが回収しない(ryanagit)
 	    std::exit(errno);
     }
+	std::cout << "CGI_EXECUTE: " << fds[0] << std::endl;
 	return fds[0];
 }
 
