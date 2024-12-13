@@ -141,10 +141,14 @@ void    Client::methodProc()
 {
 	if (this->mode == WAITING) {
 		if (this->msg.createMessage(this->req, this->configDatum) == "CGI_READING") {
-			this->mode = CGI_READING;
 			this->cgi = CGIHandler(this->req);
 			//dup2(this->cgi.CGIExecute(this->epfd), this->cgi_fd);
-			this->cgi_fd = this->cgi.CGIExecute(this->epfd);
+			this->cgi_fd = this->cgi.CGIExecute();
+			struct epoll_event ev;
+			ev.events = EPOLLIN | EPOLLOUT;
+			ev.data.ptr = this;
+			epoll_ctl(this->epfd, EPOLL_CTL_ADD, this->cgi_fd, &ev);
+			this->mode = CGI_READING;
 		} else {
 			this->mode = WRITING;
 		}
@@ -173,6 +177,7 @@ void	Client::readCGI() {
 		this->cgi.appendCGIBody(buffer);
 	}
 	if (count == 0) {
+		std::cout << "readCGI END, cgi_fd: " << this->cgi_fd << std::endl;
 		epoll_ctl(this->epfd, EPOLL_CTL_DEL, this->cgi_fd, NULL);
 		close(this->cgi_fd);
 		this->msg.setCGIBody("HTTP/1.1 200 OK\r\n" + this->cgi.addContentLength(this->cgi.getCGIBody()));

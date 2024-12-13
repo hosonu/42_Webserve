@@ -40,7 +40,7 @@ public:
     CGIHandler();
     CGIHandler(Request req);
     ~CGIHandler();
-    int CGIExecute(int epoll_fd);
+    int CGIExecute();
     std::string	addContentLength(const std::string& httpResponse);
 	std::string	getCGIBody();
 	void appendCGIBody(char *buffer);

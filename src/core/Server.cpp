@@ -65,8 +65,6 @@ void	Server::run() {
 			for (size_t i = 0; i < socket_.size(); ++i) {
 				if (socket_[i].getFd() == fd) {
 					int client_fd = acceptNewConnection(socket_[i]);
-					//client_.push_back(Client(client_fd, epoll_fd_));
-					//client_.back().updateActivity();
 					Client client(client_fd, epoll_fd_);
 					client.updateActivity();
 					client_.push_back(client);
@@ -80,23 +78,34 @@ void	Server::run() {
 				}
 			}
 			if (!handled) {
+
 				Client* client = static_cast<Client*>(events_[i].data.ptr);
 				#ifdef DEBUG
 				std::cout << " , fd: " << client->getClientFd() << std::endl;
 				#endif
 				if (client != NULL) {
-					if (events_[i].events & EPOLLIN) {
+					if (events_[i].events & EPOLLIN || events_[i].events & EPOLLOUT) {
 						HandleRequest(*client);
-					}
-					if (events_[i].events & EPOLLOUT) {
 						if (client->getClientMode() == CGI_READING) {
 							std::cout << "CGI_READING NOW" << std::endl;
 							client->readCGI();
 							client->updateActivity();
-						} else {
-							HandleResponse(*client);
 						}
+						HandleResponse(*client);
 					}
+					//if (events_[i].events & EPOLLIN) {
+						
+					//		HandleRequest(*client);
+					//}
+					//if (events_[i].events & EPOLLOUT) {
+					//	if (client->getClientMode() == CGI_READING) {
+					//		std::cout << "CGI_READING NOW" << std::endl;
+					//		client->readCGI();
+					//		client->updateActivity();
+					//	} else {
+					//	HandleResponse(*client);
+					//	}
+					//}
 				}
 			}
 		}

@@ -109,7 +109,7 @@ std::string	CGIHandler::addContentLength(const std::string& httpResponse)
     return modifiedHeaders.str() + "\r\n\r\n" + body;
 }
 
-int CGIHandler::CGIExecute(int epoll_fd)
+int CGIHandler::CGIExecute()
 {
     //TODO:cgiが失敗したばあい(解決予定)
     //cgiが失敗しても特になにもしないで正解っぽい(以下ryanagit)
@@ -135,10 +135,11 @@ int CGIHandler::CGIExecute(int epoll_fd)
 		fcntl(fds[0], F_SETFL, flags | O_NONBLOCK);
         //これ必要じゃね(ryanagit)
 		wait(NULL);
-		struct epoll_event	ev;
-		ev.events = EPOLLIN | EPOLLOUT;
-		ev.data.fd = fds[0];
-		epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fds[0], &ev);
+		//(void)epoll_fd;
+	//	struct epoll_event	ev;
+	//	ev.events = EPOLLIN | EPOLLOUT;
+	//	ev.data.fd = fds[0];
+	//	epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fds[0], &ev);
     }
     else if (pid == 0)
     {
