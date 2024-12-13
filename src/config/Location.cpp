@@ -25,9 +25,9 @@ void Location::setAllowMethods(const std::string& methods) {
 }
 
 void Location::setAutoindex(const std::string& ai) {
-	if (ai == "true") {
+	if (ai == "on") {
     	this->autoindex = true;
-	} else if (ai != "false") {
+	} else if (ai == "off") {
     	this->autoindex = false;
 	} else 
 		throw std::invalid_argument("[emerg] unexpected autoindex in location{} : " + ai);
@@ -49,9 +49,9 @@ void	Location::setReturnPath(const std::string& r_path) {
 }
 
 void	Location::setCGI(const std::string& flag) {
-	if (flag == "true") {
+	if (flag == "on") {
     	this->autoindex = true;
-	} else if (flag != "false") {
+	} else if (flag == "off") {
     	this->autoindex = false;
 	} else 
 		throw std::invalid_argument("[emerg] unexpected autoindex in location{} : " + flag);
