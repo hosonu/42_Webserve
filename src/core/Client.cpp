@@ -141,9 +141,9 @@ void    Client::methodProc()
 {
 	if (this->mode == WAITING) {
 		if (this->msg.createMessage(this->req, this->configDatum) == "CGI_READING") {
-			this->cgi = CGIHandler(this->req);
+			this->cgi = CGIHandler(this->req,epfd);
 			//dup2(this->cgi.CGIExecute(this->epfd), this->cgi_fd);
-			this->cgi_fd = this->cgi.CGIExecute();
+			this->cgi_fd = this->cgi.CGIExecute(this);
 			struct epoll_event ev;
 			ev.events = EPOLLIN | EPOLLOUT;
 			ev.data.ptr = this;
@@ -183,4 +183,40 @@ void	Client::readCGI() {
 		this->msg.setCGIBody("HTTP/1.1 200 OK\r\n" + this->cgi.addContentLength(this->cgi.getCGIBody()));
 		this->mode = WRITING;
 	}
+}
+
+Client::Client(const Client& other)
+    : client_fd(other.client_fd),
+      epfd(other.epfd),
+      cgi_fd(other.cgi_fd),
+      mode(other.mode),
+      last_activity(other.last_activity),
+      read_buffer(other.read_buffer),
+      write_buffer(other.write_buffer),
+      rawReq(other.rawReq),
+      req(other.req),  // Request と Response がコピー可能であれば
+      msg(other.msg),  // 同様に、コピーコンストラクターがあれば
+      cgi(other.cgi),  // CGIHandler のコピーコンストラクターがあれば
+      configDatum(other.configDatum)  // ServerConfig のコピーコンストラクターがあれば
+{
+    // 必要に応じて追加の処理
+}
+
+Client& Client::operator=(const Client& other)
+{
+    if (this != &other) {
+        client_fd = other.client_fd;
+        epfd = other.epfd;
+        cgi_fd = other.cgi_fd;
+        mode = other.mode;
+        last_activity = other.last_activity;
+        read_buffer = other.read_buffer;
+        write_buffer = other.write_buffer;
+        rawReq = other.rawReq;
+        req = other.req;  // Request と Response がコピー可能であれば
+        msg = other.msg;  // 同様に、コピーコンストラクターがあれば
+        cgi = other.cgi;  // CGIHandler のコピーコンストラクターがあれば
+        configDatum = other.configDatum;  // ServerConfig のコピーコンストラクターがあれば
+    }
+    return *this;
 }

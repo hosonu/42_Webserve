@@ -51,6 +51,8 @@ class Client
 		}
 
 		void readCGI();
+		Client& operator=(const Client& other);
+		Client(const Client& other);
 	private:
 		int client_fd;
 		int epfd;

@@ -34,6 +34,7 @@ Server::~Server() {
 }
 
 
+
 void	Server::run() {
 	while(true) {
 		time_t current_time = time(NULL);
@@ -68,7 +69,7 @@ void	Server::run() {
 					Client client(client_fd, epoll_fd_);
 					client.updateActivity();
 					client_.push_back(client);
-
+					
 					#ifdef DEBUG
 					std::cout << " , fd: " << fd << std::endl;
 					std::cout << "Make new client: " << client_fd << std::endl;
@@ -78,34 +79,42 @@ void	Server::run() {
 				}
 			}
 			if (!handled) {
-
 				Client* client = static_cast<Client*>(events_[i].data.ptr);
+				
+				//for (unsigned long i = 0; i < client_.size(); ++i) 
+				//{
+ 				//	if (client_[i].getCGIfd() == fd)
+				//		client = &(client_[i]);
+				//}
 				#ifdef DEBUG
 				std::cout << " , fd: " << client->getClientFd() << std::endl;
 				#endif
 				if (client != NULL) {
-					if (events_[i].events & EPOLLIN || events_[i].events & EPOLLOUT) {
-						HandleRequest(*client);
-						if (client->getClientMode() == CGI_READING) {
-							std::cout << "CGI_READING NOW" << std::endl;
-							client->readCGI();
-							client->updateActivity();
-						}
-						HandleResponse(*client);
-					}
-					//if (events_[i].events & EPOLLIN) {
-						
-					//		HandleRequest(*client);
-					//}
-					//if (events_[i].events & EPOLLOUT) {
+					//if (events_[i].events & EPOLLIN || events_[i].events & EPOLLOUT) {
+					//	HandleRequest(*client);
 					//	if (client->getClientMode() == CGI_READING) {
 					//		std::cout << "CGI_READING NOW" << std::endl;
 					//		client->readCGI();
 					//		client->updateActivity();
-					//	} else {
-					//	HandleResponse(*client);
 					//	}
+					//	HandleResponse(*client);
 					//}
+					if (events_[i].events & EPOLLIN) {
+							HandleRequest(*client);
+					}
+					else if (events_[i].events & EPOLLOUT) 
+					{
+						if (client->getClientMode() == CGI_READING) 
+						{
+							std::cout << "CGI_READING NOW" << std::endl;
+							client->readCGI();
+							client->updateActivity();
+						} 
+						else 
+						{
+							HandleResponse(*client);
+						}
+					}
 				}
 			}
 		}
@@ -141,7 +150,7 @@ void	Server::HandleRequest(Client &client) {
 	}
 }
 
-void	Server::HandleResponse(Client &	client) {
+void	Server::HandleResponse(Client &client) {
 	//std::cout << "mode: " << client.getClientMode() << " , in HandleResponse" << std::endl;
 	if (client.getClientMode() == WAITING || client.getClientMode() == WRITING) {
 		#ifdef DEBUG

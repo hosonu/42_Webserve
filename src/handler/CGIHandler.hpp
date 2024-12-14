@@ -20,6 +20,7 @@
 
 #include <sys/epoll.h>
 
+class Client;
 
 #define BUFFER_CGI 1024
 
@@ -32,15 +33,16 @@ private:
     Request req;
     char **envp;
 	std::string newBody;
+    int epfd_;
 
     void getEnvAsChar();
     void getPathInfo();
     void InitCGIPath();
 public:
     CGIHandler();
-    CGIHandler(Request req);
+    CGIHandler(Request req,int epfd);
     ~CGIHandler();
-    int CGIExecute();
+    int CGIExecute(Client *client);
     std::string	addContentLength(const std::string& httpResponse);
 	std::string	getCGIBody();
 	void appendCGIBody(char *buffer);

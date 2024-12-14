@@ -22,9 +22,8 @@ std::string Response::createMessage(Request &req, ServerConfig& conf)
     this->setStatusCode(req.getPrse().getTotalStatus(), validConf.getStat());
     this->truePath = this->createTruePath(conf, req.getUri());
 	//std::cout << "URI: " << req.getUri() << ", cgiFlag: " << this->cgiFlag << std::endl;
-    if (this->cgiFlag)
+    if (this->cgiFlag && this->truePath.find(".py") !=std::string::npos)
     {
-        std::cout << "hello" << std::endl;
         return "CGI_READING";
         //CGIHandler executor(req);
         //this->cgiBody = executor.CGIExecute();

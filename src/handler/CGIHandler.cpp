@@ -8,11 +8,12 @@ CGIHandler::CGIHandler()
     //this->InitCGIPath();
 }
 
-CGIHandler::CGIHandler(Request req) : newBody("")
+CGIHandler::CGIHandler(Request req, int epfd) : newBody("")
 {
     this->filePath = "/cgi/bin";
     this->req = req;
     this->InitCGIPath();
+    this->epfd_ = epfd;
 }
 
 
@@ -109,7 +110,7 @@ std::string	CGIHandler::addContentLength(const std::string& httpResponse)
     return modifiedHeaders.str() + "\r\n\r\n" + body;
 }
 
-int CGIHandler::CGIExecute()
+int CGIHandler::CGIExecute(Client *client)
 {
     //TODO:cgiが失敗したばあい(解決予定)
     //cgiが失敗しても特になにもしないで正解っぽい(以下ryanagit)
@@ -136,10 +137,11 @@ int CGIHandler::CGIExecute()
         //これ必要じゃね(ryanagit)
 		wait(NULL);
 		//(void)epoll_fd;
-	//	struct epoll_event	ev;
-	//	ev.events = EPOLLIN | EPOLLOUT;
-	//	ev.data.fd = fds[0];
-	//	epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fds[0], &ev);
+		struct epoll_event	ev;
+		ev.events = EPOLLIN | EPOLLOUT;
+		ev.data.fd = fds[0];
+	    ev.data.ptr = client;
+		epoll_ctl(epfd_, EPOLL_CTL_ADD, fds[0], &ev);
     }
     else if (pid == 0)
     {
