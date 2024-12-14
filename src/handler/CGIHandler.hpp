@@ -42,7 +42,7 @@ public:
     CGIHandler();
     CGIHandler(Request req,int epfd);
     ~CGIHandler();
-    int CGIExecute(Client *client);
+    int CGIExecute();
     std::string	addContentLength(const std::string& httpResponse);
 	std::string	getCGIBody();
 	void appendCGIBody(char *buffer);

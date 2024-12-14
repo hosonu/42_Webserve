@@ -11,7 +11,7 @@
 #include "../http/Request.hpp"
 #include "../http/Response.hpp"
 #include "../handler/CGIHandler.hpp"
-
+#include "../handler/CGIHandler.hpp"
 #define MAX_BUFEER 1024
 
 enum ClientMode

@@ -82,7 +82,7 @@ std::string	CGIHandler::addContentLength(const std::string& httpResponse)
 {
     //if (_filePath.substr(_filePath.find_last_of('.') + 1) != "py") return (httpResponse);
     
-	size_t headerEndPos = httpResponse.find("\r\n\r\n");
+	size_t headerEndPos = httpResponse.find("\r\n\r\n"); 
     std::string headers = httpResponse.substr(0, headerEndPos);
     std::string body = httpResponse.substr(headerEndPos + 4);
 
@@ -110,7 +110,7 @@ std::string	CGIHandler::addContentLength(const std::string& httpResponse)
     return modifiedHeaders.str() + "\r\n\r\n" + body;
 }
 
-int CGIHandler::CGIExecute(Client *client)
+int CGIHandler::CGIExecute()
 {
     //TODO:cgiが失敗したばあい(解決予定)
     //cgiが失敗しても特になにもしないで正解っぽい(以下ryanagit)
@@ -136,13 +136,6 @@ int CGIHandler::CGIExecute(Client *client)
 		fcntl(fds[0], F_SETFL, flags | O_NONBLOCK);
         //これ必要じゃね(ryanagit)
 		wait(NULL);
-		//(void)epoll_fd;
-		//struct epoll_event	ev;
-		//ev.events = EPOLLIN | EPOLLOUT;
-		//ev.data.fd = fds[0];
-	    //ev.data.ptr = client;
-		//epoll_ctl(epfd_, EPOLL_CTL_ADD, fds[0], &ev);
-        (void) client;
     }
     else if (pid == 0)
     {

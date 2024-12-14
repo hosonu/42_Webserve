@@ -76,6 +76,7 @@ public:
 
     void readErrorFile(std::ifstream& error);
     std::string addIndexFile(std::string res);
+    void set_headers(Request &req);
 };
 
 std::string generateRandomFileName(std::string dir) ;

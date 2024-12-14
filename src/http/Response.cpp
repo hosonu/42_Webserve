@@ -113,7 +113,6 @@ std::string Response::createErrorPath(ServerConfig& conf)
         else if (it == conf.getErrorPages().end())
         {
             res = "";
-
         }
     }
     return res;
@@ -531,4 +530,15 @@ std::string Response::getRequestLine()
 void Response::setCGIBody(std::string body)
 {
 	this->cgiBody = body;
+}
+
+void Response::set_headers(Request &req)
+{
+
+    this->request_line = this->getRequestLine();
+    this->header += this->getContentType(req.getUri()) + "\r\n";
+    this->header += this->getContentLength();
+    this->header += this->getDate();
+    this->header += this->getServer();
+    this->header += this->getConnection();
 }

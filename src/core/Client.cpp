@@ -143,7 +143,7 @@ void    Client::methodProc()
 		if (this->msg.createMessage(this->req, this->configDatum) == "CGI_READING") {
 			this->cgi = CGIHandler(this->req,epfd);
 			//dup2(this->cgi.CGIExecute(this->epfd), this->cgi_fd);
-			this->cgi_fd = this->cgi.CGIExecute(this);
+			this->cgi_fd = this->cgi.CGIExecute();
 			struct epoll_event ev;
 			ev.events = EPOLLIN | EPOLLOUT;
 			ev.data.ptr = this;
@@ -169,6 +169,16 @@ void    Client::makeResponse() {
     this->methodProc();
 }
 
+
+bool set_cgi_response(std::string cgibody,Response &response)
+{
+	(void)response;
+	if (cgibody.empty())
+		return (false);
+	else
+		return (true);
+}
+
 void	Client::readCGI() {
 	char	buffer[MAX_BUFEER];
 	std::cout << "readCGI NOW, cgi_fd: " << this->cgi_fd << std::endl;
@@ -180,7 +190,15 @@ void	Client::readCGI() {
 		std::cout << "readCGI END, cgi_fd: " << this->cgi_fd << std::endl;
 		epoll_ctl(this->epfd, EPOLL_CTL_DEL, this->cgi_fd, NULL);
 		close(this->cgi_fd);
-		this->msg.setCGIBody("HTTP/1.1 200 OK\r\n" + this->cgi.addContentLength(this->cgi.getCGIBody()));
+		if (set_cgi_response(this->cgi.getCGIBody(),this->msg))
+			this->msg.setCGIBody("HTTP/1.1 200 OK\r\n" + this->cgi.addContentLength(this->cgi.getCGIBody()));
+		else
+		{
+			this->msg.setStatusCode(500, 500);
+			this->msg.set_headers(this->req);
+            std::ifstream error(this->msg.createErrorPath(this->configDatum).c_str());
+            this->msg.readErrorFile(error);
+		}
 		this->mode = WRITING;
 	}
 }
