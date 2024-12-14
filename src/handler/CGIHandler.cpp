@@ -137,11 +137,12 @@ int CGIHandler::CGIExecute(Client *client)
         //これ必要じゃね(ryanagit)
 		wait(NULL);
 		//(void)epoll_fd;
-		struct epoll_event	ev;
-		ev.events = EPOLLIN | EPOLLOUT;
-		ev.data.fd = fds[0];
-	    ev.data.ptr = client;
-		epoll_ctl(epfd_, EPOLL_CTL_ADD, fds[0], &ev);
+		//struct epoll_event	ev;
+		//ev.events = EPOLLIN | EPOLLOUT;
+		//ev.data.fd = fds[0];
+	    //ev.data.ptr = client;
+		//epoll_ctl(epfd_, EPOLL_CTL_ADD, fds[0], &ev);
+        (void) client;
     }
     else if (pid == 0)
     {
