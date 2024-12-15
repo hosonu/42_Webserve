@@ -1,5 +1,6 @@
 #include "core/Server.hpp"
 #include "config/Config.hpp"
+#include <csignal>
 
 int	getValidatePath(int argc, char *argv[], std::string &path) {
 	
@@ -19,10 +20,19 @@ int	getValidatePath(int argc, char *argv[], std::string &path) {
 	}
 }
 
+bool ignore_sigpipe()
+{
+	if (std::signal(SIGPIPE, SIG_IGN) == SIG_ERR)
+		return (false);
+	return (true);
+}
+
 int main(int argc, char *argv[]){
 	
 	std::string path;
 
+	if (!(ignore_sigpipe()))
+		return (1);
 	if (getValidatePath(argc, argv, path) == false) {
 		return 1;
 	}

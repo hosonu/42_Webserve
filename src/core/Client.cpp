@@ -2,12 +2,6 @@
 
 Client::Client(int fd, int epoll_fd)
 : client_fd(fd), epfd(epoll_fd), cgi_fd(-1), mode(HEADER_READING) {
-    struct epoll_event ev;
-    ev.events = EPOLLIN | EPOLLOUT;
-	ev.data.ptr = this;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &ev) == -1) {
-        throw std::runtime_error("Failed to add epoll");
-    }
 }
 
 void    Client::setMode(ClientMode mode) {
@@ -144,6 +138,7 @@ void    Client::methodProc()
 			this->cgi = CGIHandler(this->req,epfd);
 			//dup2(this->cgi.CGIExecute(this->epfd), this->cgi_fd);
 			this->cgi_fd = this->cgi.CGIExecute();
+			this->child_pid = this->cgi.getChildPid();
 			struct epoll_event ev;
 			ev.events = EPOLLIN | EPOLLOUT;
 			ev.data.ptr = this;
@@ -154,7 +149,6 @@ void    Client::methodProc()
 		}
 	}
 	if (this->mode == WRITING) {
-		std::cout << "WRITING NOW" << std::endl;
 		this->msg.wirteMessage(this->client_fd);
 		this->mode = CLOSING;
 	}
@@ -170,9 +164,8 @@ void    Client::makeResponse() {
 }
 
 
-bool set_cgi_response(std::string cgibody,Response &response)
+bool set_cgi_response(std::string cgibody)
 {
-	(void)response;
 	if (cgibody.empty())
 		return (false);
 	else
@@ -181,26 +174,37 @@ bool set_cgi_response(std::string cgibody,Response &response)
 
 void	Client::readCGI() {
 	char	buffer[MAX_BUFEER];
-	std::cout << "readCGI NOW, cgi_fd: " << this->cgi_fd << std::endl;
 	ssize_t count = read(this->cgi_fd, buffer, sizeof(buffer));
 	if (count > 0) {
 		this->cgi.appendCGIBody(buffer);
 	}
 	if (count == 0) {
-		std::cout << "readCGI END, cgi_fd: " << this->cgi_fd << std::endl;
 		epoll_ctl(this->epfd, EPOLL_CTL_DEL, this->cgi_fd, NULL);
 		close(this->cgi_fd);
-		if (set_cgi_response(this->cgi.getCGIBody(),this->msg))
+		if (set_cgi_response(this->cgi.getCGIBody()))
 			this->msg.setCGIBody("HTTP/1.1 200 OK\r\n" + this->cgi.addContentLength(this->cgi.getCGIBody()));
 		else
 		{
 			this->msg.setStatusCode(500, 500);
-			this->msg.set_headers(this->req);
             std::ifstream error(this->msg.createErrorPath(this->configDatum).c_str());
             this->msg.readErrorFile(error);
+			this->msg.set_headers(this->req);
 		}
 		this->mode = WRITING;
 	}
+}
+
+void Client::end_timeoutCGI()
+{
+	int status = kill(this->child_pid,SIGKILL);
+	if (status == -1)
+		perror("kill");
+	this->msg.setStatusCode(500, 500);
+	this->msg.set_headers(this->req);
+    std::ifstream error(this->msg.createErrorPath(this->configDatum).c_str());
+	this->msg.readErrorFile(error);
+	this->mode = WRITING;
+	this->updateActivity();
 }
 
 Client::Client(const Client& other)

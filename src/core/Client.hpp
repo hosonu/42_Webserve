@@ -53,10 +53,12 @@ class Client
 		void readCGI();
 		Client& operator=(const Client& other);
 		Client(const Client& other);
+		void end_timeoutCGI();
 	private:
 		int client_fd;
 		int epfd;
 		int cgi_fd;
+		pid_t child_pid;
 		ClientMode mode;
 
 		time_t	last_activity;

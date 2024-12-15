@@ -14,6 +14,7 @@ CGIHandler::CGIHandler(Request req, int epfd) : newBody("")
     this->req = req;
     this->InitCGIPath();
     this->epfd_ = epfd;
+    this->child_pid = 0;
 }
 
 
@@ -130,22 +131,19 @@ int CGIHandler::CGIExecute()
     pid = fork();
     if (pid > 0)
     {
+        this->child_pid = pid;
 		close(fds[1]);
 
 		int flags = fcntl(fds[0], F_GETFL, 0);
 		fcntl(fds[0], F_SETFL, flags | O_NONBLOCK);
-        //これ必要じゃね(ryanagit)
-		wait(NULL);
     }
     else if (pid == 0)
     {
         close(fds[0]);
         dup2(fds[1], 1);
         execve(inteprinter, argv, this->envp);
-        //read/writeしたわけではないのでのerronoは見るが回収しない(ryanagit)
-	    std::exit(errno);
+	    std::exit(1);
     }
-	std::cout << "CGI_EXECUTE: " << fds[0] << std::endl;
 	return fds[0];
 }
 
@@ -157,4 +155,9 @@ void CGIHandler::appendCGIBody(char *buffer)
 std::string CGIHandler::getCGIBody()
 {
 	return this->newBody;
+}
+
+pid_t CGIHandler::getChildPid()
+{
+    return (this->child_pid);
 }

@@ -38,7 +38,7 @@ Server::~Server() {
 void	Server::run() {
 	while(true) {
 		time_t current_time = time(NULL);
-		int n = epoll_wait(epoll_fd_, events_, MAX_EVENTS, EPOLL_TIMEOUT_MS);
+		int n = epoll_wait(epoll_fd_, events_, MAX_EVENTS, 1);
 		if (n == -1) {
 			throw std::runtime_error("epoll_wait failed");
 		} else if (n == 0) {
@@ -49,13 +49,17 @@ void	Server::run() {
 				#ifdef DEBUG
 				std::cout << "Client timed out: " << it->getClientFd() << ", size: " << client_.size() << std::endl;
 				#endif
-				removeClient(it->getClientFd());
+				std::cout << "timeout detected" << std::endl;
+				std::cout << "timeout type:" << it->getClientMode() << std::endl;
+				if (it->getClientMode() == CGI_READING)
+					it->end_timeoutCGI();
+				else
+					removeClient(it->getClientFd());
 				continue;
 			} else {
 				++it;
 			}
 		}
-
 		for (int i = 0; i < n; ++i) {
 			int fd = events_[i].data.fd;
 			#ifdef DEBUG
@@ -69,7 +73,11 @@ void	Server::run() {
 					Client client(client_fd, epoll_fd_);
 					client.updateActivity();
 					client_.push_back(client);
-					
+					struct epoll_event ev;
+    				ev.events = EPOLLIN | EPOLLOUT;
+					ev.data.ptr = &(client_[client_.size() - 1]);
+    				if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, client_fd, &ev) == -1)
+        				throw std::runtime_error("Failed to add epoll");
 					#ifdef DEBUG
 					std::cout << " , fd: " << fd << std::endl;
 					std::cout << "Make new client: " << client_fd << std::endl;
@@ -80,12 +88,6 @@ void	Server::run() {
 			}
 			if (!handled) {
 				Client* client = static_cast<Client*>(events_[i].data.ptr);
-				
-				//for (unsigned long i = 0; i < client_.size(); ++i) 
-				//{
- 				//	if (client_[i].getCGIfd() == fd)
-				//		client = &(client_[i]);
-				//}
 				#ifdef DEBUG
 				std::cout << " , fd: " << client->getClientFd() << std::endl;
 				#endif
@@ -105,15 +107,9 @@ void	Server::run() {
 					else if (events_[i].events & EPOLLOUT) 
 					{
 						if (client->getClientMode() == CGI_READING) 
-						{
-							std::cout << "CGI_READING NOW" << std::endl;
 							client->readCGI();
-							client->updateActivity();
-						} 
 						else 
-						{
 							HandleResponse(*client);
-						}
 					}
 				}
 			}

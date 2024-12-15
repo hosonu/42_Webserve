@@ -34,6 +34,7 @@ private:
     char **envp;
 	std::string newBody;
     int epfd_;
+    pid_t child_pid;
 
     void getEnvAsChar();
     void getPathInfo();
@@ -46,6 +47,7 @@ public:
     std::string	addContentLength(const std::string& httpResponse);
 	std::string	getCGIBody();
 	void appendCGIBody(char *buffer);
+    pid_t getChildPid();
 };
 
 

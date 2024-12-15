@@ -434,7 +434,7 @@ void Response::getStatusCode()
 
 void Response::wirteMessage(int socket)
 {
-    if (cgiBody.empty())
+    if (cgiBody.empty() || this->statCode == 500)
     {
         int reqline = this->request_line.length();
         int headerLen = this->header.length();
