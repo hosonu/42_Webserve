@@ -31,6 +31,7 @@ class Location
 		void	setCGI(const std::string& flags);
 
 		const std::string& getPath() const;
+		std::string& getPath();
 		const std::string& getRoot() const;
 		const std::vector<std::string>& getAllowMethods() const;
 		bool isAutoindex() const;

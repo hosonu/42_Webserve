@@ -24,11 +24,11 @@ int Client::getCGIfd() const {
 	return this->cgi_fd;
 }
 
-void Client::updateEpollEvent() {
+void Client::updateEpollEvent(Client &client) {
 	struct epoll_event ev;
-	ev.events = EPOLLIN | EPOLLOUT | EPOLLET;
-	ev.data.ptr = this;
-	epoll_ctl(this->epfd, EPOLL_CTL_MOD, this->client_fd, &ev);
+	ev.events = EPOLLIN | EPOLLOUT;
+	ev.data.ptr = &client;
+	epoll_ctl(this->epfd, EPOLL_CTL_ADD, this->client_fd, &ev);
 }
 
 void	Client::parseRequestHeader(std::vector<ServerConfig> &configData) {
@@ -67,7 +67,7 @@ void	Client::parseRequestBody() {
 		char	buffer[MAX_BUFEER];
 		ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
 		if (count > 0) {
-			this->req.appendBody(buffer);
+			this->req.appendBody(std::string(buffer, count));
 		}
 		if (req.isBodyComplete()) {
 			this->mode = WAITING;
@@ -176,7 +176,7 @@ void	Client::readCGI() {
 	char	buffer[MAX_BUFEER];
 	ssize_t count = read(this->cgi_fd, buffer, sizeof(buffer));
 	if (count > 0) {
-		this->cgi.appendCGIBody(buffer);
+		this->cgi.appendCGIBody(std::string(buffer, count));
 	}
 	if (count == 0) {
 		epoll_ctl(this->epfd, EPOLL_CTL_DEL, this->cgi_fd, NULL);

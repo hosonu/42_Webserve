@@ -135,8 +135,7 @@ bool	Request::isBodyComplete() const {
 	return this->body.length() >= expected_length;
 }
 
-void	Request::appendBody(char *buffer) {
-	std::string add_body = buffer;
+void	Request::appendBody(const std::string &buffer) {
 	this->body += buffer;
 }
 

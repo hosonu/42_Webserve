@@ -61,6 +61,10 @@ const std::string& Location::getPath() const {
     return this->path;
 }
 
+std::string& Location::getPath() {
+    return this->path;
+}
+
 const std::string& Location::getRoot() const {
     return this->root;
 }

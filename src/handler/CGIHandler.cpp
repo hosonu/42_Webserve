@@ -147,7 +147,7 @@ int CGIHandler::CGIExecute()
 	return fds[0];
 }
 
-void CGIHandler::appendCGIBody(char *buffer)
+void CGIHandler::appendCGIBody(const std::string &buffer)
 {
 	this->newBody += buffer;
 }

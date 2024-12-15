@@ -51,13 +51,13 @@ public:
     ~Response();
 
     std::string createMessage(Request &req, ServerConfig& conf);
-    std::string createTruePath(ServerConfig& conf, std::string uri);
+    std::string createTruePath(ServerConfig& conf, const std::string &uri);
     std::string createErrorPath(ServerConfig& conf);
     std::string createErrorPage(int statusCode, const std::string& statusMessage);
     std::string getContentType(const std::string& filePath);
     std::string getContentLength();
 
-    bool checkMatching(std::string locPath, std::string uri);
+    bool checkMatching(const std::string &locPath, const std::string &uri);
     int checkFileType(std::string path);
     bool checkErroPath(ServerConfig& conf);
     std::string getDate();

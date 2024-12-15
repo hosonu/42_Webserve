@@ -69,18 +69,9 @@ void	Server::run() {
 			bool handled = false;
 			for (size_t i = 0; i < socket_.size(); ++i) {
 				if (socket_[i].getFd() == fd) {
-					int client_fd = acceptNewConnection(socket_[i]);
-					Client client(client_fd, epoll_fd_);
-					client.updateActivity();
-					client_.push_back(client);
-					struct epoll_event ev;
-    				ev.events = EPOLLIN | EPOLLOUT;
-					ev.data.ptr = &(client_[client_.size() - 1]);
-    				if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, client_fd, &ev) == -1)
-        				throw std::runtime_error("Failed to add epoll");
+					acceptNewConnection(socket_[i]);
 					#ifdef DEBUG
 					std::cout << " , fd: " << fd << std::endl;
-					std::cout << "Make new client: " << client_fd << std::endl;
 					#endif
 					handled = true;
 					break;
@@ -92,15 +83,6 @@ void	Server::run() {
 				std::cout << " , fd: " << client->getClientFd() << std::endl;
 				#endif
 				if (client != NULL) {
-					//if (events_[i].events & EPOLLIN || events_[i].events & EPOLLOUT) {
-					//	HandleRequest(*client);
-					//	if (client->getClientMode() == CGI_READING) {
-					//		std::cout << "CGI_READING NOW" << std::endl;
-					//		client->readCGI();
-					//		client->updateActivity();
-					//	}
-					//	HandleResponse(*client);
-					//}
 					if (events_[i].events & EPOLLIN) {
 							HandleRequest(*client);
 					}
@@ -117,14 +99,34 @@ void	Server::run() {
 	}
 }
 
-int	Server::acceptNewConnection(Socket& listen_socket) {
+void	Server::acceptNewConnection(Socket& listen_socket) {
 	int client_fd = listen_socket.accept();
 	if (client_fd == -1) {
 		std::cerr << "Failed to accept listen_fd" << std::endl;
-		return -1;
+		return;
 	}
 	listen_socket.setNonBlocking(client_fd);
-	return client_fd;
+	
+ 	if (client_.size() == client_.capacity()) {
+            client_.reserve(client_.size() + 10);
+    }
+
+	//client_.reserve(client_.size() + 1);
+
+	client_.push_back(Client(client_fd, epoll_fd_));
+    Client& new_client = client_.back();
+    new_client.updateActivity();
+    
+    struct epoll_event ev;
+    ev.events = EPOLLIN | EPOLLOUT;
+    ev.data.ptr = &new_client;
+    if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, client_fd, &ev) == -1) {
+        client_.pop_back();
+        throw std::runtime_error("Failed to add epoll");
+    }
+	#ifdef DEBUG
+	std::cout << "Make new client: " << client_fd << std::endl;
+	#endif
 }
 
 void	Server::HandleRequest(Client &client) {

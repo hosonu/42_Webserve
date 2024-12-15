@@ -1,14 +1,16 @@
 #include "Response.hpp"
 
 Response::Response()
+: statCode(0), cgiFlag(false), request_line(""), header(""), body(""), cgiBody(""), truePath("a")
 {
-    this->statCode = 0;
-    this->situation = "";
-    this->header = "";
-    this->body = "";
-    this->request_line = "";
-    this->cgiBody = "";
-    this->truePath = "a";
+    //this->statCode = 0;
+    //this->situation = "";
+    //this->header = "";
+    //this->body = "";
+    //this->request_line = "";
+    //this->cgiBody = "";
+    //this->truePath = "a";
+	//this->cgiFlag = false;
 }
 
 Response::~Response()
@@ -63,43 +65,69 @@ void Response::setStatusCode(int parseNum, int confNum)
         this->statCode = confNum;
 }
 
-bool Response::checkMatching(std::string locPath, std::string uri)
+//bool Response::checkMatching(std::string locPath, std::string &uri)
+//{
+//    size_t count = 0;
+//    for (size_t i = 0; i < locPath.size(); i++)
+//    {
+//        if (locPath[i] == uri[i])
+//            count++;
+//    }
+//    if (count == locPath.size())
+//    {
+//        //if (locPath == this->cgiPath)
+//        //{
+//		//	this->cgiFlag = true;
+//        //}
+//        return true;
+//    }
+//    else
+//    {
+//        return false;
+//    }
+//}
+bool Response::checkMatching(const std::string& locPath, const std::string& uri)
 {
-    size_t count = 0;
-    for (size_t i = 0; i < locPath.size(); i++)
-    {
-        if (locPath[i] == uri[i])
-            count++;
-    }
-    if (count == locPath.size())
-    {
-        //if (locPath == this->cgiPath)
-        //{
-		//	this->cgiFlag = true;
-        //}
-        return true;
-    }
-    else
-    {
+    if (locPath.size() > uri.size())
         return false;
-    }
+    return uri.compare(0, locPath.size(), locPath) == 0;
 }
-
-std::string Response::createTruePath(ServerConfig& conf, std::string uri)
+std::string Response::createTruePath(ServerConfig& conf, const std::string& uri)
 {
-    std::string res = uri;
-    std::string indexFile;
+    std::string bestMatch = uri;
+    size_t longestMatch = 0;
+
     for (std::vector<Location>::const_iterator it = conf.getLocations().begin(); it != conf.getLocations().end(); ++it)
     {
-        if ((checkMatching(it->getPath(), uri) == true))
+        if (checkMatching(it->getPath(), uri))
         {
-            this->serverLocation = *it;
-			this->cgiFlag = it->flagCGI();
-            res = it->getRoot() + uri;
+            if (it->getPath().size() > longestMatch)
+            {
+                longestMatch = it->getPath().size();
+                bestMatch = it->getRoot() + uri;
+                this->serverLocation = *it;
+                this->cgiFlag = it->flagCGI();
+            }
         }
     }
-    return res;
+    return bestMatch;
 }
+
+//std::string Response::createTruePath(ServerConfig& conf, std::string uri)
+//{
+//    std::string res = uri;
+//    std::string indexFile = "";
+//    for (std::vector<Location>::const_iterator it = conf.getLocations().begin(); it != conf.getLocations().end(); ++it)
+//    {
+//        if ((checkMatching(it->getPath(), uri) == true))
+//        {
+//            this->serverLocation = *it;
+//			this->cgiFlag = it->flagCGI();
+//            res = it->getRoot() + uri;
+//        }
+//    }
+//    return res;
+//}
 
 std::string Response::createErrorPath(ServerConfig& conf)
 {

@@ -35,7 +35,7 @@ class Client
 		void	parseRequestBody();
 		void	makeResponse();
 		void	methodProc();
-		void 	updateEpollEvent();
+		void 	updateEpollEvent(Client &client);
 		int					getClientFd() const;
 		const ClientMode	&getClientMode() const;
 		const ServerConfig	&getConfigDatum() const;

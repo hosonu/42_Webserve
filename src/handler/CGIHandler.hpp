@@ -46,7 +46,7 @@ public:
     int CGIExecute();
     std::string	addContentLength(const std::string& httpResponse);
 	std::string	getCGIBody();
-	void appendCGIBody(char *buffer);
+	void appendCGIBody(const std::string &buffer);
     pid_t getChildPid();
 };
 

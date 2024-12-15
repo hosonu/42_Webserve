@@ -28,7 +28,7 @@ public:
 	bool 	headerParse(const std::string &rawRequest);
 	bool	checkBodyExist();
 	bool	isBodyComplete() const;
-	void	appendBody(char *buffer);
+	void	appendBody(const std::string &buffer);
 	void	bodyParse();
 	std::string &getBody();
     std::string getQuery();
