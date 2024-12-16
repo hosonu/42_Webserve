@@ -4,6 +4,15 @@ Client::Client(int fd, int epoll_fd)
 : client_fd(fd), epfd(epoll_fd), cgi_fd(-1), mode(HEADER_READING) {
 }
 
+Client::~Client() {
+	//if (this->cgi_fd != -1) {
+	//	close(this->cgi_fd);
+	//}
+	//if (this->client_fd != -1) {
+	//	close(this->client_fd);
+	//}
+}
+
 void    Client::setMode(ClientMode mode) {
     this->mode = mode;
 }

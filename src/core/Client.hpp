@@ -30,6 +30,7 @@ class Client
 {
 	public:
 		Client(int fd, int epoll_fd);
+		~Client();
 		void	bindToConfig(std::vector<ServerConfig> &configData);
 		void 	parseRequestHeader(std::vector<ServerConfig> &configData);
 		void	parseRequestBody();

@@ -42,6 +42,8 @@ private:
 public:
     CGIHandler();
     CGIHandler(Request req,int epfd);
+	CGIHandler(const CGIHandler& other);
+	CGIHandler& operator=(const CGIHandler& other);
     ~CGIHandler();
     int CGIExecute();
     std::string	addContentLength(const std::string& httpResponse);

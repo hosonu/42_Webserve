@@ -1,6 +1,7 @@
 #include "Server.hpp"
 
 Server::Server(Config &configs) : configData(configs.getServerConfigs()) {
+	client_.reserve(10);
 }
 
 void	Server::setServer() {
@@ -67,7 +68,7 @@ void	Server::run() {
 		for (int i = 0; i < n; ++i) {
 			int fd = events_[i].data.fd;
 			#ifdef DEBUG
-			std::cout << "events: " << events_[i].events << std::flush;
+			//std::cout << "events: " << events_[i].events << std::flush;
 			#endif
 			//manage listen fd
 			bool handled = false;
@@ -75,7 +76,7 @@ void	Server::run() {
 				if (socket_[i].getFd() == fd) {
 					acceptNewConnection(socket_[i]);
 					#ifdef DEBUG
-					std::cout << " , fd: " << fd << std::endl;
+					//std::cout << " , fd: " << fd << std::endl;
 					#endif
 					handled = true;
 					break;
@@ -84,7 +85,7 @@ void	Server::run() {
 			if (!handled) {
 				Client* client = static_cast<Client*>(events_[i].data.ptr);
 				#ifdef DEBUG
-				std::cout << " , fd: " << client->getClientFd() << std::endl;
+				//std::cout << " , fd: " << client->getClientFd() << std::endl;
 				#endif
 				if (client != NULL) {
 					if (events_[i].events & EPOLLIN) {
@@ -112,7 +113,7 @@ void	Server::acceptNewConnection(Socket& listen_socket) {
 	listen_socket.setNonBlocking(client_fd);
 	
  	if (client_.size() == client_.capacity()) {
-        client_.reserve(client_.size() + 10);
+        client_.reserve(client_.size() + 2);
     }
 
 	//client_.reserve(client_.size() + 1);

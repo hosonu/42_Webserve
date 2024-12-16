@@ -1,6 +1,6 @@
 #include "CGIHandler.hpp"
 
-CGIHandler::CGIHandler()
+CGIHandler::CGIHandler() : envp(NULL), newBody("")
 {
     //config依存　ファイルパス socket rootのパス
     //test 
@@ -8,7 +8,7 @@ CGIHandler::CGIHandler()
     //this->InitCGIPath();
 }
 
-CGIHandler::CGIHandler(Request req, int epfd) : newBody("")
+CGIHandler::CGIHandler(Request req, int epfd) : envp(NULL), newBody("")
 {
     this->filePath = "/cgi/bin";
     this->req = req;
@@ -17,14 +17,36 @@ CGIHandler::CGIHandler(Request req, int epfd) : newBody("")
     this->child_pid = 0;
 }
 
+CGIHandler::CGIHandler(const CGIHandler& other) : envp(NULL), newBody("")
+{
+    this->env = other.env;
+    this->filePath = other.filePath;
+    this->req = other.req;
+    this->epfd_ = other.epfd_;
+    this->child_pid = other.child_pid;
+}
+
+CGIHandler& CGIHandler::operator=(const CGIHandler& other)
+{
+    if (this != &other) {
+        this->env = other.env;
+        this->filePath = other.filePath;
+        this->req = other.req;
+        this->epfd_ = other.epfd_;
+        this->child_pid = other.child_pid;
+    }
+    return *this;
+}
 
 CGIHandler::~CGIHandler()
 {
-	//if (this->child_pid > 0) {
-	//	kill(this->child_pid, SIGKILL);
-	//	int status;
-	//	waitpid(this->child_pid, &status, 0);
-	//}
+	if (this->envp) {
+		for (size_t i = 0; this->envp[i] != NULL; ++i) {
+			free(this->envp[i]);
+		}
+		delete[] this->envp;
+		this->envp = NULL;
+	}
 }
 
 void CGIHandler::InitCGIPath()
@@ -72,17 +94,17 @@ void CGIHandler::getEnvAsChar()
         temp.push_back(strdup(keyValue.c_str()));
     }
     temp.push_back(NULL);
+
+	if (this->envp) {
+		for (size_t i = 0; this->envp[i] != NULL; ++i) {
+			free(this->envp[i]);
+		}
+		delete[] this->envp;
+		this->envp = NULL;
+	}
+
     this->envp = new char*[temp.size()];
     std::copy(temp.begin(), temp.end(), this->envp);
-}
-
-
-void freeCharArray(char** array) {
-    if (!array) return;
-    for (size_t i = 0; array[i] != NULL; ++i) {
-        // free(array[i]);
-    }
-    delete[] array;
 }
 
 std::string	CGIHandler::addContentLength(const std::string& httpResponse)
