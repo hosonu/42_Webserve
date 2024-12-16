@@ -19,7 +19,13 @@ CGIHandler::CGIHandler(Request req, int epfd) : newBody("")
 
 
 CGIHandler::~CGIHandler()
-{}
+{
+	//if (this->child_pid > 0) {
+	//	kill(this->child_pid, SIGKILL);
+	//	int status;
+	//	waitpid(this->child_pid, &status, 0);
+	//}
+}
 
 void CGIHandler::InitCGIPath()
 {

@@ -12,7 +12,7 @@
 class	Config {
 	private:
 		std::vector<std::string>	tokens;
-		ConfigValidator				validator;
+		static ConfigValidator				validator;
 		std::vector<ServerConfig>	Servers;
 
 		void	tokenize(const std::string& filePath);
@@ -21,6 +21,8 @@ class	Config {
 		void	decideDefaultServer(std::vector<ServerConfig> &Servers);
 
 	public:
+		Config();
+		~Config();
 		void	loadConfigFile(const std::string &filename);
 		const std::vector<ServerConfig>&	getServerConfigs() const;
 };

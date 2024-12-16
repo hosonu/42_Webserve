@@ -1,5 +1,5 @@
 CXX = c++
-CXXFLAGS = -Wall -Werror -Wextra -std=c++98	-g
+CXXFLAGS = -Wall -Werror -Wextra -std=c++98
 DEBUGFLAGS = -D DEBUG 
 
 ifeq ($(DEBUG),)

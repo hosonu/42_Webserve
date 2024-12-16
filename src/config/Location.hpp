@@ -22,6 +22,7 @@ class Location
 		bool	isCGI;
 	public:
 		Location();
+		~Location();
 		void	setPath(const std::string& path);
 		void	setRoot(const std::string& r);
 		void	setAllowMethods(const std::string& methods);

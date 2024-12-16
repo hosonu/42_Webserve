@@ -2,48 +2,53 @@
 #include "config/Config.hpp"
 #include <csignal>
 
-int	getValidatePath(int argc, char *argv[], std::string &path) {
-	
-	if (argc == 1) {
-		path = "config/test.conf";
-	}  else if (argc == 2) {
-		path = std::string(argv[1]);
-	} else {
-		std::cerr << "ERROR: too many arguments" << std::endl;
-		return false;
+Server* g_server = NULL;  // グローバル変数としてサーバーインスタンスへのポインタを保持
+int g_signal = 0;
+
+void signal_handler(int signum) {
+	if (g_server) {
+		g_server->closeServer();
 	}
-	if (path.size() >= 5 && path.substr(path.size() - 5) == ".conf") {
-		return true;
-	} else {
-		std::cerr << "ERROR: The extension must be \".conf\".\n";
-        return false;
-	}
+	g_signal = signum;
+	throw std::runtime_error("Signal received: terminating...");
 }
 
-bool ignore_sigpipe()
-{
-	if (std::signal(SIGPIPE, SIG_IGN) == SIG_ERR)
-		return (false);
-	return (true);
+std::string getValidatePath(int argc, char *argv[]) {
+    std::string path;
+    if (argc == 1) {
+        path = "config/test.conf";
+    } else if (argc == 2) {
+        path = std::string(argv[1]);
+    } else {
+        throw std::runtime_error("ERROR: too many arguments");
+    }
+    if (path.size() >= 5 && path.substr(path.size() - 5) == ".conf") {
+        return path;
+    } else {
+        throw std::runtime_error("ERROR: The extension must be \".conf\"");
+    }
 }
 
-int main(int argc, char *argv[]){
-	
-	std::string path;
+int main(int argc, char *argv[]) {
 
-	if (!(ignore_sigpipe()))
-		return (1);
-	if (getValidatePath(argc, argv, path) == false) {
-		return 1;
-	}
-
-	try {
-		Config conf;
-		conf.loadConfigFile(path);
-		Server s(conf);
-		s.setServer();
-		s.run();
-	} catch (std::exception &e) {
-		std::cout << e.what() << std::endl;
-	}
+    try {
+		signal(SIGINT, signal_handler);
+		signal(SIGTERM, signal_handler);
+		signal(SIGQUIT, signal_handler);
+        std::string path = getValidatePath(argc, argv);
+        Config conf;
+        conf.loadConfigFile(path);
+        Server s(conf);
+        g_server = &s;
+        
+        s.setServer();
+        s.run();
+        
+        g_server = NULL;
+    } catch (std::exception &e) {
+        std::cerr << e.what() << std::endl;
+        return g_signal;
+    }
+    
+    return g_signal;
 }

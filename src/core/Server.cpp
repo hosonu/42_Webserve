@@ -31,6 +31,10 @@ void	Server::setServer() {
 }
 
 Server::~Server() {
+	closeServer();
+	configData.clear();
+	socket_.clear();
+	client_.clear();
 }
 
 
@@ -108,7 +112,7 @@ void	Server::acceptNewConnection(Socket& listen_socket) {
 	listen_socket.setNonBlocking(client_fd);
 	
  	if (client_.size() == client_.capacity()) {
-            client_.reserve(client_.size() + 10);
+        client_.reserve(client_.size() + 10);
     }
 
 	//client_.reserve(client_.size() + 1);
@@ -184,5 +188,15 @@ void	Server::removeClient(int client_fd) {
 		} else {
 			++it;
 		}
+	}
+}
+
+void	Server::closeServer() {
+	close(epoll_fd_);
+	for (std::vector<Client>::iterator it = client_.begin(); it != client_.end(); ++it) {
+		close(it->getClientFd());
+	}
+	for (std::vector<Socket>::iterator it = socket_.begin(); it != socket_.end(); ++it) {
+		close(it->getFd());
 	}
 }

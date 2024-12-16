@@ -1,5 +1,15 @@
 #include "Config.hpp"
 
+ConfigValidator	Config::validator;
+
+Config::Config() {
+}
+
+Config::~Config() {
+	Servers.clear();
+	tokens.clear();
+}
+
 void	Config::tokenize(const std::string& filePath) {
 	std::ifstream file(filePath.c_str());
 	if (!file.is_open()) {
@@ -74,7 +84,7 @@ void	Config::decideDefaultServer(std::vector<ServerConfig> &Servers) {
 
 void	Config::loadConfigFile(const std::string& filename) {
 	tokenize(filename);
-	this->validator.validate(this->tokens);
+	validator.validate(this->tokens);
 	parseConfig();
 	decideDefaultServer(this->Servers);
 }

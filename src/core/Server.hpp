@@ -24,6 +24,7 @@ class Server {
 	//control non-blocking I/O process
 		void	run();
 		void	setServer();
+		void	closeServer();
 	private:
 		void	acceptNewConnection(Socket& listen_socket);
 		void	HandleRequest(Client &client);

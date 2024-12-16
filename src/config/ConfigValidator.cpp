@@ -4,8 +4,10 @@ ConfigValidator::ConfigValidator() {
 	initializeValidServerDirectives();
 	initializeValidLocationDirectives();
 }
+
 ConfigValidator::~ConfigValidator() {
-    // Destructor implementation (if needed)
+	valid_server_directives.clear();
+	valid_location_directives.clear();
 }
 
 
