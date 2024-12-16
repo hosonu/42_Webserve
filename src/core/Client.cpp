@@ -205,13 +205,13 @@ void	Client::readCGI() {
 
 void Client::end_timeoutCGI()
 {
-	int status = kill(this->child_pid,SIGKILL);
+	int status = kill(this->child_pid, SIGINT);
 	if (status == -1)
 		perror("kill");
 	this->msg.setStatusCode(500, 500);
-	this->msg.set_headers(this->req);
     std::ifstream error(this->msg.createErrorPath(this->configDatum).c_str());
 	this->msg.readErrorFile(error);
+	this->msg.set_headers(this->req);
 	this->mode = WRITING;
 	this->updateActivity();
 }
