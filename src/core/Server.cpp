@@ -172,11 +172,26 @@ void	Server::HandleResponse(Client &client) {
 }
 
 void	Server::removeClient(int client_fd) {
+
+	bool	found = false;
+	for (std::vector<Client>::iterator it = client_.begin(); it != client_.end();) {
+		if (it->getClientFd() == client_fd) {
+			found = true;
+			break;
+		} else {
+			++it;
+		}
+	}
+
+	if (found == false) {
+		return;
+	}
 	if (epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, client_fd, NULL) == -1) {
         #ifdef DEBUG
         std::cerr << "Failed to remove client_fd from epoll: " << client_fd
                   << " , error: " << strerror(errno) << std::endl;
         #endif
+		return;
     }
 	close(client_fd);
 	for (std::vector<Client>::iterator it = client_.begin(); it != client_.end();) {
