@@ -7,10 +7,11 @@
 #include "Client.hpp"
 #include <sys/epoll.h>
 #include <vector>
+#include <list>
 
 #define MAX_EVENTS 1024
 
-const int EPOLL_TIMEOUT_MS = 10000;  // 10 seconds
+const int EPOLL_TIMEOUT_MS = 1000;  // 10 seconds
 const time_t CLIENT_TIMEOUT_SEC = 10;
 
 /*main class of this server*/
@@ -34,7 +35,8 @@ class Server {
 		struct epoll_event events_[MAX_EVENTS];
 		std::vector<ServerConfig> configData;
 		std::vector<Socket> socket_;
-		std::vector<Client> client_;
+		//std::vector<Client> client_;
+		std::list<Client> client_;
 		int	epoll_fd_;
 };
 
