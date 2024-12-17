@@ -46,20 +46,22 @@ void	Server::run() {
 		} else if (n == 0) {
 			continue;
 		}
-		for (std::vector<Client>::iterator it = client_.begin(); it != client_.end();) {
+		for (std::list<Client>::iterator it = client_.begin(); it != client_.end();) {
 			if (it->isTimedOut(current_time, CLIENT_TIMEOUT_SEC)) {
 				#ifdef DEBUG
 				std::cout << "Client timed out: " << it->getClientFd() << ", size: " << client_.size() << std::endl;
 				std::cout << "timeout detected" << std::endl;
 				std::cout << "timeout type:" << it->getClientMode() << std::endl;
 				#endif
-				it->setMode(CLOSING);
 				if (it->getClientMode() == CGI_READING) {
 					it->end_timeoutCGI();
-					++it;
 				} else {
-					removeClient(it->getClientFd());
-					it = client_.begin();
+					//removeClient(it->getClientFd());
+					//continue;
+					int fd = it->getClientFd();
+					it = client_.erase(it);
+					epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, NULL);
+					close(fd);
 				}
 			} else {
 				++it;
@@ -67,15 +69,9 @@ void	Server::run() {
 		}
 		for (int i = 0; i < n; ++i) {
 			int fd = events_[i].data.fd;
-			#ifdef DEBUG
-			//std::cout << "events: " << events_[i].events << std::flush;
-			#endif
 			bool handled = false;
 			for (size_t i = 0; i < socket_.size(); ++i) {
 				if (socket_[i].getFd() == fd) {
-					#ifdef DEBUG
-					//std::cout << " , fd: " << fd << std::endl;
-					#endif
 					acceptNewConnection(socket_[i]);
 					handled = true;
 					break;
@@ -85,14 +81,19 @@ void	Server::run() {
 				Client* client = static_cast<Client*>(events_[i].data.ptr);
 				if (client != NULL) {
 					if (events_[i].events & EPOLLIN) {
+						#ifdef DEBUG
+						std::cout << "client: " << client->getClientFd() << " mode: " << client->getClientMode() << " in handle request" <<  std::endl;
+						#endif
 						HandleRequest(*client);
 					}
 					else if (events_[i].events & EPOLLOUT) 
 					{
 						if (client->getClientMode() == CGI_READING) {
 							client->readCGI();
-							client->updateActivity();
 						} else {
+							#ifdef DEBUG
+							std::cout << "client: " << client->getClientFd() << " mode: " << client->getClientMode() << " in handle response" <<  std::endl;
+							#endif
 							HandleResponse(*client);
 						}
 					}
@@ -127,13 +128,20 @@ void	Server::acceptNewConnection(Socket& listen_socket) {
 }
 
 void	Server::HandleRequest(Client &client) {
-	if (client.getClientMode() == HEADER_READING) {
-		client.parseRequestHeader(this->configData);
-		client.updateActivity();
-	}
-	if (client.getClientMode() == BODY_READING) {
-		client.parseRequestBody();
-		client.updateActivity();
+	for (std::list<Client>::iterator it = client_.begin(); it != client_.end(); ++it) {
+		if (it->getClientFd() == client.getClientFd()) {
+			if (client.getClientMode() == HEADER_READING) {
+				client.parseRequestHeader(this->configData);
+				client.updateActivity();
+			}
+			if (client.getClientMode() == BODY_READING) {
+				client.parseRequestBody();
+				client.updateActivity();
+			}
+			if (client.getClientMode() == CLOSING) {
+				removeClient(client.getClientFd());
+			}
+		}
 	}
 }
 
@@ -149,31 +157,13 @@ void	Server::HandleResponse(Client &client) {
 
 void	Server::removeClient(int client_fd) {
 
-	bool	found = false;
-	for (std::vector<Client>::iterator it = client_.begin(); it != client_.end();) {
-		if (it->getClientFd() == client_fd) {
-			found = true;
-			break;
-		} else {
-			++it;
-		}
-	}
-	if (found == false) {
-		return;
-	}
-	if (epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, client_fd, NULL) == -1) {
-        #ifdef DEBUG
-        std::cerr << "Failed to remove client_fd from epoll: " << client_fd
-                  << " , error: " << strerror(errno) << std::endl;
-        #endif
-		return;
-    }
-	close(client_fd);
-	for (std::vector<Client>::iterator it = client_.begin(); it != client_.end();) {
+	for (std::list<Client>::iterator it = client_.begin(); it != client_.end();) {
 		if (it->getClientFd() == client_fd) {
 			#ifdef DEBUG
-			std::cout << "remove client : " << it->getClientFd() << ", client size : " << client_.size() << std::endl;
+			std::cout << "Remove client: " << client_fd << std::endl;
 			#endif
+			epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, client_fd, NULL);
+			close(client_fd);
 			it = client_.erase(it);
 			break;
 		} else {
@@ -184,7 +174,7 @@ void	Server::removeClient(int client_fd) {
 
 void	Server::closeServer() {
 	close(epoll_fd_);
-	for (std::vector<Client>::iterator it = client_.begin(); it != client_.end(); ++it) {
+	for (std::list<Client>::iterator it = client_.begin(); it != client_.end(); ++it) {
 		close(it->getClientFd());
 	}
 	for (std::vector<Socket>::iterator it = socket_.begin(); it != socket_.end(); ++it) {

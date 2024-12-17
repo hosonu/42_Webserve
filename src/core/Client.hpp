@@ -31,8 +31,8 @@ class Client
 	public:
 		Client(int fd, int epoll_fd);
 		~Client();
-		Client& operator=(const Client& other);
 		Client(const Client& other);
+		Client& operator=(const Client& other);
 		void	bindToConfig(std::vector<ServerConfig> &configData);
 		void 	parseRequestHeader(std::vector<ServerConfig> &configData);
 		void	parseRequestBody();
