@@ -128,20 +128,13 @@ void	Server::acceptNewConnection(Socket& listen_socket) {
 }
 
 void	Server::HandleRequest(Client &client) {
-	for (std::list<Client>::iterator it = client_.begin(); it != client_.end(); ++it) {
-		if (it->getClientFd() == client.getClientFd()) {
-			if (client.getClientMode() == HEADER_READING) {
-				client.parseRequestHeader(this->configData);
-				client.updateActivity();
-			}
-			if (client.getClientMode() == BODY_READING) {
-				client.parseRequestBody();
-				client.updateActivity();
-			}
-			if (client.getClientMode() == CLOSING) {
-				removeClient(client.getClientFd());
-			}
-		}
+	if (client.getClientMode() == HEADER_READING) {
+		client.parseRequestHeader(this->configData);
+		client.updateActivity();
+	}
+	if (client.getClientMode() == BODY_READING) {
+		client.parseRequestBody();
+		client.updateActivity();
 	}
 }
 
@@ -156,14 +149,18 @@ void	Server::HandleResponse(Client &client) {
 }
 
 void	Server::removeClient(int client_fd) {
-
+	#ifdef DEBUG
+	std::cout << "Remove client: " << client_fd << " size: " << client_.size() << std::endl;
+	#endif
+	if (epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, client_fd, NULL) == -1) {
+		std::cerr << "Failed to remove epoll" << std::endl;
+	}
+	close(client_fd);
 	for (std::list<Client>::iterator it = client_.begin(); it != client_.end();) {
 		if (it->getClientFd() == client_fd) {
 			#ifdef DEBUG
-			std::cout << "Remove client: " << client_fd << std::endl;
+			std::cout << "Ex Remove client: " << client_fd << std::endl;
 			#endif
-			epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, client_fd, NULL);
-			close(client_fd);
 			it = client_.erase(it);
 			break;
 		} else {
