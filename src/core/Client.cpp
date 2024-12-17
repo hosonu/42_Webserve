@@ -188,7 +188,9 @@ bool Client::isTimedOut(time_t current_time, time_t timeout_seconds) const {
 
 void Client::end_timeoutCGI()
 {
-	int status = kill(this->child_pid, SIGINT);
+	epoll_ctl(this->epfd, EPOLL_CTL_DEL, this->cgi_fd, NULL);
+	close(this->cgi_fd);
+	int status = kill(this->child_pid, SIGKILL);
 	if (status == -1)
 		perror("kill");
 	this->msg.setStatusCode(500, 500);
