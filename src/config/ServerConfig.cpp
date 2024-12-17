@@ -7,6 +7,21 @@ void	ServerConfig::setDefault(bool flag) {
 	this->is_default = flag;
 }
 
+ServerConfig::ServerConfig(const ServerConfig& other)
+: is_default(other.is_default), listenPort(other.listenPort), host(other.host), serverName(other.serverName), maxBodySize(other.maxBodySize), locations(other.locations) {}
+
+ServerConfig& ServerConfig::operator=(const ServerConfig& other) {
+	if (this != &other) {
+		is_default = other.is_default;
+		listenPort = other.listenPort;
+		host = other.host;
+		serverName = other.serverName;
+		maxBodySize = other.maxBodySize;
+		locations = other.locations;
+	}
+	return *this;
+}
+
 bool isValidOctet(const std::string &octet) {
 	if (octet.empty() || octet.length() > 3) {
 		return false;

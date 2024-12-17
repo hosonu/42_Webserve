@@ -1,7 +1,6 @@
 #include "Server.hpp"
 
 Server::Server(Config &configs) : configData(configs.getServerConfigs()) {
-	client_.reserve(10);
 }
 
 void	Server::setServer() {
@@ -38,12 +37,10 @@ Server::~Server() {
 	client_.clear();
 }
 
-
-
 void	Server::run() {
 	while(true) {
 		time_t current_time = time(NULL);
-		int n = epoll_wait(epoll_fd_, events_, MAX_EVENTS, 1);
+		int n = epoll_wait(epoll_fd_, events_, MAX_EVENTS, EPOLL_TIMEOUT_MS);
 		if (n == -1) {
 			throw std::runtime_error("epoll_wait failed");
 		} else if (n == 0) {
@@ -53,14 +50,17 @@ void	Server::run() {
 			if (it->isTimedOut(current_time, CLIENT_TIMEOUT_SEC)) {
 				#ifdef DEBUG
 				std::cout << "Client timed out: " << it->getClientFd() << ", size: " << client_.size() << std::endl;
-				#endif
 				std::cout << "timeout detected" << std::endl;
 				std::cout << "timeout type:" << it->getClientMode() << std::endl;
-				if (it->getClientMode() == CGI_READING)
+				#endif
+				it->setMode(CLOSING);
+				if (it->getClientMode() == CGI_READING) {
 					it->end_timeoutCGI();
-				else
+					++it;
+				} else {
 					removeClient(it->getClientFd());
-				continue;
+					it = client_.begin();
+				}
 			} else {
 				++it;
 			}
@@ -70,33 +70,31 @@ void	Server::run() {
 			#ifdef DEBUG
 			//std::cout << "events: " << events_[i].events << std::flush;
 			#endif
-			//manage listen fd
 			bool handled = false;
 			for (size_t i = 0; i < socket_.size(); ++i) {
 				if (socket_[i].getFd() == fd) {
-					acceptNewConnection(socket_[i]);
 					#ifdef DEBUG
 					//std::cout << " , fd: " << fd << std::endl;
 					#endif
+					acceptNewConnection(socket_[i]);
 					handled = true;
 					break;
 				}
 			}
 			if (!handled) {
 				Client* client = static_cast<Client*>(events_[i].data.ptr);
-				#ifdef DEBUG
-				//std::cout << " , fd: " << client->getClientFd() << std::endl;
-				#endif
 				if (client != NULL) {
 					if (events_[i].events & EPOLLIN) {
-							HandleRequest(*client);
+						HandleRequest(*client);
 					}
 					else if (events_[i].events & EPOLLOUT) 
 					{
-						if (client->getClientMode() == CGI_READING) 
+						if (client->getClientMode() == CGI_READING) {
 							client->readCGI();
-						else 
+							client->updateActivity();
+						} else {
 							HandleResponse(*client);
+						}
 					}
 				}
 			}
@@ -111,12 +109,6 @@ void	Server::acceptNewConnection(Socket& listen_socket) {
 		return;
 	}
 	listen_socket.setNonBlocking(client_fd);
-	
- 	if (client_.size() == client_.capacity()) {
-        client_.reserve(client_.size() + 2);
-    }
-
-	//client_.reserve(client_.size() + 1);
 
 	client_.push_back(Client(client_fd, epoll_fd_));
     Client& new_client = client_.back();
@@ -135,38 +127,22 @@ void	Server::acceptNewConnection(Socket& listen_socket) {
 }
 
 void	Server::HandleRequest(Client &client) {
-	//std::cout << "mode: " << client.getClientMode() << " , in HandleRequest" <<  std::endl;
 	if (client.getClientMode() == HEADER_READING) {
-		#ifdef DEBUG
-		std::cout << "HEADER_READING NOW" << std::endl;
-		#endif
 		client.parseRequestHeader(this->configData);
 		client.updateActivity();
-		//client.bindToConfig(this->configData);
 	}
 	if (client.getClientMode() == BODY_READING) {
-		#ifdef DEBUG
-		std::cout << "BODY_READING NOW" << std::endl;
-		#endif
 		client.parseRequestBody();
 		client.updateActivity();
 	}
 }
 
 void	Server::HandleResponse(Client &client) {
-	//std::cout << "mode: " << client.getClientMode() << " , in HandleResponse" << std::endl;
 	if (client.getClientMode() == WAITING || client.getClientMode() == WRITING) {
-		#ifdef DEBUG
-		std::cout << "WRITING NOW" << std::endl;
-		#endif
-		//client.setMode(CLOSING);
 		client.makeResponse();
 		client.updateActivity();
 	}
 	if (client.getClientMode() == CLOSING) {
-		#ifdef DEBUG
-		std::cout << "REMOVING NOW" << std::endl;
-		#endif
 		removeClient(client.getClientFd());
 	}
 }
@@ -182,7 +158,6 @@ void	Server::removeClient(int client_fd) {
 			++it;
 		}
 	}
-
 	if (found == false) {
 		return;
 	}

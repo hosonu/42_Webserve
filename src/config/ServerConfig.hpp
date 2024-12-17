@@ -51,6 +51,8 @@ private:
 
 public:
 	ServerConfig();
+	ServerConfig(const ServerConfig& other);
+	ServerConfig& operator=(const ServerConfig& other);
 	void	setDefault(bool flag);
     void	setListen(std::string& listen);
     void	setServerName(const std::string& name);
