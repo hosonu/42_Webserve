@@ -5,12 +5,6 @@ Client::Client(int fd, int epoll_fd)
 }
 
 Client::~Client() {
-	//if (this->cgi_fd != -1) {
-	//	close(this->cgi_fd);
-	//}
-	//if (this->client_fd != -1) {
-	//	close(this->client_fd);
-	//}
 }
 
 void    Client::setMode(ClientMode mode) {
@@ -51,10 +45,6 @@ void	Client::parseRequestHeader(std::vector<ServerConfig> &configData) {
 		if (header_end != std::string::npos) {
 			std::string body_part = current_header.substr(header_end + 4);
 			current_header = current_header.substr(0, header_end + 4);
-			
-			#ifdef DEBUG
-			//std::cout << "header: \n" << current_header << std::endl;
-			#endif
 
 			if (req.requestParse(req.getRawHeader()) == false) {
 				std::cerr << "Bad Format: Header is not correct format" << std::endl;
@@ -85,14 +75,10 @@ void	Client::parseRequestBody() {
 }
 
 void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
-	#ifdef DEBUG
- 	//print_line(req);
-	#endif
 	std::map<std::string, std::string> header = this->req.getHeader();
 	std::string hostValue;
 	std::map<std::string, std::string>::iterator it = header.find("Host");
 	#ifdef DEBUG
-		//std::cout << "Request Header: " << req.getRawHeader() << std::endl;
 		std::cout << "Parsed Host: " << it->second << std::endl;
 	#endif
 	if (it != header.end()) {
@@ -140,12 +126,11 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 	#endif
 }
 
-void    Client::methodProc()
+void    Client::makeResponse()
 {
 	if (this->mode == WAITING) {
 		if (this->msg.createMessage(this->req, this->configDatum) == "CGI_READING") {
 			this->cgi = CGIHandler(this->req,epfd);
-			//dup2(this->cgi.CGIExecute(this->epfd), this->cgi_fd);
 			this->cgi_fd = this->cgi.CGIExecute();
 			this->child_pid = this->cgi.getChildPid();
 			struct epoll_event ev;
@@ -162,16 +147,6 @@ void    Client::methodProc()
 		this->mode = CLOSING;
 	}
 }
-
-void    Client::makeResponse() {
-	#ifdef DEBUG
- 	//print_line(req);
-	//print_conf(configDatum);
-	//std::cout << req.getBody() << std::endl;
-	#endif
-    this->methodProc();
-}
-
 
 bool set_cgi_response(std::string cgibody)
 {
@@ -201,6 +176,14 @@ void	Client::readCGI() {
 		}
 		this->mode = WRITING;
 	}
+}
+
+void Client::updateActivity() {
+    this->last_activity = time(NULL);
+}
+
+bool Client::isTimedOut(time_t current_time, time_t timeout_seconds) const {
+	return (current_time - last_activity) > timeout_seconds;
 }
 
 void Client::end_timeoutCGI()

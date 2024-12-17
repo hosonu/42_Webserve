@@ -23,6 +23,8 @@ class Location
 	public:
 		Location();
 		~Location();
+		Location(const Location& other);
+		Location& operator=(const Location& other);
 		void	setPath(const std::string& path);
 		void	setRoot(const std::string& r);
 		void	setAllowMethods(const std::string& methods);

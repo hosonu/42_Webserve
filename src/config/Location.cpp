@@ -7,6 +7,22 @@ Location::~Location() {
 	allowMethods.clear();
 }
 
+Location::Location(const Location& other)
+: path(other.path), root(other.root), allowMethods(other.allowMethods), autoindex(other.autoindex), indexFile(other.indexFile), return_path(other.return_path), isCGI(other.isCGI) {}
+
+Location& Location::operator=(const Location& other) {
+	if (this != &other) {
+		path = other.path;
+		root = other.root;
+		allowMethods = other.allowMethods;
+		autoindex = other.autoindex;
+		indexFile = other.indexFile;
+		return_path = other.return_path;
+		isCGI = other.isCGI;
+	}
+	return *this;
+}
+
 void Location::setPath(const std::string& path) {
 	if (path[0] != '/') {
 			throw std::invalid_argument("[emerg] unexpected path in location{} : " + path);
