@@ -94,7 +94,7 @@ bool	Socket::bind() {
 	int opt = 1;
 
 	if (setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-		std::cerr << "failed to setsockopt: " << strerror(errno) << std::endl;
+		std::cerr << "Failed to setsockopt: " << strerror(errno) << std::endl;
 		return false;
 	}
 
@@ -109,8 +109,8 @@ bool	Socket::bind() {
 
 bool	Socket::listen(int backlog) {
 	if(::listen(fd_, backlog) < 0) {
-		std::cerr << "failed to listen" << std::endl;
-		return false; // add error message?
+		std::cerr << "Failed to listen: " << strerror(errno) << std::endl;
+		return false;
 	}
 	is_listening_ = true;
 	return true;
@@ -123,11 +123,10 @@ int Socket::accept() {
 	int client_fd = ::accept(fd_, (struct sockaddr*)&client_addr, &addr_len);
 	if (client_fd < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
-			// setLastError("accept failed: " + std::string(strerror(errno)));
-			//error message?
-			write(2, "hello\n", 6);
+			std::cerr << "Failed to accept: " << strerror(errno) << std::endl;
+			return -1;
 		}
-		return -1;
+		throw std::runtime_error("Failed to accept");
 	}
 	return client_fd;
 }
@@ -136,11 +135,11 @@ bool	Socket::setNonBlocking(int fd) {
 	int flags = fcntl(fd, F_GETFL, 0);
 	if (flags == -1) {
 		std::cerr << "Socket is closed or invalid." << std::endl;
-		return false; //add error message?
+		return false;
 	}
 	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-		std::cerr << "Socket is closed or invalid. noblocling" << std::endl;
-		return false; //add error message?
+		std::cerr << "Failed to set non-blocking mode: " << strerror(errno) << std::endl;
+		return false;
 	}
 
 	return true;

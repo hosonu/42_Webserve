@@ -18,7 +18,6 @@ bool Request::requestParse(const std::string &rawRequest)
         return false;
     while (std::getline(stream, line))
     {
-        //std::cout << line << std::endl;
         if (!headerParse(line) && flag)
             return false;
     }
@@ -30,7 +29,6 @@ bool Request::requestParse(const std::string &rawRequest)
 bool Request::lineParse(const std::string& lineRequest)
 {
 	std::istringstream stream(lineRequest);
-    //std::cout << lineRequest << std::endl;
 	if (!std::getline(stream, this->method, ' '))
 		return false;
 	if (!std::getline(stream, this->uri, ' '))
@@ -202,7 +200,7 @@ std::string Request::getQuery()
         return "";
 }
 
-//test code
+//debug functions
 void    print_line(Request& test)
 {
     std::map<std::string, std::string> t_map = test.getHeader();
@@ -216,8 +214,6 @@ void    print_line(Request& test)
 
 void    print_conf(ServerConfig test)
 {
-
-
     std::cout << "is_default: " <<test.getDefault() << std::endl;
     std::cout << "listenPort: "<<test.getListenPort() << std::endl;
     std::cout << "host: "<<test.getListenHost() << std::endl;

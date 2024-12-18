@@ -11,18 +11,15 @@
 
 #define MAX_EVENTS 1024
 
-const int EPOLL_TIMEOUT_MS = 1000;  // 10 seconds
+const int EPOLL_TIMEOUT_MS = 1000;
 const time_t CLIENT_TIMEOUT_SEC = 10;
 
-/*main class of this server*/
 class Client;
 class Server {
 	public:
 		Server(Config &configs);
 		~Server();
-	//manage event loop using epoll
-	//manage socket and accept connection of cliant
-	//control non-blocking I/O process
+
 		void	run();
 		void	setServer();
 		void	closeServer();
@@ -35,7 +32,6 @@ class Server {
 		struct epoll_event events_[MAX_EVENTS];
 		std::vector<ServerConfig> configData;
 		std::vector<Socket> socket_;
-		//std::vector<Client> client_;
 		std::list<Client> client_;
 		int	epoll_fd_;
 };

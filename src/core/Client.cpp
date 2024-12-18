@@ -27,16 +27,12 @@ int Client::getCGIfd() const {
 	return this->cgi_fd;
 }
 
-void Client::updateEpollEvent(Client &client) {
-	struct epoll_event ev;
-	ev.events = EPOLLIN | EPOLLOUT;
-	ev.data.ptr = &client;
-	epoll_ctl(this->epfd, EPOLL_CTL_ADD, this->client_fd, &ev);
-}
-
 void	Client::parseRequestHeader(std::vector<ServerConfig> &configData) {
 	char	buffer[MAX_BUFEER];
 	ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
+	if (count == -1) {
+		/*read error*/
+	}
 	if (count > 0) {
 		req.setRawHeader(std::string(buffer, count));
 		std::string& current_header = req.getRawHeader();
@@ -65,6 +61,9 @@ void	Client::parseRequestBody() {
 	} else {
 		char	buffer[MAX_BUFEER];
 		ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
+		if (count == -1) {
+			/*read error*/
+		}
 		if (count > 0) {
 			this->req.appendBody(std::string(buffer, count));
 		}
@@ -78,14 +77,8 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 	std::map<std::string, std::string> header = this->req.getHeader();
 	std::string hostValue;
 	std::map<std::string, std::string>::iterator it = header.find("Host");
-	#ifdef DEBUG
-		std::cout << "Parsed Host: " << it->second << std::endl;
-	#endif
 	if (it != header.end()) {
 		hostValue = it->second;
-		#ifdef DEBUG
-		//std::cout << "Host: " << hostValue << std::endl;
-		#endif
 	} else {
 		std::cerr << "None Header Host " << std::endl;
 	}
@@ -98,32 +91,17 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 		port = std::strtol(hostValue.substr(colonPos + 1).c_str(), 0, 10);
 	} else {
 		host = hostValue;
-		port = 8080;//should set default port number
+		port = 8080;
 	}
 
 	for(std::vector<ServerConfig>::iterator iter = configData.begin(); iter != configData.end(); ++iter)
 	{
-		#ifdef DEBUG
-		//std::cout << "ServerConfig: " << iter->serverName << ", " << iter->host << " : " << iter->listenPort << std::endl; 
-		#endif
 		if (iter->getServerName() == host) {
 			this->configDatum = *iter;
 		} else if (iter->getListenHost() == host && iter->getListenPort() == port) {
 			this->configDatum = *iter;
 		}
 	}
-
-	#ifdef DEBUG
-	{
-		//ServerConfig debug_data = this->getConfigDatum();
-		//std::cout << "configDatum: " << "client fd: " << client_fd << ", " 
-		//		<< "is_default: " << debug_data << ", "
-		//		<< "listenPort: " << debug_data.listenPort << ", "
-		//		<< "host: " << debug_data.host << ", "
-		//		<< "serverName: " << debug_data.serverName << ", "
-		//		<< "maxBodySize: " << debug_data.maxBodySize << std::endl;
-	}
-	#endif
 }
 
 void    Client::makeResponse()
@@ -136,7 +114,9 @@ void    Client::makeResponse()
 			struct epoll_event ev;
 			ev.events = EPOLLIN | EPOLLOUT;
 			ev.data.ptr = this;
-			epoll_ctl(this->epfd, EPOLL_CTL_ADD, this->cgi_fd, &ev);
+			if (epoll_ctl(this->epfd, EPOLL_CTL_ADD, this->cgi_fd, &ev) == -1) {
+				throw std::runtime_error("Failed to add epoll");
+			}
 			this->mode = CGI_READING;
 		} else {
 			this->mode = WRITING;
@@ -159,6 +139,9 @@ bool set_cgi_response(std::string cgibody, bool checkAddContent)
 void	Client::readCGI() {
 	char	buffer[MAX_BUFEER];
 	ssize_t count = read(this->cgi_fd, buffer, sizeof(buffer));
+	if (count == -1) {
+		/*read error*/
+	}
 	if (count > 0) {
 		this->cgi.appendCGIBody(std::string(buffer, count));
 	}
@@ -188,7 +171,9 @@ bool Client::isTimedOut(time_t current_time, time_t timeout_seconds) const {
 
 void Client::end_timeoutCGI()
 {
-	epoll_ctl(this->epfd, EPOLL_CTL_DEL, this->cgi_fd, NULL);
+	if (epoll_ctl(this->epfd, EPOLL_CTL_DEL, this->cgi_fd, NULL) == -1) {
+		throw std::runtime_error("Failed to remove epoll");
+	}
 	close(this->cgi_fd);
 	int status = kill(this->child_pid, SIGKILL);
 	if (status == -1)
@@ -210,12 +195,11 @@ Client::Client(const Client& other)
       read_buffer(other.read_buffer),
       write_buffer(other.write_buffer),
       rawReq(other.rawReq),
-      req(other.req),  // Request と Response がコピー可能であれば
-      msg(other.msg),  // 同様に、コピーコンストラクターがあれば
-      cgi(other.cgi),  // CGIHandler のコピーコンストラクターがあれば
-      configDatum(other.configDatum)  // ServerConfig のコピーコンストラクターがあれば
+      req(other.req),
+      msg(other.msg),
+      cgi(other.cgi),
+      configDatum(other.configDatum)
 {
-    // 必要に応じて追加の処理
 }
 
 Client& Client::operator=(const Client& other)
@@ -229,10 +213,10 @@ Client& Client::operator=(const Client& other)
         read_buffer = other.read_buffer;
         write_buffer = other.write_buffer;
         rawReq = other.rawReq;
-        req = other.req;  // Request と Response がコピー可能であれば
-        msg = other.msg;  // 同様に、コピーコンストラクターがあれば
-        cgi = other.cgi;  // CGIHandler のコピーコンストラクターがあれば
-        configDatum = other.configDatum;  // ServerConfig のコピーコンストラクターがあれば
+        req = other.req;
+        msg = other.msg;
+        cgi = other.cgi;
+        configDatum = other.configDatum;
     }
     return *this;
 }

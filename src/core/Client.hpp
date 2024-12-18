@@ -37,7 +37,6 @@ class Client
 		void 	parseRequestHeader(std::vector<ServerConfig> &configData);
 		void	parseRequestBody();
 		void	makeResponse();
-		void 	updateEpollEvent(Client &client);
 		int					getClientFd() const;
 		const ClientMode	&getClientMode() const;
 		const ServerConfig	&getConfigDatum() const;

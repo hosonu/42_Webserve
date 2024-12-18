@@ -3,14 +3,6 @@
 Response::Response()
 : statCode(0), cgiFlag(false), request_line(""), header(""), body(""), cgiBody(""), truePath("a")
 {
-    //this->statCode = 0;
-    //this->situation = "";
-    //this->header = "";
-    //this->body = "";
-    //this->request_line = "";
-    //this->cgiBody = "";
-    //this->truePath = "a";
-	//this->cgiFlag = false;
 }
 
 Response::~Response()
@@ -23,12 +15,8 @@ std::string Response::createMessage(Request &req, ServerConfig& conf)
     validConf.validReqLine();
     this->setStatusCode(req.getPrse().getTotalStatus(), validConf.getStat());
     this->truePath = this->createTruePath(conf, req.getUri());
-	//std::cout << "URI: " << req.getUri() << ", cgiFlag: " << this->cgiFlag << std::endl;
-    if (this->cgiFlag && this->truePath.find(".py") !=std::string::npos)
-    {
+    if (this->cgiFlag && this->truePath.find(".py") !=std::string::npos) {
         return "CGI_READING";
-        //CGIHandler executor(req);
-        //this->cgiBody = executor.CGIExecute();
     }
     if (req.getMethod() == "GET")
         this->getBodyGet(this->truePath, conf, req.getUri());
@@ -46,15 +34,8 @@ std::string Response::createMessage(Request &req, ServerConfig& conf)
 	return "WRITING";
 }
 
-//void Response::serachCgiPath()
-//{
-//    this.getCgi
-//}
-
 void Response::setStatusCode(int parseNum, int confNum)
 {
-    //std::cout << parseNum << std::endl;
-    //std::cout << confNum << std::endl;
     if (parseNum != 200 && confNum != 200)
         this->statCode = parseNum;
     else if (parseNum == 200 && confNum != 200)
@@ -65,27 +46,6 @@ void Response::setStatusCode(int parseNum, int confNum)
         this->statCode = confNum;
 }
 
-//bool Response::checkMatching(std::string locPath, std::string &uri)
-//{
-//    size_t count = 0;
-//    for (size_t i = 0; i < locPath.size(); i++)
-//    {
-//        if (locPath[i] == uri[i])
-//            count++;
-//    }
-//    if (count == locPath.size())
-//    {
-//        //if (locPath == this->cgiPath)
-//        //{
-//		//	this->cgiFlag = true;
-//        //}
-//        return true;
-//    }
-//    else
-//    {
-//        return false;
-//    }
-//}
 bool Response::checkMatching(const std::string& locPath, const std::string& uri)
 {
     if (locPath.size() > uri.size())
@@ -112,22 +72,6 @@ std::string Response::createTruePath(ServerConfig& conf, const std::string& uri)
     }
     return bestMatch;
 }
-
-//std::string Response::createTruePath(ServerConfig& conf, std::string uri)
-//{
-//    std::string res = uri;
-//    std::string indexFile = "";
-//    for (std::vector<Location>::const_iterator it = conf.getLocations().begin(); it != conf.getLocations().end(); ++it)
-//    {
-//        if ((checkMatching(it->getPath(), uri) == true))
-//        {
-//            this->serverLocation = *it;
-//			this->cgiFlag = it->flagCGI();
-//            res = it->getRoot() + uri;
-//        }
-//    }
-//    return res;
-//}
 
 std::string Response::createErrorPath(ServerConfig& conf)
 {
@@ -259,7 +203,6 @@ void Response::getBodyGet(std::string path, ServerConfig& conf, std::string uri)
     }
     else if (type == DIRECT)
     {
-        //autoindexの項目がそもそもない場合の対応
         if (this->serverLocation.isAutoindex() == true)
         {
             this->body = generateDirectoryListing(path, getContents(path, uri));
@@ -288,7 +231,6 @@ std::string generateRandomFileName(std::string dir)
     return oss.str();
 }
 
-//over flow 未対応
 size_t convert_stos(const std::string& max_body_size) 
 {
     if (max_body_size.empty())
@@ -312,7 +254,6 @@ size_t convert_stos(const std::string& max_body_size)
 
 void Response::getBodyPost(Request& req, ServerConfig& conf)
 {
-    //TODO:configの設定を反映
     std::ifstream error(createErrorPath(conf).c_str());
     if (this->statCode != 200)
     {
@@ -371,7 +312,6 @@ void Response::getBodyDel( ServerConfig& conf)
         else
         {
             this->statCode = 400;
-            //TODO:Errorページ設定
             readErrorFile(error);
         }
     }
@@ -412,7 +352,7 @@ std::string Response::getContentType(const std::string& filePath)
 		}
     }
 
-    return "Content-type: text/html";  // デフォルトのMIMEタイプ
+    return "Content-type: text/html";
 }
 
 std::string Response::getContentLength()
@@ -479,11 +419,10 @@ void Response::wirteMessage(int socket)
         int bodyLen = this->body.length();
         int totalLine = reqline + headerLen + bodyLen + 2;
         std::string total = this->request_line + this->header + "\r\n" +this->body;
-        //TODO: Error handling
-        #ifdef DEBUG
-        //std::cout << "total " << total << std::endl;
-        #endif
-        write(socket, total.c_str(), totalLine);
+
+        if (write(socket, total.c_str(), totalLine) == -1) {
+            //add error message
+        }
     }
     else
     {
@@ -505,7 +444,7 @@ std::vector<std::string> getContents(const std::string& path, const std::string&
                     fullUri += "/";
                 }
                 fullUri += name;
-                files.push_back(fullUri); // リクエストパスを保存
+                files.push_back(fullUri);
             }
         }
         closedir(dir);
@@ -516,7 +455,6 @@ std::vector<std::string> getContents(const std::string& path, const std::string&
 std::string generateDirectoryListing(const std::string& uri, const std::vector<std::string>& files) {
     std::stringstream html;
 
-    // HTMLヘッダーとスタイルの追加
     html << "<html>\n<head>\n"
          << "<title>Index of " << uri << "</title>\n"
          << "<style>\n"
@@ -531,18 +469,14 @@ std::string generateDirectoryListing(const std::string& uri, const std::vector<s
          << "</style>\n"
          << "</head>\n<body>\n";
 
-    // タイトルと見出し
     html << "<h1>Index of " << uri << "</h1>\n";
 
-    // テーブルの開始
     html << "<table>\n"
          << "<tr>\n"
          << "<th>Name</th>\n"
          << "</tr>\n";
 
-    // ファイルリストをテーブルに追加
     for (std::vector<std::string>::const_iterator it = files.begin(); it != files.end(); ++it) {
-        // リンク表示用にファイル名を抽出
         std::string fileName = *it;
         std::size_t lastSlash = fileName.find_last_of('/');
         if (lastSlash != std::string::npos) {
@@ -554,7 +488,7 @@ std::string generateDirectoryListing(const std::string& uri, const std::vector<s
              << "</tr>\n";
     }
 
-    // テーブルの終了
+
     html << "</table>\n</body>\n</html>";
 
     return html.str();

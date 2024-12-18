@@ -33,17 +33,11 @@ bool RequestValidConf::checkAllow(std::string method, std::vector<std::string>& 
 {
     for (std::vector<std::string>::size_type i = 0; i < allows.size(); ++i) 
     {
-        //std::cout << allows[i] << std::endl;
         if (method == allows[i])
             return true;
     }
     return false;
 }
-
-//void RequestValidConf::validReqHeader(Request &req)
-//{
-
-//}
 
 int RequestValidConf::getStat()
 {

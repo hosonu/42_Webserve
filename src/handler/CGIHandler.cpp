@@ -2,10 +2,6 @@
 
 CGIHandler::CGIHandler() : envp(NULL), newBody("")
 {
-    //config依存　ファイルパス socket rootのパス
-    //test 
-    //this->filePath = "/cgi/bin";
-    //this->InitCGIPath();
 }
 
 CGIHandler::CGIHandler(Request req, int epfd) : envp(NULL), newBody("")
@@ -109,8 +105,6 @@ void CGIHandler::getEnvAsChar()
 
 bool    CGIHandler::addContentLength(const std::string& httpResponse)
 {
-    //if (_filePath.substr(_filePath.find_last_of('.') + 1) != "py") return (httpResponse);
-    
 	size_t headerEndPos = httpResponse.find("\r\n\r\n");
     if (headerEndPos == std::string::npos)
         return false;
@@ -144,10 +138,6 @@ bool    CGIHandler::addContentLength(const std::string& httpResponse)
 
 int CGIHandler::CGIExecute()
 {
-    //TODO:cgiが失敗したばあい(解決予定)
-    //cgiが失敗しても特になにもしないで正解っぽい(以下ryanagit)
-    //execveの成功でメッセージが変わることはないっぽい
-    //timeoutは本体で回収するのみ
     int pid;
     int fds[2];
     const char *inteprinter = "/usr/bin/python3";
@@ -158,15 +148,24 @@ int CGIHandler::CGIExecute()
         const_cast<char*>(path.c_str()),
         NULL
     };
-    pipe(fds);
+    if (pipe(fds) == -1) {
+        throw std::runtime_error("Failed to create pipe");
+    }
     pid = fork();
+	if (pid == -1) {
+		throw std::runtime_error("Failed to fork");
+	}
     if (pid > 0)
     {
         this->child_pid = pid;
 		close(fds[1]);
-
 		int flags = fcntl(fds[0], F_GETFL, 0);
-		fcntl(fds[0], F_SETFL, flags | O_NONBLOCK);
+		if (flags == -1) {
+			throw std::runtime_error("Failed to get file descriptor flags");
+		}
+		if (fcntl(fds[0], F_SETFL, flags | O_NONBLOCK) == -1) {
+			throw std::runtime_error("Failed to set file descriptor flags");
+		}
     }
     else if (pid == 0)
     {

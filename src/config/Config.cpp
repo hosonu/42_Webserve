@@ -23,10 +23,6 @@ void	Config::tokenize(const std::string& filePath) {
 
 	std::string	token;
 	while (streamConf >> token) {
-		#ifdef DEBUG
-		//std::cout << token << std::endl;
-		#endif
-
 		if (token[token.length() - 1] == ';') {
 			std::string word = token.substr(0, token.size() - 1);
 			this->tokens.push_back(word);
