@@ -170,7 +170,7 @@ int CGIHandler::CGIExecute()
     else if (pid == 0)
     {
         close(fds[0]);
-    	dup2(fds[1], 1)
+    	dup2(fds[1], 1);
         execve(inteprinter, argv, this->envp);
 	    std::exit(1);
     }
