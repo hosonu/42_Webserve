@@ -31,7 +31,9 @@ void	Client::parseRequestHeader(std::vector<ServerConfig> &configData) {
 	char	buffer[MAX_BUFEER];
 	ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
 	if (count == -1) {
-		/*read error*/
+		std::cerr << "Failed to read : not enough memory" << std::endl;
+		this->mode = CLOSING;
+		return ;
 	}
 	if (count > 0) {
 		req.setRawHeader(std::string(buffer, count));
@@ -62,7 +64,9 @@ void	Client::parseRequestBody() {
 		char	buffer[MAX_BUFEER];
 		ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
 		if (count == -1) {
-			/*read error*/
+			std::cerr << "Failed to read : not enough memory" << std::endl;
+			this->mode = CLOSING;
+			return ;
 		}
 		if (count > 0) {
 			this->req.appendBody(std::string(buffer, count));
@@ -140,7 +144,12 @@ void	Client::readCGI() {
 	char	buffer[MAX_BUFEER];
 	ssize_t count = read(this->cgi_fd, buffer, sizeof(buffer));
 	if (count == -1) {
-		/*read error*/
+		std::cerr << "Failed to read : not enough memory" << std::endl;
+		this->msg.setStatusCode(500, 500);
+		std::ifstream error(this->msg.createErrorPath(this->configDatum).c_str());
+		this->msg.readErrorFile(error);
+		this->msg.set_headers(this->req);
+		this->mode = WRITING;
 	}
 	if (count > 0) {
 		this->cgi.appendCGIBody(std::string(buffer, count));
@@ -186,6 +195,16 @@ void Client::end_timeoutCGI()
 	this->updateActivity();
 }
 
+void Client::mode_timetowrite()
+{
+	this->msg.setStatusCode(408, 408);
+    std::ifstream error(this->msg.createErrorPath(this->configDatum).c_str());
+	this->msg.readErrorFile(error);
+	this->msg.set_headers(this->req);
+	this->mode = WRITING;
+	this->updateActivity();
+}
+
 Client::Client(const Client& other)
     : client_fd(other.client_fd),
       epfd(other.epfd),
@@ -219,14 +238,4 @@ Client& Client::operator=(const Client& other)
         configDatum = other.configDatum;
     }
     return *this;
-}
-
-void Client::mode_timetowrite()
-{
-	this->msg.setStatusCode(408, 408);
-    std::ifstream error(this->msg.createErrorPath(this->configDatum).c_str());
-	this->msg.readErrorFile(error);
-	this->msg.set_headers(this->req);
-	this->mode = WRITING;
-	this->updateActivity();
 }

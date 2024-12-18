@@ -421,13 +421,15 @@ void Response::wirteMessage(int socket)
         std::string total = this->request_line + this->header + "\r\n" +this->body;
 
         if (write(socket, total.c_str(), totalLine) == -1) {
-            //add error message
+			std::cerr << "Failed to write" << std::endl;
         }
     }
     else
     {
         int length = this->cgiBody.length();
-        write(socket, this->cgiBody.c_str(), length);
+        if (write(socket, this->cgiBody.c_str(), length) == -1) {
+			std::cerr << "Failed to write" << std::endl;
+		}
     }
 }
 
