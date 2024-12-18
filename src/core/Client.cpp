@@ -148,18 +148,7 @@ void    Client::makeResponse()
 	}
 }
 
-void    Client::makeResponse() {
-	#ifdef DEBUG
- 	//print_line(req);
-	//print_conf(configDatum);
-	//std::cout << req.getBody() << std::endl;
-	#endif
-    this->methodProc();
-}
-
-
 bool set_cgi_response(std::string cgibody, bool checkAddContent)
-bool set_cgi_response(std::string cgibody)
 {
 	if (cgibody.empty() || checkAddContent == false)
 		return (false);
