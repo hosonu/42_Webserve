@@ -335,6 +335,7 @@ void Response::getBodyPost(Request& req, ServerConfig& conf)
     std::ofstream file(fileName.c_str());
     if (!file.is_open()) 
     {
+        this->statCode = 400;
         readErrorFile(error);
         return ;
     }

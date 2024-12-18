@@ -107,11 +107,13 @@ void CGIHandler::getEnvAsChar()
     std::copy(temp.begin(), temp.end(), this->envp);
 }
 
-std::string	CGIHandler::addContentLength(const std::string& httpResponse)
+bool    CGIHandler::addContentLength(const std::string& httpResponse)
 {
     //if (_filePath.substr(_filePath.find_last_of('.') + 1) != "py") return (httpResponse);
     
-	size_t headerEndPos = httpResponse.find("\r\n\r\n"); 
+	size_t headerEndPos = httpResponse.find("\r\n\r\n");
+    if (headerEndPos == std::string::npos)
+        return false;
     std::string headers = httpResponse.substr(0, headerEndPos);
     std::string body = httpResponse.substr(headerEndPos + 4);
 
@@ -135,8 +137,9 @@ std::string	CGIHandler::addContentLength(const std::string& httpResponse)
             modifiedHeaders << "\r\n";
         }
     }
+    this->res = modifiedHeaders.str() + "\r\n\r\n" + body;
 
-    return modifiedHeaders.str() + "\r\n\r\n" + body;
+    return true;
 }
 
 int CGIHandler::CGIExecute()
@@ -188,4 +191,9 @@ std::string CGIHandler::getCGIBody()
 pid_t CGIHandler::getChildPid()
 {
     return (this->child_pid);
+}
+
+std::string CGIHandler::getRes()
+{
+    return this->res;
 }

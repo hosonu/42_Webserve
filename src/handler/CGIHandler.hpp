@@ -30,6 +30,7 @@ private:
     std::map<std::string, std::string> env;
     std::string cgiPath;
     std::string filePath;
+    std::string res;
     Request req;
     char **envp;
 	std::string newBody;
@@ -46,10 +47,11 @@ public:
 	CGIHandler& operator=(const CGIHandler& other);
     ~CGIHandler();
     int CGIExecute();
-    std::string	addContentLength(const std::string& httpResponse);
+    bool    addContentLength(const std::string& httpResponse);
 	std::string	getCGIBody();
 	void appendCGIBody(const std::string &buffer);
     pid_t getChildPid();
+    std::string getRes();
 };
 
 

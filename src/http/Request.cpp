@@ -45,6 +45,11 @@ bool Request::headerParse(const std::string &headerRequest)
 {
     this->parse.checkStructure(headerRequest, this->headers);
     std::string check = this->headers["Host"];
+    if (check.empty())
+    {
+        this->parse.setHeaderStatus(400);
+        return true;
+    }
     check.erase(check.length() - 1);
     if (check.find(":") == std::string::npos)
     {

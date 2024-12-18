@@ -173,9 +173,9 @@ void    Client::makeResponse() {
 }
 
 
-bool set_cgi_response(std::string cgibody)
+bool set_cgi_response(std::string cgibody, bool checkAddContent)
 {
-	if (cgibody.empty())
+	if (cgibody.empty() || checkAddContent == false)
 		return (false);
 	else
 		return (true);
@@ -190,8 +190,8 @@ void	Client::readCGI() {
 	if (count == 0) {
 		epoll_ctl(this->epfd, EPOLL_CTL_DEL, this->cgi_fd, NULL);
 		close(this->cgi_fd);
-		if (set_cgi_response(this->cgi.getCGIBody()))
-			this->msg.setCGIBody("HTTP/1.1 200 OK\r\n" + this->cgi.addContentLength(this->cgi.getCGIBody()));
+		if (set_cgi_response(this->cgi.getCGIBody(), this->cgi.addContentLength(this->cgi.getCGIBody())))
+			this->msg.setCGIBody("HTTP/1.1 200 OK\r\n" + this->cgi.getRes());
 		else
 		{
 			this->msg.setStatusCode(500, 500);
