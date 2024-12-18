@@ -232,6 +232,7 @@ void Response::getBodyGet(std::string path, ServerConfig& conf, std::string uri)
     if (!this->serverLocation.getReturnPath().empty())
     {
         this->statCode = 301;
+        this->header += "Location: " + this->serverLocation.getReturnPath() + + "\r\n";
         this->getStatusCode();
     }
     else if (this->statCode != 200)
@@ -313,9 +314,15 @@ void Response::getBodyPost(Request& req, ServerConfig& conf)
 {
     //TODO:configの設定を反映
     std::ifstream error(createErrorPath(conf).c_str());
+    if (this->statCode != 200)
+    {
+        readErrorFile(error);
+        return ;
+    }
     if (!this->serverLocation.getReturnPath().empty())
     {
         this->statCode = 301;
+        this->header += "Location: " + this->serverLocation.getReturnPath() + + "\r\n";
         this->getStatusCode();
         return ;
     }
@@ -453,6 +460,8 @@ void Response::getStatusCode()
         this->situation = "Forbidden";
     else if (this->statCode == 405)
         this->situation = "Method Not Allowed";
+    else if (this->statCode == 408)
+        this->situation = "Request Timeout";
     else if (this->statCode == 409)
         this->situation = "Conflict";
     else if (this->statCode == 413)

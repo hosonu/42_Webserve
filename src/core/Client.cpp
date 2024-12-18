@@ -236,3 +236,13 @@ Client& Client::operator=(const Client& other)
     }
     return *this;
 }
+
+void Client::mode_timetowrite()
+{
+	this->msg.setStatusCode(408, 408);
+    std::ifstream error(this->msg.createErrorPath(this->configDatum).c_str());
+	this->msg.readErrorFile(error);
+	this->msg.set_headers(this->req);
+	this->mode = WRITING;
+	this->updateActivity();
+}

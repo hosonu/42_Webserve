@@ -55,7 +55,7 @@ void	Server::run() {
 				#endif
 				if (it->getClientMode() == CGI_READING) {
 					it->end_timeoutCGI();
-				} else {
+				} else if (it->getClientMode() == WRITING){
 					//removeClient(it->getClientFd());
 					//continue;
 					int fd = it->getClientFd();
@@ -63,6 +63,8 @@ void	Server::run() {
 					epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, NULL);
 					close(fd);
 				}
+				else
+					it->mode_timetowrite();
 			} else {
 				++it;
 			}
