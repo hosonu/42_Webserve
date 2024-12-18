@@ -23,7 +23,8 @@ SRCS = \
     src/http/RequestValidConf.cpp \
     src/handler/CGIHandler.cpp \
     src/utlis/Utils.cpp
-TARGET = program
+
+TARGET = webserv
 
 OBJECTS = $(SRCS:.cpp=.o)
 
@@ -44,32 +45,3 @@ fclean: clean
 re: fclean $(TARGET)
 
 .PHONY: all clean fclean re
-
-# OBJ_DIR = src/build/obj
-# DEP_DIR = src/build/dep
-# OBJS = $(SRCS:%.cpp=$(OBJ_DIR)/%.o)
-# DEPS = $(SRCS:%.cpp=$(DEP_DIR)/%.d)
-# all: $(TARGET)
-# $(TARGET): $(OBJS)
-# 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
-
-# $(OBJ_DIR)/main.o: src/main.cpp | $(OBJ_DIR)/src
-# 	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# $(OBJ_DIR)/%.o: %.cpp | $(OBJ_DIR)/src/$(dir $*) $(DEP_DIR)/src/$(dir $*)
-# 	$(CXX) $(CXXFLAGS) -MMD -MF $(DEP_DIR)/$*.d -c $< -o $@
-
-# $(OBJ_DIR)/src/% $(DEP_DIR)/src/%:
-# 	mkdir -p $(OBJ_DIR)/src/$(dir $*) $(DEP_DIR)/src/$(dir $*)
-
-# -include $(DEPS)
-
-# clean:
-# 	rm -rf src/build
-
-# fclean: clean
-# 	rm -rf $(TARGET)
-
-# re: fclean $(TARGET)
-
-# .PHONY: all clean fclean re
