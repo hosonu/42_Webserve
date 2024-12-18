@@ -97,7 +97,9 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 		host = hostValue;
 		port = 8080;
 	}
-
+	if (host == "localhost") {
+		host = getLocalhostIpv4();
+	}
 	for(std::vector<ServerConfig>::iterator iter = configData.begin(); iter != configData.end(); ++iter)
 	{
 		if (iter->getServerName() == host) {

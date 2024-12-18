@@ -37,8 +37,6 @@ class Socket {
 		bool	is_listening_;
 };
 
-std::string getLocalhostIpv4();
 unsigned long ipToLong(const std::string& ip);
-std::string convertIpToString(uint32_t ipAddress);
 
 #endif

@@ -8,7 +8,15 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <cstring>
 #include <map>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 template <typename T>
 std::string customToString(const T& value) {
@@ -70,5 +78,9 @@ public:
     std::string getMaxBodySize() const;
     const std::vector<Location>& getLocations() const;
 };
+
+std::string getLocalhostIpv4();
+std::string convertIpToString(uint32_t ipAddress);
+
 
 #endif

@@ -15,9 +15,6 @@ Socket::Socket(const std::string& host, int port)
 		address_.sin_addr.s_addr = INADDR_ANY;
 	} else {
 		std::string ip = host_;
-		if (host_ == "localhost") {
-			ip = getLocalhostIpv4();
-		}
 		address_.sin_addr.s_addr = htonl(ipToLong(ip));
 	}
 	return ;
@@ -32,47 +29,6 @@ Socket::Socket(const Socket &src) {
 }
 
 Socket::~Socket() {
-}
-
-std::string getLocalhostIpv4() {
-	struct addrinfo hints, *res;
-	int status;
-
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-
-	status = getaddrinfo("localhost", NULL, &hints, &res);
-	if (status != 0) {
-		 throw std::runtime_error("getaddrinfo failed: ");
-	}
-	if (res == NULL) {
-        freeaddrinfo(res);
-        throw std::runtime_error("No address found for localhost");
-    }
-	struct sockaddr_in *ipv4 = (struct sockaddr_in *)res->ai_addr;
-	std::string ip = convertIpToString(ipv4->sin_addr.s_addr);
-    freeaddrinfo(res);
-	return ip;
-}
-
-std::string convertIpToString(uint32_t ipAddress) {
-	uint32_t hostOrderIp = ntohl(ipAddress);
-
-	unsigned char octets[4];
-	octets[0] = (hostOrderIp >> 24) & 0xFF;
-	octets[1] = (hostOrderIp >> 16) & 0xFF;
-	octets[2] = (hostOrderIp >> 8) & 0xFF;
-	octets[3] = hostOrderIp & 0xFF;
-
-
-	std::ostringstream oss;
-	oss << static_cast<int>(octets[0]) << "."
-		<< static_cast<int>(octets[1]) << "."
-		<< static_cast<int>(octets[2]) << "."
-		<< static_cast<int>(octets[3]);
-
-	return oss.str();
 }
 
 unsigned long ipToLong(const std::string& ip) {
