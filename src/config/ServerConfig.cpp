@@ -8,13 +8,14 @@ void	ServerConfig::setDefault(bool flag) {
 }
 
 ServerConfig::ServerConfig(const ServerConfig& other)
-: is_default(other.is_default), listenPort(other.listenPort), host(other.host), serverName(other.serverName), maxBodySize(other.maxBodySize), locations(other.locations) {}
+: is_default(other.is_default), listenPort(other.listenPort), host(other.host), serverName(other.serverName),errorPages(other.errorPages), maxBodySize(other.maxBodySize), locations(other.locations) {}
 
 ServerConfig& ServerConfig::operator=(const ServerConfig& other) {
 	if (this != &other) {
 		is_default = other.is_default;
 		listenPort = other.listenPort;
 		host = other.host;
+		errorPages = other.errorPages;
 		serverName = other.serverName;
 		maxBodySize = other.maxBodySize;
 		locations = other.locations;
