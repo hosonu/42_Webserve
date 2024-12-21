@@ -259,9 +259,9 @@ size_t convert_stos(const std::string& max_body_size)
 
 void Response::getBodyPost(Request& req, ServerConfig& conf)
 {
-    std::ifstream error(createErrorPath(conf).c_str());
     if (this->statCode != 200)
     {
+        std::ifstream error(createErrorPath(conf).c_str());
         readErrorFile(error);
         return ;
     }
@@ -275,12 +275,14 @@ void Response::getBodyPost(Request& req, ServerConfig& conf)
     else if (req.getBody().empty())
     {
         this->statCode = 400;
+        std::ifstream error(createErrorPath(conf).c_str());
         readErrorFile(error);
         return ;
     }
     else if (convert_stos(conf.getMaxBodySize()) > 0 && req.getBody().size() > convert_stos(conf.getMaxBodySize()))
     {
         this->statCode = 413;
+        std::ifstream error(createErrorPath(conf).c_str());
         readErrorFile(error);
         return ;
     }
@@ -289,6 +291,7 @@ void Response::getBodyPost(Request& req, ServerConfig& conf)
     if (!file.is_open()) 
     {
         this->statCode = 400;
+        std::ifstream error(createErrorPath(conf).c_str());
         readErrorFile(error);
         return ;
     }
@@ -300,10 +303,10 @@ void Response::getBodyPost(Request& req, ServerConfig& conf)
 
 void Response::getBodyDel( ServerConfig& conf)
 {
-    std::ifstream error(createErrorPath(conf).c_str());
     int fType = checkFileType(this->truePath);
     if (this->statCode != 200)
     {
+        std::ifstream error(createErrorPath(conf).c_str());
         readErrorFile(error);
         return ;
     }
@@ -317,12 +320,14 @@ void Response::getBodyDel( ServerConfig& conf)
         else
         {
             this->statCode = 400;
+            std::ifstream error(createErrorPath(conf).c_str());
             readErrorFile(error);
         }
     }
     else
     {
         this->statCode = 404;
+        std::ifstream error(createErrorPath(conf).c_str());
         readErrorFile(error);
     }
 }

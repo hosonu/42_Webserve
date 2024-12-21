@@ -83,8 +83,6 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 	std::map<std::string, std::string>::iterator it = header.find("Host");
 	if (it != header.end()) {
 		hostValue = it->second;
-	} else {
-		std::cerr << "None Header Host " << std::endl;
 	}
 
 	size_t colonPos = hostValue.find(':');
@@ -104,12 +102,16 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 	{
 		if (iter->getServerName() == host) {
 			this->configDatum = *iter;
-			break ;
+			return ;
 		} else if (iter->getListenHost() == host && iter->getListenPort() == port) {
 			this->configDatum = *iter;
-			break ;
+			return ;
 		}
 	}
+	if (configData.size() > 0)
+		this->configDatum = configData[0];
+	else
+		std::cerr << "None Server " << std::endl;
 }
 
 void    Client::makeResponse()
@@ -199,8 +201,10 @@ void Client::end_timeoutCGI()
 	this->updateActivity();
 }
 
-void Client::mode_timetowrite()
+void Client::mode_timetowrite(std::vector<ServerConfig> &configDatum)
 {
+	if (this->mode == HEADER_READING)
+		this->bindToConfig(configDatum);
 	this->msg.setStatusCode(408, 408);
     std::ifstream error(this->msg.createErrorPath(this->configDatum).c_str());
 	this->msg.readErrorFile(error);

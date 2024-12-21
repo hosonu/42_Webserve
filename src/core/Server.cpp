@@ -59,7 +59,7 @@ void	Server::run() {
 					close(fd);
 				}
 				else
-					it->mode_timetowrite();
+					it->mode_timetowrite(this->configData);
 			} else {
 				++it;
 			}

@@ -46,7 +46,7 @@ class Client
 		void updateActivity();
 		bool isTimedOut(time_t current_time, time_t timeout_seconds) const;
 		void end_timeoutCGI();
-		void mode_timetowrite();
+		void mode_timetowrite(std::vector<ServerConfig> &configDatum);
 	private:
 		int client_fd;
 		int epfd;
