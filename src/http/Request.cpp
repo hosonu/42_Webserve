@@ -134,7 +134,6 @@ bool	Request::checkBodyExist() {
 
 bool	Request::isBodyComplete() const {
 	size_t expected_length = static_cast<size_t>(std::strtol(this->content_length.c_str(), NULL, 10));
- 	std::cout << "body length: " << expected_length <<" , current length:" << this->body.length() << std::endl;
 	return this->body.length() >= expected_length;
 }
 

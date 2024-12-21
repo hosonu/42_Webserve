@@ -30,11 +30,11 @@ int Client::getCGIfd() const {
 void	Client::parseRequestHeader(std::vector<ServerConfig> &configData) {
 	char	buffer[MAX_BUFEER];
 	ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
-	if (count == -1) {
-		std::cerr << "Failed to read : not enough memory" << std::endl;
-		this->mode = CLOSING;
-		return ;
-	}
+	// if (count == -1) {
+	// 	std::cerr << "Failed to read : not enough memory" << std::endl;
+	// 	this->mode = CLOSING;
+	// 	return ;
+	// }
 	if (count > 0) {
 		req.setRawHeader(std::string(buffer, count));
 		std::string& current_header = req.getRawHeader();
@@ -63,11 +63,11 @@ void	Client::parseRequestBody() {
 	} else {
 		char	buffer[MAX_BUFEER];
 		ssize_t count = read(this->client_fd, buffer, sizeof(buffer));
-		if (count == -1) {
-			std::cerr << "Failed to read : not enough memory" << std::endl;
-			this->mode = CLOSING;
-			return ;
-		}
+		// if (count == -1) {
+		// 	std::cerr << "Failed to read : not enough memory" << std::endl;
+		// 	this->mode = CLOSING;
+		// 	return ;
+		// }
 		if (count > 0) {
 			this->req.appendBody(std::string(buffer, count));
 		}
