@@ -145,14 +145,14 @@ bool set_cgi_response(std::string cgibody, bool checkAddContent)
 void	Client::readCGI() {
 	char	buffer[MAX_BUFEER];
 	ssize_t count = read(this->cgi_fd, buffer, sizeof(buffer));
-	if (count == -1) {
-		std::cerr << "Failed to read : not enough memory" << std::endl;
-		this->msg.setStatusCode(500, 500);
-		std::ifstream error(this->msg.createErrorPath(this->configDatum).c_str());
-		this->msg.readErrorFile(error);
-		this->msg.set_headers(this->req);
-		this->mode = WRITING;
-	}
+	// if (count == -1) {
+	// 	std::cerr << "Failed to read : not enough memory" << std::endl;
+	// 	this->msg.setStatusCode(500, 500);
+	// 	std::ifstream error(this->msg.createErrorPath(this->configDatum).c_str());
+	// 	this->msg.readErrorFile(error);
+	// 	this->msg.set_headers(this->req);
+	// 	this->mode = WRITING;
+	// }
 	if (count > 0) {
 		this->cgi.appendCGIBody(std::string(buffer, count));
 	}
