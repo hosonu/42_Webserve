@@ -24,6 +24,11 @@ std::string Response::createMessage(Request &req, ServerConfig& conf)
         this->getBodyPost(req, conf);
     else if (req.getMethod() == "DELETE")
         this->getBodyDel(conf);
+    else
+    {
+        std::ifstream error(createErrorPath(conf).c_str());
+        readErrorFile(error);
+    }
     this->getStatusCode();
     this->request_line = this->getRequestLine();
     this->header += this->getContentType(req.getUri()) + "\r\n";
