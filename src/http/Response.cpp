@@ -15,7 +15,7 @@ std::string Response::createMessage(Request &req, ServerConfig& conf)
     validConf.validReqLine();
     this->setStatusCode(req.getPrse().getTotalStatus(), validConf.getStat());
     this->truePath = this->createTruePath(conf, req.getUri());
-    if (this->cgiFlag && this->truePath.find(".py") !=std::string::npos) {
+    if (this->cgiFlag && this->truePath.find(".py") !=std::string::npos && this->statCode == 200) {
         return "CGI_READING";
     }
     if (req.getMethod() == "GET")
