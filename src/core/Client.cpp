@@ -104,8 +104,10 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 	{
 		if (iter->getServerName() == host) {
 			this->configDatum = *iter;
+			break ;
 		} else if (iter->getListenHost() == host && iter->getListenPort() == port) {
 			this->configDatum = *iter;
+			break ;
 		}
 	}
 }
