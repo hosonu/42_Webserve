@@ -83,6 +83,8 @@ void	Client::bindToConfig(std::vector<ServerConfig> &configData) {
 	std::map<std::string, std::string>::iterator it = header.find("Host");
 	if (it != header.end()) {
 		hostValue = it->second;
+	} else {
+		hostValue = "localhost";
 	}
 
 	size_t colonPos = hostValue.find(':');

@@ -1,28 +1,60 @@
 # 42_Webserve
 
-HTTP/1.1準拠の軽量Webサーバー実装
+A lightweight HTTP/1.1 compliant web server implementation
 
-## 概要
+## Overview
 
-このプロジェクトは、C++で実装されたシンプルかつ効率的なWebサーバーです。
-非同期I/O処理を使用し、設定可能な静的ファイル配信とCGI実行をサポートします。
+This project is a simple and efficient web server implemented in C++.
+It uses asynchronous I/O processing and supports configurable static file serving and CGI execution.
 
-## 機能
+## Features
 
-- 非ブロッキングI/O (epoll使用)
-- HTTPメソッド (GET, POST, DELETE)
-- 設定ファイルによるサーバー設定
-- 静的ファイル配信
-- CGIサポート
-- ファイルアップロード
-- カスタムエラーページ
-- マルチポートリスニング
+- Non-blocking I/O (using epoll)
+- HTTP methods (GET, POST, DELETE)
+- Server configuration via config files
+- Static file serving
+- CGI support
+- File upload capability
+- Custom error pages
+- Multi-port listening
 
-## 必要要件
+## Configuration
 
-- C++98 
+The server is configured using configuration files in the `config/` directory. Example configuration:
 
-## ビルド方法
+```nginx
+server {
+    listen localhost:8080;
+    error_page 404 /error.html;
+    client_max_body_size 1m;
+    
+    location / {
+        autoindex on;
+        allow_methods GET POST;
+        isCGI on;
+    }
+}
+```
+
+### Configuration Options
+
+- `listen`: Specify host and port (e.g., `localhost:8080`)
+- `error_page`: Custom error page paths
+- `client_max_body_size`: Maximum allowed request body size
+- `location`: Path-specific configurations
+  - `autoindex`: Enable/disable directory listing
+  - `allow_methods`: Allowed HTTP methods
+  - `isCGI`: Enable CGI processing
+  - `root`: Document root directory
+  - `index`: Default index file
+  - `return`: URL redirection
+
+## Requirements
+
+- C++98
+
+## Build Instructions
 
 ```bash
 make
+```
